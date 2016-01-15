@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <mpi.h>
+
+void processor0();
+void processor1();
+
+int main( int argc, char** argv ) {
+
+	int rank, size;
+	
+	MPI_Init( &argc, &argv );
+
+	MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+	MPI_Comm_size( MPI_COMM_WORLD, &size );
+
+	if ( rank == 0 ) {
+		processor0();
+	}
+	else {
+		processor1();
+	}
+
+	/*	int i = 0;
+	char hostname[256];
+	gethostname(hostname, sizeof(hostname));
+	printf("PID %d on %s ready for attach\n", getpid(), hostname);
+	fflush(stdout);
+	while (0 == i)
+	sleep(5);
+	*/
+	MPI_Finalize();
+
+	return 0;
+}
+
+#define LOOP_MSG (100)
+
+void processor0() {
+	const int MAX_LOOP = 100;
+	const int MAX_RANDOM_VALUE = 10;
+	
+	int loop, value;
+	int i;
+	
+	srand( time(NULL) );	/* Initialise the psuedo random generator */
+
+	loop = rand() % 100;    /* Create a random value between 0 and 99 */
+	
+	MPI_Ssend( &loop, 1, MPI_INT, 1, LOOP_MSG, MPI_COMM_WORLD );
+
+	for ( i = 0, value = 0; i < loop; i++ ) {
+		value += rand() % MAX_RANDOM_VALUE; 
+	}
+
+	return;
+}
+void processor1() {
+
+	MPI_Status status;
+	
+	int loop, value;
+	int i;
+
+	MPI_Recv( &loop, 1, MPI_INT, 0, LOOP_MSG, MPI_COMM_WORLD, &status );
+
+	for ( i = 0, value = 0; i < loop; i++ ) {
+		value += i;;
+	}
+
+	return;
+}
+

@@ -1,0 +1,22 @@
+#!/bin/bash
+# Usage: qsub pbs-script
+# Prepared By: Sudarshan Ramachandran, Network Engineer, VPAC, 15 Apr 2003
+#	       sram@vpac.org
+# Major modifications by: Lev Lafayette, Systems Administrator, VPAC, 29 Dec 2010
+
+# NOTE: To activate a PBS option, remove the whitespace between the '#' and 'PBS'
+
+# Give your job a name
+#PBS -N MSum
+
+# Establish processors and walltime.
+#PBS -l nodes=2
+#PBS -l walltime=00:10:00
+
+# Changes directory to your execution directory. 
+cd $PBS_O_WORKDIR
+
+# Command to run an MPI job, note we specified mpiexec so dont need to
+# specify the number of processes or thier names. 
+
+mpiexec ./msum

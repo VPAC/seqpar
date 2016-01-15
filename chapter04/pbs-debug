@@ -1,0 +1,14 @@
+#!/bin/bash
+# Usage: qsub pbs-script
+# Lev Lafayette, Systems Administrator, VPAC, 30 Dec 2010
+
+#PBS -N Debug
+
+# Establishe processors and walltime.
+#PBS -l nodes=1:ppn=2
+#PBS -l walltime=00:10:00
+
+# Changes directory to your execution directory. 
+cd $PBS_O_WORKDIR
+
+mpiexec ./mpi-debugc
