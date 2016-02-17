@@ -23,6 +23,7 @@ All trademarks are property of their respective owners.
 Table of Contents
 =================
 
+Foreward
 Introduction	2
 1.0 Current Trends in Computer Systems	5
 1.1 Computer System Architectures	5
@@ -55,6 +56,37 @@ Introduction	2
 5.2 Memory Checking with Valgrind	90
 5.3 Debugging with GDB	93
 References	97
+
+
+Foreward
+========
+
+John L. Gustafson
+
+It is finally time for a book like this one.
+
+When parallel programming was just getting off the ground in the late 1960s, it started as a battle between starry-eyed academics who envisioned how fast and wonderful it could be, and cynical hard-nosed executives of computer companies who joked that “parallel computing is the wave of the future, and always will be.” 
+
+The pivotal example of this was the 1967 debate between Dan Slotnick (who spearheaded the experimental 64-processor ILLIAC IV at the University of Illinois) and Gene Amdahl (architect of the IBM System 360 line of mainframes).  Amdahl’s argument against parallel processing was devastating and was quickly embraced by an industry that dreaded the idea that they might have to rewrite millions of lines of software, retrain an entire generation of programmers and hardware designers, and backpedal on decades of hard-won experience with the traditional serial computing model: One memory, one processor, one instruction at a time.
+
+Yet, the ILLIAC IV was a successful machine. It was the fastest supercomputer in the world for an unusually long time.  Believers in parallel programming formed a cult-like community of true believers for whom “Amdahl’s law”, as William Ware described it, was a constant thorn in their side. 
+
+By the early 1980s, Seymour Cray was pushing against the limits of the laws of physics to support the serial programming model with his vector mainframes, and he ultimately reached the point where it was clear Cray Research Inc. would have to expose the programmer to a modest amount of parallelism, like two or four processors coordinated to run a single job. A Cray Research company executive said, unaware of the irony of his statement, “We want to get into parallel processing, but we want to do it one step at a time.”
+
+Universities were less conservative about parallel programming. After the ILLIAC, the University of Illinois showed how a shared memory computer with many processors (CEDAR) could be built and programmed with the help of a sophisticated compiler. Caltech showed that a distributed memory system could be built by interconnecting a desktop full of personal computer parts (the Cosmic Cube) and programmed by passing messages between each PC-like computing node.
+
+Smaller companies became infected with the vision of the academics regarding parallel processing. They included FPS, Denelcor, Alliant, Thinking Machines, and nCUBE.  My own experiences at FPS and nCUBE led to a formulation of the counter-argument to Amdahl’s law that bears my name, but is really nothing more than the common-sense observation that problem sizes increase to match the computing power available, so the serial bottleneck actually shrinks instead of staying constant. That simple observation countered, at last, those who had been using Amdahl’s law to defend as scientific what really was an emotion-driven trepidation regarding parallel programming. In a very short time, IBM, Digital Equipment, Cray, and other giants in the computing industry announced plans for parallel computing products as contrasted with research projects. It was no longer the province of risky startup ventures; by 1990, parallel computing had become mainstream.
+
+We are now in the “late adopters” stage of the technology adoption cycle laid out by Geoffrey A. Moore in his classic, Crossing the Chasm. The dust has settled on the field of parallel programming to the point that we now have community standards for parallel programming environments. Many independent software vendors ship software designed for massively parallel computer clusters in data centers. Universities routinely teach parallel programming as part of an undergraduate computer science curriculum. In a way, the war is over, and parallel programming won. But now comes Reconstruction, and that stage of the war is going very slowly. That is why this book is timely.
+
+A technology director for the National Security Agency informed me that only about five percent of their army of programmers knows how to program in parallel. One reason that agency went after the Unified Parallel C model was that it seemed to raise, rather easily, the fraction of parallel-literate programmers to fifteen percent. A little effort went a long way, tripling their human resources for truly high-performance computing tasks.
+
+Sequential and Parallel Programming with C and Fortran is exactly the right book to bring people up to speed with minimum discomfort, and with a choice of topics that will not soon go out of date. The MPI Standard presented in the book is the outgrowth of Caltech’s Cosmic Cube. Similarly, the OpenMP Standard explained here is the outgrowth of the CEDAR project of the University of Illinois. Those standards are here to stay, just as languages like Fortran and C are not likely to be completely displaced anytime soon; they absorbed new ideas throughout their history, incorporating them into revised standard definitions of their language.
+
+The models for shared and distributed memory programming have similarly stabilized and rallied around OpenMP and MPI, so they, too, absorb new ideas as tweaks to a well-established standard. In other words, the thinking has finally converged in a part of computing technology that was once an extremely unsettled set of schools of thought that definitely did not work and play well together.
+
+Lev Lafayette approaches the subject with just the right touch of Australian levity, increasing the readability of an admittedly dry topic.  He judiciously chooses the right amount of detail to cover the maximum amount of material in the smallest number of pages, imitating the classic Kernighan and Ritchie book that introduced the C language to a generation of programmers. Instead of listing the strict grammar rules, the author gives pointer about how you should write programs, the guidelines of style and clarity that are absent from a User’s Manual. If you only have time to read one book about parallel computing, this is it.
+
 
 Introduction
 ============
