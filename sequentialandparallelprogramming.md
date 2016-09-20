@@ -1390,12 +1390,16 @@ Noam Chomsky said Colourless sleep furiously ideas green
 
 A combination of tasks and loops is also possible with the `taskloop` construct. With this construct one or more associated loops will be executed in parallel using tasks. It can be further expanded to carry out these taskloops with SIMD instructions. Its generic form follows:
 
-```#pragma omp taskloop simd [clauses]
-for-loops```
+```
+#pragma omp taskloop simd [clauses]
+for-loops
+```
 
-```!$omp taskloop simd [clauses]
+```!
+$omp taskloop simd [clauses]
 do-loops
-!$omp end taskloop simd```
+!$omp end taskloop simd
+```
 
 ## 3.5 Targets and Teams
 
@@ -1403,32 +1407,44 @@ In addition to operating with different tasks, OpenMP can also operate on differ
 
 Program execution begins on the host device and when a thread encounters the `target` directive subsequent code in that region executes on the target device. The target device is determined by the device clause or, if that is not in the construct, the default-device-var ICV. The generic syntax is as follows:
 
-```#pragma omp target [clause[ [,] clause] ... ] new-line
-structured-block```
-
-```!$omp target [clause[ [,] clause] ... ]
+```
+#pragma omp target [clause[ [,] clause] ... ] new-line
 structured-block
-!$omp end target```
+```
+
+```
+!$omp target [clause[ [,] clause] ... ]
+structured-block
+!$omp end target
+```
 
 Whereas the `target` construct transfers the control flow to a target device, the `target data` construct maps variables to a device data environment. 
 
-```#pragma omp target data [clauses]
-structured-block```
-
-```!$omp target data [clauses]
+```
+#pragma omp target data [clauses]
 structured-block
-!$omp end target data```
+```
+
+```
+!$omp target data [clauses]
+structured-block
+!$omp end target data
+```
 
 This is then elaborated by the `target update` directive to request data transfers from within a target data region by making the corresponding list items in the device data environment consistent with their original list items and according to specified clauses. For each list item in a `to` or `from` clause there is a corresponding list item and an original list item. Note that clauses must be present in this directive.
 
-```#pragma omp target update clauses
-!$omp target update clauses```
+```
+#pragma omp target update clauses
+!$omp target update clauses
+```
 
 The `declare target` directive specifies that variables, functions, and subroutines (Fortran alone) are mapped to a device. If an extended list is not included, the clause `to(extended-list)` or `link(list)` must be.
 
-```#pragma omp declare target
+```
+#pragma omp declare target
 declaration-definition-seq
-#pragma omp end declare target```
+#pragma omp end declare target
+```
 or
 `#pragma omp declare target (extended-list)`
 or
@@ -1440,50 +1456,74 @@ or
 
 The `target enter data` directive specifies that variables are mapped to a device data environment. When a target enter data construct is encountered, the list items are mapped to the device data environment according to the map clauses. An associated directive is `target exit data`, which specifies list items that are to be unmapped from a device data environment. The general syntax for the two is as follows:
 
-```#pragma omp target enter data [clauses]
-!$omp target enter data [clauses]```
+```
+#pragma omp target enter data [clauses]
+!$omp target enter data [clauses]
+```
 
-```#pragma omp target exit data [clauses]
-!$omp target exit data [clauses]```
+```
+#pragma omp target exit data [clauses]
+!$omp target exit data [clauses]
+```
 
 Whilst a parallel region creates a team of threads for execution, and a nested parallel can create a new team within an existing team, there is also a `teams` construct for use specifically within the `targets` construct i.e., the binding thread for a teams region is where the the initial thread is of the target region. When a thread encounters the `teams` construct it creates a league of thread teams and the master thread of each team executes the region. Once the teams are created, the number of `teams` remains constant for the duration of the region and within a `teams` region, each team is identified with a call to the `omp_get_team_num` library routine.
 
-```#pragma omp teams [clauses]
-structured-block```
-
-```!$omp teams [clauses]
+```
+#pragma omp teams [clauses]
 structured-block
-!$omp end teams```
+```
+
+```
+!$omp teams [clauses]
+structured-block
+!$omp end teams
+```
 
 Once target teams are in place tasks may be assigned to them, for example with the `distribute` construct, which can allocate one or more loops. An equivalent `distribute simd` is also available. Composite constructs can be built with `distribute parallel for` and `distribute parallel for simd`.
 
-```#pragma omp distribute [clauses]
-for-loops```
+```
+#pragma omp distribute [clauses]
+for-loops
+```
 
-```!$omp distribute [clauses]
+```
+!$omp distribute [clauses]
 do-loops
-!$omp end distribute```
+!$omp end distribute
+```
 
-```#pragma omp distribute simd [clauses]
-for-loops```
+```
+#pragma omp distribute simd [clauses]
+for-loops
+```
 
-```!$omp distribute simd [clauses]
+```
+!$omp distribute simd [clauses]
 do-loops
-!$omp end distribute simd```
+!$omp end distribute simd
+```
 
-```#pragma omp distribute parallel for [clauses]
-for-loops```
+```
+#pragma omp distribute parallel for [clauses]
+for-loops
+```
 
-```!$omp distribute parallel do [clauses]
+```
+!$omp distribute parallel do [clauses]
 do-loops
-[!$omp end distribute parallel do]```
+[!$omp end distribute parallel do]
+```
 
-```#pragma omp distribute parallel for simd [clauses]
-for-loops```
+```
+#pragma omp distribute parallel for simd [clauses]
+for-loops
+```
 
-```!$omp distribute parallel do simd [clauses]
+```
+!$omp distribute parallel do simd [clauses]
 do-loops
-!$omp end distribute parallel do simd```
+!$omp end distribute parallel do simd
+```
 
 This brings us to an end of the chapter on OpenMP; rather like the following chapter on OpenMPI only a cursorary exploration of the major capabilities have been provided. However they should be a sufficient overview to start converting sequential code into parallel code immediately and with minimum effort whilst also providing the grounding for future exploration and detail.
 
