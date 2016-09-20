@@ -1549,6 +1549,8 @@ Major milestones in the development of MPI include the following:
 
 The message passing paradigm, as it is called, is attractive as it is portable on a wide variety of distributed architectures, including distributed and shared memory multiprocessor systems, networks of workstations, or even potentially a combination thereof. Although originally designed for distributed architectures (unicore workstations connected by a common network) which were popular at the time the standard was initiated, shared memory symmetric multiprocessing systems over networks created a hybrid distributed/shared memory systems, that is each system has shared memory within each machine but not the memory distributed between machines, which distribute data over the network communications. The MPI library standards and implementations were modified to handle both types of memory architectures.
 
+
+
 (image from Lawrence Livermore National Laboratory, U.S.A)
 
 Using MPI is a matter of some common sense. It is is the only message passing library which can really be considered a standard. It is supported on virtually all HPC platforms, and has replaced all previous message passing libraries, such as PVM, PARMACS, EUI, NX, Chameleon, to name a few predecessors. Programmers like it because there is no need to modify their source code when ported to a different system as long as that system also supports the MPI standard (there may be other reasons however to modify the code!). MPI has excellent performance with vendors able to exploit hardware features for optimisation.
