@@ -1,6 +1,6 @@
 program hello
 	include "omp_lib.h"
-	implicit none 
+	! implicit none 
 	character(len=16) :: greetings 
 	integer :: a
 	greetings = "Hello World!" 

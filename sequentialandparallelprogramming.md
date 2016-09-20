@@ -1,6 +1,4 @@
-======================================================
-Sequential and Parallel Programming with C and Fortran
-====================================================== 
+#Sequential and Parallel Programming with C and Fortran
 
 by Lev Lafayette
 
@@ -20,8 +18,7 @@ Sequential and Parallel Programming with C and Fortran, is licensed under a Crea
 All trademarks are property of their respective owners.
 
 
-Table of Contents
-=================
+# Table of Contents
 
 Foreward
 Introduction	2
@@ -58,8 +55,7 @@ Introduction	2
 References	97
 
 
-Foreward
-========
+# Foreward
 
 John L. Gustafson
 
@@ -88,8 +84,7 @@ The models for shared and distributed memory programming have similarly stabiliz
 Lev Lafayette approaches the subject with just the right touch of Australian levity, increasing the readability of an admittedly dry topic.  He judiciously chooses the right amount of detail to cover the maximum amount of material in the smallest number of pages, imitating the classic Kernighan and Ritchie book that introduced the C language to a generation of programmers. Instead of listing the strict grammar rules, the author gives pointer about how you should write programs, the guidelines of style and clarity that are absent from a User’s Manual. If you only have time to read one book about parallel computing, this is it.
 
 
-Introduction
-============
+# Introduction
 
 In many ways contemporary computing is an elaboration of mechanical automation and calculation, whose origins can date back at least to the Antikythera mechanism, from approximately 150 to 100 BCE, and was used for astronomical positions and calendaring. From there multiple chains of inquiry can be traced to the development of programmable automata, the feedback mechanism for sails on windmills, centrifugal governor originally for mills and steam engines, the Jacquard loom's logic board, and Charles Babbage's Analytical Engine. The honour of the first real programmer goes to Ada Lovelace, who theorised that the Analytical Engine could engage in logical computation of symbols as well as numbers and wrote the first program which calculated a sequence of Bernoulli numbers.
 
@@ -111,7 +106,7 @@ Moving from shared memory to parallel programming involves a conceptual change f
 
 Finally, relevant to sequential, multi-threaded, and message passing programs, is the issues of profiling and debugging. In particular the applications TAU (Tuning and Analysis Utilities), Valgrind, and GDB (GNU Debugger) are explored in some detail with some practical examples on how to improve one's code.
 
-As a whole it must be reiterated that this book gives but a broad introduction to the subjects in question. There are, of course, some very detailed books on each of the subjects addressed; books on multicore systems, books on Fortran, books on C, books on OpenMP, MPI, debugging and profiling. Designed as two-days of learning material, this is no substitute for the thousands of pages of material that in-depth study can provide on each subject.  
+As a whole it must be reiterated that this book gives but a broad introduction to the subjects in question. There are, of course, some very detailed books on each of the subjects addressed; books on multicore systems, books on Fortran, books on C, books on OpenMP, MPI, debugging and profiling. Designed as two-days of learning material, this is no substitute for the thousands of pages of material that in-depth study can provide on each subject.
 
 As with other books recently published in this series it is designed in part as a quick reference guide for research-programmers and as a workbook, which can be studied from beginning to end. Indeed, it is in the latter manner than a great deal of the material has been derived from a number of parallel programming courses conducted by the Victorian Partnership for Advanced Computing (VPAC). The content is deliberately designed in a structured manner, and as such can be used by an educator, including those engaging in self-education. Whether through instruction or self-learning it is highly recommended that a learner take the time to work through the code examples carefully and to be prepared to make plenty of errors. Errors are a very effective learning tool.
 
@@ -130,11 +125,9 @@ This book is part of a series designed to assist researchers, systems administra
 Lev Lafayette, Victorian Partnership for Advanced Computing, Melbourne, 2015
 
 
-1.0 Current Trends in Computer Systems
-======================================
+# 1.0 Current Trends in Computer Systems
 
-1.1 Computer System Architectures 
----------------------------------
+## 1.1 Computer System Architectures 
 
 High performance computing (HPC) is the use of supercomputers and clusters to solve advanced computation problems. All supercomputers, a nebulous term for computer that is at the forefront of current processing capacity, in contemporary times use parallel computing, the distribution of jobs or processes over one or more processors and by splitting up the task between them. 
 
@@ -160,8 +153,7 @@ c) Instruction prefetch, where an instruction is requested from main memory befo
 
 d) Pipelines, on the instruction level or the graphics level, can also serve as an example of concurrent activity. An instruction pipeline (e.g., RISC) allows multiple instructions on the same circuitry by dividing the task into stages. A graphics pipeline implements different stages of rendering operations to different arithmetic units.
 
-Single Instruction Stream, Multiple Data Streams (SIMD)
--------------------------------------------------------
+### Single Instruction Stream, Multiple Data Streams (SIMD)
 
 SIMD architecture represents a situation where a single processor performs the same instruction on multiple data streams. This commonly occurs in contemporary multimedia processors, for example MMX instruction set from the 1990s, which lead to Motorolla’s PowerPC Altivec, and more contemporary times AVE (Advanced Vector Extensions) instruction set used in Intel Sandy Bridge processors and AMD's Bulldozer processor. These developments have primarily been orientated towards real-time graphics, using short-vectors. Contemporary supercomputers are invariably MIMD clusters which can implement short-vector SIMD instructions. IBM is still continuing with a general SIMD architecture through their Power Architecture.
 
@@ -169,8 +161,7 @@ SIMD was also used especially in the 1970s and notably on the various Cray syste
 
 SIMD is also known as vector processing or data parallelism, in comparison to a regular SIMD CPU which operates on scalars. SIMD lines up a row of scalar data (of uniform type) as a vector and operates on it as a unit. For example, inverting an RGB picture to produce its negative, or to alter its brightness etc. Without SIMD each pixel would have to be fetched to memory, the instruction applied to it, and then returned. With SIMD the same instruction is applied to all the data, depending on the availability of cores, e.g., get n pixels, apply instruction, return. The main disadvantages of SIMD, within the limitations of the process itself, is that it does require additional register, power consumption, and heat.
 
-Multiple Instruction Streams, Single Data Stream (MISD)
--------------------------------------------------------
+### Multiple Instruction Streams, Single Data Stream (MISD)
 
 Multiple Instruction, Single Data (MISD) occurs when different operations are performed on the same data. This is quite rare and indeed debatable as it is reasonable to claim that once an instruction has been performed on the data, it's not the same anymore. If one allows for a variety of instructions to be applied to the same data which can change, then various pipeline architectures can be considered MISD. 
 
@@ -178,8 +169,7 @@ Systolic arrays are another form of MISD. They are different to pipelines becaus
 
 MISD machines are rare; the Cisco PXF processor is an example. They can be fast and scalable, as they do operate in parallel, but they are really difficult to build.
 
-Multiple Instruction Streams, Multiple Data Streams (MIMD)
-----------------------------------------------------------
+### Multiple Instruction Streams, Multiple Data Streams (MIMD)
 
 Multiple Instruction, Multiple Data (MIMD) have independent and asynchronous processes that can operate on a number of different data streams. They are now the mainstream in contemporary computer systems and thus can be further differentiated between multiprocessor computers and their extension, multicomputer mutiprocessors. As the name clearly indicates, the former refers to single machines which have multiple processors and the latter to a cluster of these machines acting as a single entity.
 
@@ -187,37 +177,31 @@ Multiprocessor systems can be differentiated between shared memory and distribut
 
 With distributed memory systems, each processor has its own memory. Finally, another combination is distributed shared memory, where the (physically separate) memories can be addressed as one (logically shared) address space. A variant combined method is to have shared memory within each multiprocessor node, and distributed between them.
 
-Divisions within MIMD
----------------------
+### Divisions within MIMD
 
 More recently further subdivisions within that category are considered. Specifically there are the taxons of Single Program Multiple Data streams (SPMD) and Multiple Programs Multiple Data streams (MPMD). These classifications have gained recent popularity given the widespread use of MIMD systems.
 
 In the former case (SPMD), multiple autonomous processors execute the same program on multiple data streams. This differs from SIMD approaches which a single processor executes on multiple data streams. In the latter case (MPMD) the autonomous processors operate with at least two independent programs.
 
-1.2 Processors, Cores, and Threads
-==================================
+## 1.2 Processors, Cores, and Threads
 
-Uni- and Multi-Processors
--------------------------
+### Uni- and Multi-Processors
 
 A further distinction needs to be made between processors and cores. A processor is a physical device that accepts data as input and provides results as output. A uniprocessor system has one such device, although the definitions can become ambiguous. In some uniprocessor systems it is possible that there is more than one, but the entities engage in separate functions. For example, a computer system that has one central processing unit may also have a co-processor for mathematic functions and a graphics processor on a separate card. Is that system uniprocessor? Arguably not as the co-processor will be seen as belonging to the same entity as the CPU, and the graphics processor will have different memory, system I/O, and will be dealing with different peripherals. In contrast a multiprocessor system does share memory, system I/O, and peripherals. But then the debate will become murky with the distinction between shared and distributed memory discussed above.
 
-Uni- and Multi-core
--------------------
+### Uni- and Multi-core
 
 In addition to the distinction between uniprocessor and multiprocessor there is also the distinction between unicore and multicore processors.  A unicore processor carries out the usual functions of a CPU, according to the instruction set; data handling instructions (set register values, move data, read and write), arithmetic and logic functions (add, subtract, multiply, divide, bitwise operations for conjunction and disjunction, negate, compare), and control-flow functions (conditionally branch to another address within a program, indirectly branch and return). A multicore processor carries out the same functions, but with independent central processing units (note lower case)  called 'cores'. Manufacturers integrate the multiple cores onto a single integrated circuit die or onto multiple dies in a single chip package.
 
 In terms of theoretical architecture, a uniprocessor system could be multicore, and a multiprocessor system could be unicore. In practise the most common contemporary architecture is multiprocessor and multicore. The number of cores is represented by a prefix. For example, a dual-core processor has two cores (e.g. AMD Phenom II X2, Intel Core Duo), a quad-core processor contains four cores (e.g. AMD Phenom II X4, Intel i3, i5, and i7), a hexa-core processor contains six cores (e.g. AMD Phenom II X6, Intel Core i7 Extreme Edition 980X), an octo-core processor or octa-core processor contains eight cores (e.g. Intel Xeon E7-2820, AMD FX-8350) etc.
 
-Uni- and Mult-Threading
------------------------
+### Uni- and Mult-Threading
 
 In addition to the distinctions between processors and cores, whether uni- or multi-, there is also the question of threads and its distinction from a process.  A process provides the resources to execute an instance of a program (such as address space, the code, handles to system objects, a process identifier etc).  An execution thread is the smallest processing unit in an operating system, contained inside a process. Multiple threads can exist within the same process and share the resources allocated to a process. 
 
 On a uniprocessor, multithreading generally occurs by switching between different threads engaging in time-division multiplexing with the processor switching between the different threads, which may give the apperance that the ask is happening at the same time. On a multiprocessor or multi-core system, threads become truly concurrent, with every processor or core executing a separate thread simultaneously. 
 
-1.3 Multithreaded Applications
-==============================
+## 1.3 Multithreaded Applications
 
 One form of parallel programming is multithreading, whereby a master thread forks a number of sub-threads and divides tasks between them. The threads will then run concurrently and are then joined at a subsequent point to resume normal serial application.
 
@@ -225,8 +209,7 @@ One implementation of multithreading is OpenMP (Open Multi-Processing). It is an
 
 There is no doubt that OpenMP is an easier form of parallel programming compared to distributed memory parallel programming or directly programming for shared memory using shared memory function calls. However it is limited to a single system unit (no distributed memory) and is thread-based rather than using message passing.
 	
-Why Is It A Multicore Future?
------------------------------
+### Why Is It A Multicore Future?
 
 Ideally, don't we want clusters of multicore multiprocessors with multithreaded instructions? Of course we do; but think of the heat that this generates, think of the potential for race conditions, such as situations where multiple processes or threads are attemping to read or write to the same resources (e.g., deadlocks, data integrity issues, resource conflicts, interleaved execution issues).
 
@@ -236,11 +219,9 @@ The partial solution to the issue was to pipeline power through additional cores
 
 New multicore systems are being developed all the time. Using RISC CPUs, Tilera released 64-core processors in 2007, the TILE64, and in 2011, a one hundred core processor, the Gx3100. In 2012 Tilera founder, Dr. Agarwal, is leading a new MIT effort dubbed The Angstrom Project. It is one of four DARPA-funded efforts aimed at building exascale supercomputers, i.e., a system capable of at least one exaFLOP, or a billion billion calculations per second. The goal is to design a chip with 1,000 cores.
 
-1.4 Parallel Processing Performance
-===================================
+## 1.4 Parallel Processing Performance
 
-Speedup and Locks
------------------
+### Speedup and Locks
 
 Parallel programming and multicore systems should mean better performance. This can be expressed a ratio called speedup (c.f., C. Xavier, S. S. Iyengar, "Introduction to Parallel Algorithms", John Wiley and Sons, 5 Aug. 1998, pp52) 
         
@@ -258,8 +239,7 @@ A similar example is a livelock; the states of the processes involved in the liv
 
 Locks are currrently manually inserted in typically programming languages; without locks programs can be put in an inconsistent state. They are usually included as a way of guarding critical sections. Multiple locks in different places and orders can lead to deadlocks. Manual lock inserts is error-prone, tedious and difficult to maintain. Does the programmer know what parts of a program will benefit from parallelisation? To ensure that parallel execution is safe, a task’s effects must not interfere with the execution of another task. 
 
-Amdahl's Law and the Gustafson-Barsis Law
------------------------------------------
+### Amdahl's Law and the Gustafson-Barsis Law
 
 Amdahl's law, in the general sense, is a method to work out the maximum improvement to a system when only part of the system has been improved. A very typical use - and appropriate in this context - is the improvement in speedup with the adding on multiple processors to a computational task. Because some of the task is in serial, there is a maxiumum limit to the speedup based on the time that is required for the sequential task - no matter how many processors are thrown at the problem. For example, if there is a complex one hundred hour which will require five hours of sequential processing, only 95% of the task can be parallel - which means a maximum speedup of 20X.
 
@@ -280,11 +260,10 @@ If the problem size is allowed to grow with P, then the sequential fraction of t
 (Image from Wikipedia)
 
 
-2.0 Sequential Programming with C and Fortran
-=============================================
+# 2.0 Sequential Programming with C and Fortran
 
-2.1 Fortran and C Fundamentals
-------------------------------
+
+## 2.1 Fortran and C Fundamentals
 
 Fortran and C are two of the most deployed programming languages in existence. Whilst languages do rise and fall in popularity, these two in particular have been in use since 1957 and 1972 respectively and are still in very active development. For those interested in scientific or high performance computing in particular, there can be little doubt that these will be of primary use for a significant period of time into the future, as they are they primary languages for implementations of shared memory parallelism (OpenMP) and message passing (MPI). Both languages are sufficiently important to have standards established by the ISO. Certainly they are not recommended for all programming activities; in many cases a simpler language such as a shell script, perl, python etc will be sufficient. But when it comes down to complex data structures, speed, and parallel processing, C and Fortran are the preferred choice.
 
@@ -306,30 +285,32 @@ An important attribute of programming languages is the implementation of types. 
 
 The examples throughout this chapter will use the GNU compiler suite version 5.2.0 (2015). Note that the assumed suffix for Fortran90 is .f90 – if you attempt to compile with just .f, the compiler will assume you're using FORTRAN77.
 
-2.2 Program and Compilation
----------------------------
+## 2.2 Program and Compilation
+
 The classic 'Hello World' example can be expressed as source in Fortran and C as follows. 
 
 In Fortran
-
+```	
 	program hello
 		implicit none
 		print *, "Hello world!"
 	end program hello
-
+```
 In C
 
+```
 	#include <stdio.h>
 	int main(void)
 	{
 	   printf("Hello, world!");
 	   return 0;
 	}
+```
 
 Both can be compiled respectively as follows, with the source file (.c or .f) creating an executable binary:
 
-	gfortran hello.f90 -o hellof
-	gcc hello.c -o helloc
+	`gfortran hello.f90 -o hellof`
+	`gcc hello.c -o helloc`
 
 Which can be run by invoked ./hellof or ./helloc as appropriate from the executable directory.
 
@@ -343,12 +324,13 @@ The compiler translates source to assembly code, and the assembler creates objec
 
 The two examples that follow illustrate the basic structure in Fortran and C languages. The use of the 'implicit none' in the Fortran example forces the programmer to declare all variables, which is certainly a good practice and should be regarded as compulsory. (The requirement dates back to historic versions of FORTRAN where variable names starting with i, j, k, l, m, or n, were integers and others were reals). The #include <stdio.h> is a preprocessor directive and tells the C compiler to find the standard input-output header called and include it to this program. This is followed by the main function which takes no parameters (and protects itself with the `void` type), with the printf function within it, a statement which is terminated by a semicolon. The return 0 in the C main function indicates to the operating system that the program has completed successfully. 
 
-In C, the comment block can be multi-line. In Fortran each line (or inline) comment needs to be initiated by the exclamation mark. Comments should introduce the program and be applied sufficiently to improve the readability of the code; and wary of over-commenting. The argument that comments should be used liberally to improve readability is simply not true. Liberal use of comments can reduce readability. The best criteria for commenting is that it is complete enough to make it clear to probable readers – especially and primarily the authors of the code - and that is is correct (i.e., the comments and the code agree). Commenting certainly proves its worth months later when code will be revised and often by different people to the original authors. Often various hacks are commented to explain what was done and why. Whilst this is better than leaving the change without comments, it is better still to rewrite the code. Of course this isn't always available. Sometimes other code or compilers that are controlled by other people require various workarounds. In which case, make this explicit.  
+In C, the comment block can be multi-line. In Fortran each line (or inline) comment needs to be initiated by the exclamation mark. Comments should introduce the program and be applied sufficiently to improve the readability of the code; and wary of over-commenting. The argument that comments should be used liberally to improve readability is simply not true. Liberal use of comments can reduce readability. The best criteria for commenting is that it is complete enough to make it clear to probable readers – especially and primarily the authors of the code - and that is is correct (i.e., the comments and the code agree). Commenting certainly proves its worth months later when code will be revised and often by different people to the original authors. Often various hacks are commented to explain what was done and why. Whilst this is better than leaving the change without comments, it is better still to rewrite the code. Of course this isn't always available. Sometimes other code or compilers that are controlled by other people require various workarounds. In which case, make this explicit.
 
 Functions, subroutines, procedures, modules, subprograms - all are a part of the decomposition of tasks in a program, which breaks down a complex program into more understandable and maintainable parts, and as result are the most important feature of the structured programming paradigm. It reduces repetition of code within a program, provides easier means for code re-use across multiple programs, and improves debugging by providing clarity in traces. Such methods provide the instructions of a specific task as a single unit and like the main program itself should also be introduced with a comment, especially to note the input and output parameters and their purpose. Function names should illustrate the activity of the function. Also, develop an awareness of existing libraries; it is much easier to use code that is already written.
 
 Arguments to subprograms are called by value or reference in C and Fortran. In Fortran a procedure is defined as a group of statements that perform a well-defined task and can be invoked from the program. A function is a type of procedure that returns a single value. In contrast a subroutine does not return a value, but can modify the arguments parsed to it. In C, what Fortran would call a procedure, function, or subroutine, are just called functions. In Fortran, a module is a separate collection of different functions and subroutines are kept and can be invoked by the `use modulename` command. In C the equivalent can be achieved by  preprocessor directives.
-	
+
+```	
 	program program-name 
 	! comments
 		implicit none 
@@ -373,9 +355,9 @@ Arguments to subprograms are called by value or reference in C and Fortran. In F
 	local variables to function 1..n ; 
 	statements associated with function 1..n ; 
 	} 
+```
 
-2.3 Variables and Constants
----------------------------
+## 2.3 Variables and Constants
 
 A strength of a programming language is its capacity to employ symbolic identifiers which references storage locations that holds a value; the compiler will replace the symbolic identifier with the actual location of the data. These values can be variable or constant and have a data type. The typical datatypes used in programming languages, including C and Fortran, include integers, floating-point numbers, logicals, characters and strings, with certain elaborations which will be explained soon.
 
@@ -389,6 +371,7 @@ In all cases the value should be assigned prior to use, i.e., scope should not b
 
 The previous 'Hello World' program can thus be expressed in Fortran and C with symbolic identifier values as follows: 
 
+```
 	program hello2 
 		implicit none 
 		character(len=16) :: greetings 
@@ -403,9 +386,11 @@ The previous 'Hello World' program can thus be expressed in Fortran and C with s
 	   printf("%s\n", greetings); 
 	   return 0;
 	}
+```
 
 Or, as an alternative using named constants.
 
+```
 	program hello3 
 		implicit none 
 		character(len=16), parameter :: greetings = "Hello World!" 
@@ -419,30 +404,30 @@ Or, as an alternative using named constants.
 	   printf("%s\n", greeting); 
 	   return 0;
 	}
+```
 
 As the previous example – one last time - both can be compiled, with the source file (.c or .f) creating an executable binary:
 
-gfortran hello2.f90 -o hellof2
-gcc hello2.c -o helloc2
+`gfortran hello2.f90 -o hellof2`
+`gcc hello2.c -o helloc2```
 
-gfortran hello3.f90 -o hellof3
-gcc hello3.c -o helloc3
+`gfortran hello3.f90 -o hellof3`
+`gcc hello3.c -o helloc3`
 
-The resulting executable can be run by invoking ./hellof2 or ./helloc2 as appropriate from the executable directory.
+The resulting executable can be run by invoking `./hellof2` or `./helloc2` as appropriate from the executable directory.
 
 A pointer is a special type of variable. Whereas other variables are assigned to a data type, a pointer is assigned to the memory address of another variable. In Fortran, a pointer also contains other information about a variable, including type, rank, and extents, as well as the memory location. Like any other variable, a pointer has to be declared. Strictly speaking, the data type of the value of all pointers, whether integer, float, character, or otherwise, is the same, a long hexadecimal number that represents a memory address. It is good practice to assign a NULL value to a pointer variable if the address is not initially known. The general format in C and Fortran is as follows:
 
-type *variable_name;
+`type *variable_name;`
+`integer, pointer :: p1`
 
-integer, pointer :: p1
-
-2.4 Data Types and Operations
------------------------------
+## 2.4 Data Types and Operations
 
 As previously mentioned, both C and Fortran are considered strongly-typed and statically-typed languages. The basic types in C are `char`, an integer type of usually of a single byte, `int`, an integer with a typical range of around -/+2.1 billion ; `float`, a single-precision floating point value (i.e., occupies a 32-bit of memory) ; `double`, a double-precision floating point value (i.e., occupies a 64-bit of memory); and void, a sort of null-set in for type definitions. In Fortran the basic types are `integer`, `real`, `complex`, `logical`, and `character`. In Fortran the size of a numeric type can be set by the use of `kind` with the bytes specified. For example, the value `integer(kind=16)` would be a 16-byte integer – a very large number indeed. 
 
 In C strings are an array terminated by a null character which is inserted by the compiler at initialisation. The array length is determined at declaration, with `char[]` of undetermined length. C supports a range of string functions, including `strcat(string1, string2)`, which concatenates the two strings., and `strcopy(string1, string2)`, which copies string2 into string1 - an interesting reverse of the standard Unix argument of source first then destination. Incorporate the string.h preprocessor directive when making use of these functions. To print a range of from a string use a string format. The following code illustrates these examples;
 
+```
 #include <string.h>
 #include <stdio.h> 
 int main(void) 
@@ -454,9 +439,11 @@ int main(void)
    printf("%.14s\n", &salutation[6]); 
    return 0;
 }
+```
 
 In Fortran a string is represented as an array of characters with a length specified and a default of 1 character, or an unspecified length with `(en=*)`. Strings can be concatenated with the `//` operator, and the `trim` function will removed any trailing blanks. Strings can be extracted by specifying the character range extent  Using the above examples, the following code snippet will illustrate:
 
+```	
 	character(len=8) :: salutation
 	character(len=8) :: place
 	character(len=16) :: fullgreetings 
@@ -465,11 +452,13 @@ In Fortran a string is represented as an array of characters with a length speci
 	fullgreetings = salutation//place 
 	print *, trim(fullgreetings) 
 	print *, fullgreetings(7:11)
- 
+``` 
+
 Both C and Fortran follow a general syntax of declaring value types then the values in statement. After a variable has been declared, it should be assigned an initial value. Only after that should it be manipulated and displayed.  Special care is required when manipulating and displaying data types. In C and Fortran there is no automatic type conversion; dividing 10 by 3 will result in 3, dividing 7 by 8 will result in 0! But mixing integers with reals will convert the integers to reals. A more precise result requires the use of real number types, but of course, even that is subject to arbitrary limits; a third multiplied by a third does not equal 1 – as a real type can only approximate a third, rather than present 0.333..n. A very important lesson for this is that floating point numbers should not be compared for equality!
 
 When printing to standard output in Fortran, the `*` that follows the initial print statement is an argument to output the data in a format that is equivalent to the items that follow the comma delimited list. In C that the standard display function, printf, can vary the formatting that is displayed. In previous examples the `%d` specifier indicates that external data is required. In the following example, the `%f` specifier displays a floating point number in decimal notation. Other common options include `%e` or `%E` for scientific notation, and `%g` or `%G` for the shorter of decimal or scientific notation.
 
+```
 program variableManipulation
 implicit none
 
@@ -495,7 +484,9 @@ implicit none
    print *, "The rough divide result is : ", rough_divide
 
 end program variableManipulation
+```
 
+```
 #include <stdio.h>
 
 /* Variable declaration */
@@ -521,96 +512,52 @@ int main (void)
    printf("The rough divide result is : %f \n", rough_divide);
    return 0;
 }
+```
 
 Programming languages like C and Fortran can provide operations on variables and constants with results depending on the data type. The common operations to both languages which are discussed here are arithmetic, logical, and relational. C also has some assignment operations which will be described here in context, along with bitwise operations (logical expressions applied on the bit-by-bit level), and ternary operations, pointer assignments, and others, which will be mentioned only in passing. The following tables illustrate the different operations allowed in the two languages. Note that in Fortran there is two types of relational operations. If an expression appears to be overly complex, consider using propositional logic for transformation rules to make the statements clearer.
 
-Arithmetic Operators
---------------------
+### Arithmetic Operators
 
-C Operator
-Fortran Operator 
-Description
-+
-+ 
-Addition Operator, adds two operands.
--
-- 
-Subtraction Operator, subtracts second operand from the first.
-*
-* 
-Multiplication Operator, multiplies first and second operands.
-/
-/ 
-Division Operator, divides first operand by the second
-
-** 
-Exponentiation Operator, raises first operand to the power of the second.
-% 
-
-Modulus Operator, the remainder of after an integer division of the first operand by the second.
-++
-
-Increment the integer value of the operand by one.
---
-
-Decrement the integer value of the operand by one.
+C Operator Fortran Operator Description
++ +  Addition Operator, adds two operands.
+- -  Subtraction Operator, subtracts second operand from the first.
+* *  Multiplication Operator, multiplies first and second operands.
+/ /  Division Operator, divides first operand by the second
+**  Exponentiation Operator, raises first operand to the power of the second.
+% Modulus Operator, the remainder of after an integer division of the first operand by the second.
+++ Increment the integer value of the operand by one.
+-- Decrement the integer value of the operand by one.
 
 C also has assignment operators which are worth mentioning in this context. These include +=, -=, *=, /=, %=. In each of these a value becomes equal to the left-side value with an operation on a right-side operand (e.g., A =+ B is A = A + B etc). 
 
-Relational Operators
---------------------
+### Relational Operators
 
-C Operator
-Fortran Operator
-Description
-==
-== eq. 
-If the values of two operands are equal, then the condition is true.
-!=
-/= .ne. 
-If the values of two operands are not equal, then the condition is true.
->
-> .gt. 
-If the value of first operand is greater than the value of second operand, then the condition is true.
-<
-< .lt. 
-if the value of left operand is less than the value of right operand, if yes then condition becomes true.
->=
->= .ge. 
-Checks if the value of left operand is greater than or equal to the value of right operand, if yes then condition becomes true.
-<=
-<= .le. 
+C Operator Fortran Operator Description
+== == eq.  If the values of two operands are equal, then the condition is true.
+!= /= .ne.  If the values of two operands are not equal, then the condition is true.
+> > .gt. If the value of first operand is greater than the value of second operand, then the condition is true.
+< < .lt.  if the value of left operand is less than the value of right operand, if yes then condition becomes true.
+>= >= .ge.  Checks if the value of left operand is greater than or equal to the value of right operand, if yes then condition becomes true.
+<= <= .le. 
+
 Checks if the value of left operand is less than or equal to the value of right operand, if yes then condition becomes true.
 
-Logical Operators
------------------
+### Logical Operators
 
-C Operator
-Fortran Operator 
-Description
-&&
-.and. 
-If both the operands are true, then the condition is true. 
-||
-.or. 
-If either of the operands is true, then the condition is true. 
-!
-.not. 
-If an operand is false, it becomes true, else if true, it becomes false.
+C Operator Fortran Operator  Description
+&& .and.  If both the operands are true, then the condition is true. 
+|| .or.  If either of the operands is true, then the condition is true. 
+! .not.  If an operand is false, it becomes true, else if true, it becomes false.
+.eqv.  If an first and second operands are of equivalent values, the condition is true.
+.neqv. If an first and second operands are not of equivalent values, the condition is true.
 
-.eqv. 
-If an first and second operands are of equivalent values, the condition is true.
-
-.neqv. 
-If an first and second operands are not of equivalent values, the condition is true.
-
-2.5 Loops and Branches
-----------------------
+## 2.5 Loops and Branches
 
 A statement or block of statements may be executed several times as a loop in both C and Fortran. The general rule is that a loop tests against a condition and, if the condition is true, executes a code block. If it is not true, it programs continues to the next statement. There are however some variations on this.
 
 A for loop (C), or do loop (Fortran), executes a sequence of statements multiple times and abbreviates the code that manages the loop variable. The loop initialises a value, tests a conditional statement, if true it carries out a code block, and incremements the value. If false it continues to the next statement. The following code snippet, elaborating from the previous 'Hello World' variable examples, illustrates the loop in action. Note the slight difference in the loop conditional range. Always be careful with "off by one" values.
 
+```
 /* Prints 'Hello World' ten times */
 int countera;   
 for ( countera = 1; countera < 11; countera = countera + 1 )
@@ -618,15 +565,19 @@ for ( countera = 1; countera < 11; countera = countera + 1 )
 	printf("%s\n", greetings); 
    	}
 
+```
 
+```
 ! Prints 'Hello World', ten times
 integer :: countera
 do countera = 1, 10
 	print *, greetings   
 end do
+```
 
 A variation in the while loop (C) which repeats a statement or code block while a given condition is true, testing the condition before executing the loop statement or block. The following code snippet illustates an example:
 
+```
 /* Prints 'Hello World' ten times */
 int counterb = 1;
 while( counterb < 11 ) 
@@ -634,9 +585,11 @@ while( counterb < 11 )
 	printf("%s\n", greetings); 
 	counterb++;
 	}
- 
+```
+
 In contrast the do-while loop, common to C and Fortran, will also repeat a statement or code block a given condition is true. In C however, unlike the do loop, it tests the condition at the end of the loop body. Importantly this means that it will always carry out the conditional statement or code block at least once. In Fortran however the initial condition is tested the block is carried out while the condition is true.The following code snippets illustrate examples:
 
+```
 int counterc = 99;
 /* Prints 'Hello World' once
 do {
@@ -644,13 +597,13 @@ do {
 	counterc++ ;
    }
 while( counterc < 11 );
-
 ! Doesn't print 'Hello World'
 integer :: counterc
 counterc = 99
    do while (counterc <= 11)       
 	print *, greetings   
    end do 
+```
 
 As should be expected, more complex loops can be created by nesting any variety of loops within loops. C has a `break` statement and Fortran a `exit` statement, both of which will terminate a loop and exit, transferring execution to the statement following the loop. The `continue` statement in C or the `cycle` statement in Fortran will cause the loop to skip the rest of the code block and return to the conditional statement for the next iteration. 
 
@@ -658,6 +611,7 @@ Loops are, in many ways, a decision making structure. A condition is tested, and
 
 In C the `if` statement carries out a code block if a logic expression is true. The equivalent in Fortran is `if-then`. If the expression is not true then the code continues to the next statement. The following two code snippets, using prior examples, illustrate their use:
 
+```
 int time = 700;
    if( a > 630 ) {
 	printf("%s\n", greetings); 
@@ -667,9 +621,11 @@ integer :: time = 700
 	if (time > 630 ) then
 	print *, greetings
 	end if
+```
 
 The `if` and `if-then` conditional branches can be extended with an optional `else` statement to provide an alternative statement or code block if the logical expression is false.
 
+```
 char sleeping[] = "Zzzzzzzz"; 
 int time = 700;
    if( a < 630 ) {
@@ -686,9 +642,11 @@ integer :: time = 700
 	else
 	print *, greetings
 	end if
+```
 
 The `if-else` and `if-then-else` conditional branches can be extended further with additional optional `else` statements to provide even more alternative statements or code blocks. Note that the conditional branch will execute on the first logical expression that is true, therefore the order of options is important.
 
+```
 char sleeping[] = "Zzzzzzzz"; 
 char waking[] = "I need coffee"; 
 int time = 700;
@@ -715,6 +673,7 @@ integer :: time = 700
 	print, 
 	print *, greetings
 	end if
+```
 
 C also has the `?` operator, which take the following form:
 
@@ -726,6 +685,7 @@ Laddered `if-else` statements can be replaced with `switch-case` or `select-case
 
 Note that relational operators are not allowed as case labels. Case labels are constant expressions only. Some compilers (e.g., GCC) allow for an extension for a range of values, which the following examples illustrate.
 
+```
 switch(time) {
 	case 0 ... 630 :
 	printf("%s\n", sleeping); 
@@ -740,7 +700,6 @@ switch(time) {
 	printf("You're not on earth!\n");
    }
 
-
 select case (time)
       case (0:630) 
 	print *, sleeping
@@ -751,12 +710,11 @@ select case (time)
       case default
          print*, "You're not on earth!" 
 end select
-
+```
 
 In both C and Fortran 'switch-case` or `select-case` statements can be nested.
 
-2.6 Data Structures
--------------------
+## 2.6 Data Structures
 
 Data structures are the means to arrange data efficiently, both in terms of speed of computation and program clarity. Some basic data structures in C and Fortran are explored here, including arrays and structures. An array is a data structure which holds a sequential collection of elements of the same data type, whereas a structure is a program-defined data strcuture combine data items of different data types.
 
@@ -766,46 +724,47 @@ To declare an array the type is specified followed by the array's name as a symb
 
 Examples of an array have already been shown with strings as an array of characters, i.e., in C and Fortran respectively: 
 
-char greetings[] = "Hello world!"; 
+`char greetings[] = "Hello world!"; `
 
-character(len=16) :: greetings 
-greetings = "Hello World!" 
+`character(len=16) :: greetings` 
+`greetings = "Hello World!"` 
 
 Array elements are assigned slightly differently in their non-character form in Fortran with use of the dimension declaration. e.g.,
 
-integer, dimension(4) :: melencolia_row1
-melancolia_row1 = (/16, 3, 2, 13 /)
-! In Fortran 2003 you can use melancolia_row1 = [16, 3, 2, 13] 
+`integer, dimension(4) :: melencolia_row1`
+`melancolia_row1 = (/16, 3, 2, 13 /)`
+`! In Fortran 2003 you can use melancolia_row1 = [16, 3, 2, 13]` 
 
 An array can be passed as an argument to a function or procedure. The parameters must be declared, either as a pointer or an array.  For example, consider the following code snippet:
 
-double thefunction (int array[], int size);
-int thearray[5] = {1, 2, 3, 4, 5};
-double functionresult;
-functionresult = thefunction( thearray, 5 ) ;
+`double thefunction (int array[], int size);`
+`int thearray[5] = {1, 2, 3, 4, 5};`
+`double functionresult;`
+`functionresult = thefunction( thearray, 5 ) ;`
 
-
-integer, dimension (5) :: thearray  
-thearray = 	(/1,2,3,4,5/)
-call theprocedure (thearray)      
-
+`integer, dimension (5) :: thearray`
+`thearray = 	(/1,2,3,4,5/)`
+`call theprocedure (thearray)`
 
 Both C and Fortran allow for multi-dimensional arrays, which is particularly handy for matrix mathematics. In C the declaration and initialisation is similar, with type, name, but followed with elements of each dimension, one row at a time. It could also be presented as a single line and the compiler would work out the row-breaks when appropriate. In Fortran, the transformational functions `shape` and `reshape` are used - note that column order is used. To have row order use the `transpose` function as Fortran uses column-primary order.
 
 Consider the following from the magic square in Albrecht Dürer's Melencolia I (1514) engraving, as code snippets. 
 
+```
 int melancolia [4][4] = {  
    {16, 3, 2, 13} ,   
    {5, 10, 11, 8} ,  
    {9, 6, 7, 12} ,  
    {4, 15, 14, 1} ,  
 };
+```
 
-integer, dimension(4,4) :: melancolia
-melancolia = transpose(reshape((/16, 5, 9, 4, 3, 10, 6, 15, 2, 11, 7, 14, 13, 8, 12, 1 /), shape(melancolia)))
+`integer, dimension(4,4) :: melancolia`
+`melancolia = transpose(reshape((/16, 5, 9, 4, 3, 10, 6, 15, 2, 11, 7, 14, 13, 8, 12, 1 /), shape(melancolia)))`
 
 The following elaborations (melancolia.c and melancolia.f90) will print out each element of the array. Note the formatting statement used in Fortran, which is presented here an alternative to the nested for loop in C. In previous examples the print statement has used the default format string `*` has been used. In this instance the format is `1x`, and `4I5/`. The first part introduces a blank space; the latter part creates four instances of a 5 character width integer descriptor followed by a blank line.
 
+```
 #include <stdio.h>
 int main () {
 int melancolia [4][4] = {  
@@ -833,9 +792,11 @@ melancolia = transpose(reshape((/16, 5, 9, 4, 3, 10, 6, 15, 2, 11, 7, 14, 13, 8,
 print '(1x, 4I5/)', melancolia
    
 end program matrix
+```
 
 A derived data type, or structure, consists of an objects that has different characteristics of different types. A type name is provided with the declarations of the data types contained in the structure. A very common example of a structure would be the objects in a person's  book collection. Structure objects then can be declared and specified. This can be expressed in C and Fortran as follows:
 
+```
 struct book {
    char  title[50];
    char  author[50];
@@ -864,16 +825,18 @@ book1%title = "Sequential Programming with C and Fortran"
 book1%author = "Lev Lafayette"
 book1%subject = "C, Fortran, OpenMP, MPI"
 book1%isbn = 9780994337313 
+```
 
-2.7 Input and Output
---------------------
+## 2.7 Input and Output
 
 Input is data sent to a program from an external source, whether from the operating system's standard input (e.g., the keyboard) or from a file. Output is data sent to an external source, such as standard output (e.g., a terminal) or a file. Both C and Fortran have a number of input-output functions to read input and send output.
 
 In C, the `getchar()` and `putchar()` functions reads the next available character from standard input and sends it to standard output respectively, one character at a time, which can be elaborated into the `char *gets(char *save)` to read a line to the buffer `save` until a terminating newline, with the `int puts(const char *save)` writing the buffer to standard output. Commonly `int scanf(const char *format, ...)` reads from standard input stream according to the format provided, where as `int printf(const char *format, ...)` writes to standard output stream according to the format provided. Format can be a simple string, but can be specified as `%s`, `%d`, `%c`, `%f`, to print or read strings, integers, characters or floats respectively.
 
-In Fortran, variables of a specified type can be read in freeform from standard input with `read (*,*) var1, var2` statememt, and can be written to standard output or a file with `write (*,*) var1, var2`. The `print` statement, used throughout this chapter, is a specialised form for writing to standard output alone. Formatted input and output is achieved with the three commands, followed by a format specification and the variable list. The common format specifications depend on the data type; `I` for integers, `F` for real numbers, `E` for exponential notation, `A`, for character output, `X` for spaces, and `/` to insert blank lines. For integers, a value is placed optionally before the specifier to indicate repetition, and a value afterwards for integer width. For reals and exponents, the integer width is replaced with a decimal width value (e.g., F3.3 = xxx.xxx).
+In Fortran, variables of a specified type can be read in freeform from standard input with `read (*,*) var1, var2` statememt, and can be written to standard output or a file with `write (*,*) var1, var2`. The `print` statement, used throughout this chapter, is a specialised form for writing to standard output alone. Formatted input and output is achieved with the three commands, followed by a format specification and the variable list. The common format specifications depend on the data type; `I` for integers, `F` for real numbers, `E` for exponential notation, `A`, for character output, `X` for spaces, and `/` to insert blank lines. For integers, a value is placed optionally before the specifier to indicate repetition, and a value afterwards for integer width. For reals and 
+exponents, the integer width is replaced with a decimal width value (e.g., F3.3 = xxx.xxx).
 
+```
 #include <stdio.h>
 #include <math.h>
 
@@ -893,11 +856,13 @@ program pidisplay
    print "(f9.6)", pi
    print "(e16.10)", pi 
 end program pidisplay
+```
 
 In addition to reading from standard input and printing to standard output, both Fortran and C have file reading and writing functions. In C, the `fopen()` function creates a new file or opens and existing file. An object of the type `file` is initialised with an access mode specified; `r` read, `w` write, `a` append, or `r+`, `w+`, `a+`, for reading and writing. To close a file, the `fclose()` function is invoked. Reading a file can be achieved by a single character function `fgetc()`, an input stream to n-1 characters with the function `fgets()`. Writing to a file is achieved with the function for individual characters, `fputc()`, null-terminated strings `futps()`. In comparison Fortran uses the `open`, `write`, `read`, and `close` statements to read and write data streams to files. The `open` command which requires parameters for a file identifier as an integer, which is repeated with the `read`, `write` and `close` command.  
 
 Expressed in a general form the C and Fortran functions follow. A lengthier example is included with the files the accompany the book.
 
+```
    FILE *fp;
    char buff[255];
 ..
@@ -912,18 +877,15 @@ Expressed in a general form the C and Fortran functions follow. A lengthier exam
    printf("3: %s\n", buff );
    fclose(fp);
 
-
 open (unit = 1, file = "/tmp/hello.txt").
 open(1, file='/tmp/hello.txt', status='old')  
 read(1,*)
 write(1,*)
+```
 
+## 3.0 Shared Memory Parallel Programming with OpenMP
 
-3.0 Shared Memory Parallel Programming with OpenMP
-==================================================
-
-3.1 Shared Memory Concepts and the OpenMP Implementation
---------------------------------------------------------
+### 3.1 Shared Memory Concepts and the OpenMP Implementation
 
 As mentioned in the first chapter, a tread is the smallest instruction set managed by an operating system. Whilst a process is allocated resources, such as memory, multiple thread can exist in the same process sharing instructions, context (e.g., variables), and resources. In a unicore environment, the operating system may be able to manage multithreaded concurrency by switching between different threads. In a multicore system however, multiple threads can be executed in parallel. The distinction between concurrency and parallelism is emphasized, and illustrated as subsets. Within the set of all programs there is a subset that are concurrent programs. Within the set of concurrent programs, there is a smaller set of parallel programs.
 
@@ -934,7 +896,6 @@ The earliest appearance of multithreading was in the System/360 IBM mainframe co
 When seeking to parallelise code, a programmer needs to review existing sequential programs to find sets of statements that can be conducted simultaneously. This is a painstaking and serious process. The advantages of parallelism are often quite sufficient to make it worthwhile, but issues such as race conditions and locks must be scrupulously avoided. Occasionally a programming problem is relatively easy to turn in to parallel code, usually when there is little need for communication between the tasks (e.g., Monte Carlo experiments). In most such cases, distributing the tasks into loops is typical. Such problems are referred to as “embarrassingly parallel” on the grounds they are so simple, although increasingly there is a move to describe such problems as “pleasingly parallel”, as is so joyful to find them. This author has suggested a combination with “embarrassing pleasures”! 
 
 A fork-join approach can be used in multithreading. This is the method used by OpenMP and also with POSIX threads (pthreads). The basic idea is that a program's execution branches off in parallel threads at specified points in the program and joins and merges at a subsequent specified point, returning to serial execution. In the OpenMP implementation, a master thread contains the instructions that are to be executed in parallel and executes additional worker threads that divide the task among them. The 'specified point' for forking is marked with a preprocessor directive and each thread has an individual identity attached to it. After the execution of the parallel, the threads join back into the master thread.
-
 
 (image from Wikipedia, user: Qwetyus)
 
@@ -950,8 +911,7 @@ http://openmp.org
 http://www.iwomp.org
 http://compunity.org
 
-3.2 Directives and Internal Control Variables
----------------------------------------------
+## 3.2 Directives and Internal Control Variables
 
 In the OpenMP API instructions known as compiler directives can be added to a sequential program to invoke parallel capability. They are the absolute foundation from which a OpenMP can be differentiated from a sequential program. These directives specify how a compiler with OpenMP should process input. OpenMP is a particularly efficient form of parallelisation in terms of programmer effort, and a serial program can be made parallel with just a handful of directives. Another advantage is that OpenMP allows concurrency and parallelisation to be incrementally improved.
 
@@ -965,6 +925,7 @@ In C and Fortran respectively, the following is basic sentinel for thread creati
 
 Throughout this book modern freeform Fortran will be used in preference to the more archaic fixed form.
 
+```
 #pragma omp parallel default(shared) private(variables)
 !$omp parallel default(shared) private(variables)
 
@@ -986,37 +947,41 @@ int main(void)
           print *, "Hello world!"
 	!$omp end parallel
        end program helloomp
+```
 
 When compiled, the respective programs will print `hello world` equal to the number of cores on the shared-memory system. As mentioned compilation explicitly requires options that inform the compiler to be attentive to compiler directives that would otherwise be interpreted as comments. For example:
 
-gcc -fopenmp helloomp.c -o helloompc
-./helloompc
+`gcc -fopenmp helloomp.c -o helloompc`
+`./helloompc`
 
-gfortran -fopenmp helloomp.f90 -o helloompf
-./helloompf
+`gfortran -fopenmp helloomp.f90 -o helloompf`
+`./helloompf`
 
 For Portland and Intel compilers use:
 
-pgcc -mp helloomp.c -o helloompc
-./helloompc
-icpc -openmp helloomp.c -o helloompc
-./helloompc
+`pgcc -mp helloomp.c -o helloompc`
+`./helloompc`
+`icpc -openmp helloomp.c -o helloompc`
+`./helloompc`
 
-pgf90 -mp helloomp.f90 -o helloompf
-./helloompf
-ifort -openmp helloomp.f90 -o helloompf
-./helloompf
+`pgf90 -mp helloomp.f90 -o helloompf`
+`./helloompf`
+`ifort -openmp helloomp.f90 -o helloompf`
+`./helloompf`
 
 The number of threads can be varied as an environment variable. This is both more adaptable and provides some protection against race conditions. To give an example using bash as the shell:
 
+```
 export OMP_NUM_THREADS=16
 ./helloompc
 ./helloompf
+```
 
 A more elaborate version will specify the appropriate include file and the runtime library to specify the number of threads and thread ID. Note that the parallel section will override the export value given previously. If no num_threads is specified, it will use the full sixteen that were exported.  
 
 The programs also use a private variable to each thread.  By default a variable is shared among threads. The private (variable) option in the directive it ensures that the variable is private to the thread that is using it. 
 
+```
 #include <stdio.h>
 #include  "omp.h"
 int main(void)
@@ -1039,25 +1004,14 @@ program hello2omp
 		print *, "Hello world", id 
 	!$omp end parallel
 end program hello2omp
+```
 
 The next version of the program illustrates how the same variable name can have different values within the parallel section and outside it.
-	
-#include <stdio.h>
-#include  "omp.h"
-int main(void)
-{
-	char greetings[] = "Hello world"; 
-	printf("Before parallel section %s\n", greetings); 
 
-	#pragma omp parallel num_threads(4) private(greetings)
-	{
-	char greetings[] = "Saluton mondo"; 
-	printf("Inside parallel section %s\n", greetings); 
-	}
-	printf("After parallel section %s\n", greetings); 
-return 0;
-}
+```	
 
+```
+```
 program SharedHello
 implicit none
 	character(len=16) :: greetings 
@@ -1072,6 +1026,7 @@ implicit none
 	print *, "After parallel section:  ", greetings
 
 end program SharedHello
+```
 
 All implementation of OpenMP must act with the assumption of internal control variables (ICVs) that control the behaviour of the program. These variables hold information such as the number of threads, the maximum size of the thread team, the number of processors, etc. There are default values given by specific implementations and they can also be manipulated during runtime.
 
@@ -1092,18 +1047,21 @@ OMP_MAX_ACTIVE_LEVELS as an environment variable.
  
 The OpenMP Application Programming Interface Examples Version 4.0.2 (March 2015) contains an absolutely superb example of internal control variables and their interactions with runtime library routines which is included in the programs with this book (icv1.f90 and icv.c). Four ICV's - nest-var, mex-active-levels-var, dyn-var, and nthreads-var - are modified by calls their respective library routines (omp_set_nested(), omp_set_max_active_levels(), omp_set_dynamic(), and omp_set_num_threads()). Apart the previously described parallel directives, the program also makes use of the single directive, that specifies that the enclosed code is only to be executed by one thread in the team, and the barrier directive, which synchronises all threads in the team. It is recommended that one experiment with the program by changing the number of threads in the inner and outer parallel regions to gain a fuller understanding of the interactions. The unchanged version can be compiled and executed as follows:
 
+```
 gcc -fopenmp icv1.c -o icv1c
  ./icv1c 
 Inner: max_act_lev=8, num_thds=3, max_thds=4
 Inner: max_act_lev=8, num_thds=3, max_thds=4
 Outer: max_act_lev=8, num_thds=2, max_thds=3
+```
 
+```
 gfortran -fopenmp icv1.f90 -o icv1f
 ./icv1f 
 Inner: max_act_lev=       8 , num_thds=           3 , max_thds=           4
 Inner: max_act_lev=       8 , num_thds=           3 , max_thds=           4
 Outer: max_act_lev=       8 , num_thds=           2 , max_thds=           3
-
+```
 
 3.3 Core Constructs 
 -------------------
@@ -1113,49 +1071,57 @@ As seen the parallel construct is absolutely fundamental to OpenMPI as it initia
 One of the most typical applications of OpenMPI is the parallelisation of loops. This will include a worksharing construct, which distributes the execution of the parallel region among the thread team members. A loop region will bind to the innermost enclosing parallel region, and only threads in the binding parallel region will execute the loop iterations. There is an implicit barrier at the end of a loop construct, unless a `nowait` clause has been stated. Loop iteration variables are private by default. 
 
 In C/C++ and Fortran the following general structures are applied:
-
+```
 #pragma omp for clauses 
 for-loop
-
+```
+```
 !$omp do clauses
 do-loop
 !$omp end do
-
+```
 It is always a good idea to start with working serial code and find areas that can be made parallel, and test to see whether the parallel design is more efficient. In the previous chapter, there were two simple loop programs that printed "Hello World" a million times. Expressed in serial form, this would be noticeably slower if the requirement was to iterate over the loop a million thousand times. Thus the program can be recompiled with this higher limit and run with the `time` utility, with additional parallel loops included.
 
+```
 gcc hello1mill.c -o hello1millc
 time ./hello1millc
 real	0m7.375s
 user	0m0.062s
 sys	0m1.360s
-
+```
+```
 gfortran hello1mill.f -o hello1millf
 time ./hello1millf
 real	0m8.359s
 user	0m0.209s
 sys	0m1.469s
-
-cp hello1mill.c hello1millomp.c
+```
+`cp hello1mill.c hello1millomp.c`
 
 Make minimal requisite modifications to the OMP version of the file.
 
+```
 diff hello1mill.c hello1millomp.c
 1a2
 > #include  "omp.h"
 5a7,8
 >    #pragma omp parallel
 >    #pragma omp for
+```
 
+```
 gcc -fopenmp hello1millomp.c -o hello1millompc
 time ./hello1millc
 real	0m4.779s
 user	0m0.145s
 sys	0m1.097s
+```
 
-cp hello1mill.f90 hello1millomp.f90
+`cp hello1mill.f90 hello1millomp.f90`
 
 Make minimal requisite modifications to the OMP version of the file.
 
+```
 diff hello1mill.f90 hello1millomp.f90 
 1a2
 > 	include "omp_lib.h"
@@ -1170,51 +1136,59 @@ diff hello1mill.f90 hello1millomp.f90
 ---
 > 	!$omp end parallel
 > 	
+```
 
+```
 gfortran -fopenmp hello1millomp.f90 -o hello1millompf
 time ./hello1millf
 real	0m5.172s
 user	0m0.318s
 sys	0m1.181s	
+```
 
 A further variation is the SIMD loop, which enables multiple iterations concurrently by means of SIMD instructions, a particularly efficient method for multiple data tasks. 
 
+`cp hello1mill.c hello1millsimd.c`
 
-cp hello1mill.c hello1millsimd.c
-
+```
 diff hello1mill.c hello1millsimd.c
 1a2
 > #include "omp.h"
 5a7
 >    #pragma omp simd
-
+```
+```
 gcc -fopenmp hello1millsimd.c -o hello1millsimdc
 time ./hello1millsimdc
 real	0m4.792s
 user	0m0.058s
 sys	0m1.063s
+````
+`cp hello1mill.f90 hello1millsimd.f90`
 
-cp hello1mill.f90 hello1millsimd.f90
-
+```
 diff hello1mill.f90 hello1millsimd.f90
 2a3
 >         include "omp_lib.h"
 7a9
 > 	!$omp simd
-
+```
+```
 time ./hello1millsimdf
 real	0m2.908s
 user	0m0.458s
 sys	0m1.753s
+```
 
 Note that there is a bug in gcc4.x compilers which means that the Fortran version of this program will not compile. Use gcc5.x compilers.
 
-In addition to the loop worksharing construct, there are also `sections`, `single`, and `workshare` constructs. The `workshare` construct divides the execution of a structured block into separate units, which threads sharing the work and ensuring that each unit is only executed once. It only exists in Fortran and is not elaborated here.  
+In addition to the loop worksharing construct, there are also `sections`, `single`, and `workshare` constructs. The `workshare` construct divides the execution of a structured block into separate units, which threads sharing the work and ensuring that each unit is only executed once. It only exists in Fortran and is not elaborated here.
 
 The `single` construct was introduced at the end of the last chapter, and specifies that the associated structured block is executed by only one of the threads in the team. It binds to the innermost enclosing parallel region. The method of choosing which thread to execute the structured block is implementation defined, but is not ncessarily the master thread.
 
 The `sections` construct contains a collection of structured blocks that are distributed among the threads in the team. The general syntax is as follows:
 
+```
 #pragma omp sections [clauses]
 {
 #pragma omp section
@@ -1223,7 +1197,8 @@ structured-block
 structured-block
 ...
 }
-
+```
+```
 !$omp sections [clauses]
 !$omp section
 structured-block
@@ -1231,9 +1206,11 @@ structured-block
 structured-block
 ...
 !$omp end sections
+```
 
 As an example - elaborating even further on the apparently very adaptable `hello world` program - the following makes use of loop and section work constructs to provide `hello world` a hundred times in three languages.
 
+```
 #include <stdio.h> 
 #include  "omp.h"
 int main(void) 
@@ -1264,9 +1241,10 @@ int main(void)
     }
 return 0;
 }
+```
 
-
-program hello
+```
+program sections
         implicit none 
         include "omp_lib.h"
 
@@ -1300,60 +1278,71 @@ program hello
 
         !$omp end parallel
         
-end program hello
-
+end program sections
+```
 
 Two variations on the simd construct which are not elaborated here include the `declare simd` construct and the composite loop simd constructs. In the former, the `declare simd` construct enables the creation of one or more versions that can process multiple arguments using SIMD instructions from a single invocation in a SIMD loop. In the latter case, the the loop construct ensures that iterations of associated loops are distributed across existing threads and that the iterations executed by each thread can also be executed concurrently using SIMD instructions.
 
 The general syntax of the `declare simd` construct takes the following form in C/C++ and Fortran:
 
-#pragma omp declare simd [clauses]
+`#pragma omp declare simd [clauses]`
 
-!$omp declare simd [clauses]
-
+`!$omp declare simd [clauses]`
 
 The general syntax of the SIMD loop constructs take the following forms in C/C++ and Fortran:
 
+```
 #pragma omp for simd [clauses]
 for-loops
-
+```
+```
 !$omp do simd [clauses]
 do-loops
 !$omp end do simd
-3.4 Tasks and Synchronisation
+```
+
+## 3.4 Tasks and Synchronisation
 
 With common computational problems such as linked lists and recursive algorithms the `task` constructs are very useful to mosty efficiently implement parallelism. The general principle is that a thread generates tasks which are then executed according to the runtime system, either immediately or delayed. The task construct defines an explicit task with the following general syntax in C and Fortran: 
 
+```
 #pragma omp task [clauses]
 structured-block
-
+```
+```
 !$omp task [clauses]
 structured-block
 !$omp end task
+```
 
 Task synchronisation is carried out with the `barrier` or `taskwait` constructs.  The barrier construct specifies an explicit barrier at the point at which all tasks bound to the assocated parallel region must complete before any are allowed to continue beyond the barrier. The latter construct explicitly waits for the completion of child tasks.
 
+```
 #pragma omp barrier
 !omp barrier
-
+```
+```
 #pragma omp taskwait
 !$omp taskwait
+```
 
 A simple sentence that is is grammatically correct, but (arguably) semantically nonsensical is "Colourless green ideas sleep furiously". Embodied with standard omp structure (colourless-1.c and colourless-1.f90), this will produce the sentence according to the number of exported threads available. Fortran, of course, automates a new line with each print (an advance=no plus character variables, plus explicit formatting, would be required to suppress this).
 
-./colourless-1c
-Colourless green ideas sleep furiously Colourless green ideas sleep furiously Colourless green ideas sleep furiously Colourless green ideas sleep furiously 
+```./colourless-1c
+Colourless green ideas sleep furiously Colourless green ideas sleep furiously Colourless green ideas sleep furiously Colourless green ideas sleep furiously```
 
-./colourless-1f 
+```./colourless-1f 
  Colourless 
  green 
  ideas 
  sleep furiously 
+```
 
 With the `single` construct, these multiple threads can be forced into using just one (colourless-2.c and colourless-2.f90). Variations (not elaborated here) is the `master` construct, which specifies a structured block that that can only be executed by the master thread, and the `critical` construct also operates on a single thread but typically with an expression clause.
 
 Within the single thread, individual tasks can be specified (colourless-3.c and colourless-3.f90). The tasks will complete in any order and at a task execution point, as the code snippets and results show. If a `taskwait` construct was included at the end of the tasks the tasks would execute first.
 
+```
  #pragma omp parallel
  { 
   #pragma omp single
@@ -1368,7 +1357,9 @@ Within the single thread, individual tasks can be specified (colourless-3.c and 
 	printf("sleep furiously ");
    }
    }
+```
 
+```
 ./colourless3c 
 Noam Chomsky said Colourless sleep furiously ideas green
 
@@ -1387,114 +1378,119 @@ Noam Chomsky said Colourless sleep furiously ideas green
 	  print *, "sleep furiously "
 	 !$omp end single
 	!$omp end parallel
-
+```
+```
 ./colourless3f [EDIT Doesn't work as expected]
  Noam Chomsky said
  Colourless 
  green 
  ideas 
  sleep furiously 
+```
 
 A combination of tasks and loops is also possible with the `taskloop` construct. With this construct one or more associated loops will be executed in parallel using tasks. It can be further expanded to carry out these taskloops with SIMD instructions. Its generic form follows:
 
-#pragma omp taskloop simd [clauses]
-for-loops
+```#pragma omp taskloop simd [clauses]
+for-loops```
 
-!$omp taskloop simd [clauses]
+```!$omp taskloop simd [clauses]
 do-loops
-!$omp end taskloop simd
+!$omp end taskloop simd```
 
-3.5 Targets and Teams
+## 3.5 Targets and Teams
 
 In addition to operating with different tasks, OpenMP can also operate on different devices (e.g., coprocessors, GPGPUs). A relatively new development, this means that OpenMP can run on both a host and an device, optimally in parallel, in a worksharing manner by encapsulating part of the code to run on a target device. There is a large number of directives, constructs, and clauses associated with this activity, of which a few are expressed here albeit only in summary form.
 
 Program execution begins on the host device and when a thread encounters the `target` directive subsequent code in that region executes on the target device. The target device is determined by the device clause or, if that is not in the construct, the default-device-var ICV. The generic syntax is as follows:
 
-#pragma omp target [clause[ [,] clause] ... ] new-line
-structured-block
+```#pragma omp target [clause[ [,] clause] ... ] new-line
+structured-block```
 
-!$omp target [clause[ [,] clause] ... ]
+```!$omp target [clause[ [,] clause] ... ]
 structured-block
-!$omp end target
+!$omp end target```
 
 Whereas the `target` construct transfers the control flow to a target device, the `target data` construct maps variables to a device data environment. 
 
-#pragma omp target data [clauses]
-structured-block
+```#pragma omp target data [clauses]
+structured-block```
 
-!$omp target data [clauses]
+```!$omp target data [clauses]
 structured-block
-!$omp end target data
+!$omp end target data```
 
 This is then elaborated by the `target update` directive to request data transfers from within a target data region by making the corresponding list items in the device data environment consistent with their original list items and according to specified clauses. For each list item in a `to` or `from` clause there is a corresponding list item and an original list item. Note that clauses must be present in this directive.
 
-#pragma omp target update clauses
-!$omp target update clauses
+```#pragma omp target update clauses
+!$omp target update clauses```
 
 The `declare target` directive specifies that variables, functions, and subroutines (Fortran alone) are mapped to a device. If an extended list is not included, the clause `to(extended-list)` or `link(list)` must be.
 
-#pragma omp declare target
+```#pragma omp declare target
 declaration-definition-seq
-#pragma omp end declare target
+#pragma omp end declare target```
 or
-#pragma omp declare target (extended-list)
+`#pragma omp declare target (extended-list)`
 or
-#pragma omp declare target clauses
+`#pragma omp declare target clauses`
 
-!$omp declare target (extended-list)
+`!$omp declare target (extended-list)`
 or
-!$omp declare target clauses
+`!$omp declare target clauses`
 
 The `target enter data` directive specifies that variables are mapped to a device data environment. When a target enter data construct is encountered, the list items are mapped to the device data environment according to the map clauses. An associated directive is `target exit data`, which specifies list items that are to be unmapped from a device data environment. The general syntax for the two is as follows:
 
-#pragma omp target enter data [clauses]
-!$omp target enter data [clauses]
+```#pragma omp target enter data [clauses]
+!$omp target enter data [clauses]```
 
-#pragma omp target exit data [clauses]
-!$omp target exit data [clauses]
+```#pragma omp target exit data [clauses]
+!$omp target exit data [clauses]```
 
 Whilst a parallel region creates a team of threads for execution, and a nested parallel can create a new team within an existing team, there is also a `teams` construct for use specifically within the `targets` construct i.e., the binding thread for a teams region is where the the initial thread is of the target region. When a thread encounters the `teams` construct it creates a league of thread teams and the master thread of each team executes the region. Once the teams are created, the number of `teams` remains constant for the duration of the region and within a `teams` region, each team is identified with a call to the `omp_get_team_num` library routine.
 
-#pragma omp teams [clauses]
-structured-block
+```#pragma omp teams [clauses]
+structured-block```
 
-!$omp teams [clauses]
+```!$omp teams [clauses]
 structured-block
-!$omp end teams
+!$omp end teams```
 
 Once target teams are in place tasks may be assigned to them, for example with the `distribute` construct, which can allocate one or more loops. An equivalent `distribute simd` is also available. Composite constructs can be built with `distribute parallel for` and `distribute parallel for simd`.
 
-#pragma omp distribute [clauses]
-for-loops
+```#pragma omp distribute [clauses]
+for-loops```
 
-!$omp distribute [clauses]
+```!$omp distribute [clauses]
 do-loops
-!$omp end distribute
+!$omp end distribute```
 
-#pragma omp distribute simd [clauses]
-for-loops
+```#pragma omp distribute simd [clauses]
+for-loops```
 
-!$omp distribute simd [clauses]
+```!$omp distribute simd [clauses]
 do-loops
-!$omp end distribute simd
+!$omp end distribute simd```
 
-#pragma omp distribute parallel for [clauses]
-for-loops
+```#pragma omp distribute parallel for [clauses]
+for-loops```
 
-!$omp distribute parallel do [clauses]
+```!$omp distribute parallel do [clauses]
 do-loops
-[!$omp end distribute parallel do]
+[!$omp end distribute parallel do]```
 
-#pragma omp distribute parallel for simd [clauses]
-for-loops
+```#pragma omp distribute parallel for simd [clauses]
+for-loops```
 
-!$omp distribute parallel do simd [clauses]
+```!$omp distribute parallel do simd [clauses]
 do-loops
-!$omp end distribute parallel do simd
+!$omp end distribute parallel do simd```
 
 This brings us to an end of the chapter on OpenMP; rather like the following chapter on OpenMPI only a cursorary exploration of the major capabilities have been provided. However they should be a sufficient overview to start converting sequential code into parallel code immediately and with minimum effort whilst also providing the grounding for future exploration and detail.
-4.0 Distributed Memory Programming with OpenMPI
-4.1 Distributed Memory Concepts and the OpenMPI Implementation
+
+# 4.0 Distributed Memory Programming with OpenMPI
+
+
+## 4.1 Distributed Memory Concepts and the OpenMPI Implementation
 
 The Message Passing Interface (MPI) is a widely used standard, initially designed by academia and industry initiated in 1991, to run on parallel computers. The goal of the group was to ensure source-code portability, and as a result they have a standard that defines an interface and specific functionality. As a standard, syntax and semantics are defined for core library routines which allow for programmers to write message-passing programs in Fortran or C. 
 
