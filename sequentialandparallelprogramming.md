@@ -6,58 +6,67 @@ ISBN-10: 0-9943373-1-0
 
 ISBN-13: 978-0-9943373-1-3
 
-
-Sequential and Parallel Programming with C and Fortran by Lev Lafayette, 2015
+Sequential and Parallel Programming with C and Fortran by Lev Lafayette, 2015. This edition 2017 (revised).
 
 Published by the Victorian Partnership for Advanced Computing (trading as V3 Alliance) .
 
-Cover art composed by Michael D'Silva, featuring several clusters operated by the Victorian Partnership for Advanced Computing.
+Cover art composed by Michael D'Silva, featuring several clusters operated by the Victorian Partnership for Advanced Computing. Middle image (Trifid) by Craig West. Other images from Chris Samuel, et. al. from VPAC and Randall Munroe (under license, see: `https://xkcd.com/license.html`).
 
 Sequential and Parallel Programming with C and Fortran, is licensed under a Creative Commons Attribution 4.0 International License. 
 
-All trademarks are property of their respective owners.
+Supercomputing with Linux, is licensed under a Creative Commons Attribution 4.0 International License. 
 
+![CCSA License](https://github.com/VPAC/superlinux/blob/master/images/ccsa.png)
+
+All trademarks are property of their respective owners.
 
 # Table of Contents
 
-Foreward
-Introduction	2
-1.0 Current Trends in Computer Systems	5
-1.1 Computer System Architectures	5
-1.2 Processors, Cores, and Threads	8
-1.3 Multithreaded Applications	9
-1.4 Parallel Processing Performance	11
-2.0 Sequential Programming with C and Fortran	16
-2.1 Fortran and C Fundamentals	16
-2.2 Program and Compilation	18
-2.3 Variables and Constants	20
-2.4 Data Types and Operations	23
-2.5 Loops and Branches	26
-2.6 Data Structures	30
-2.7 Input and Output	33
-3.0 Shared Memory Parallel Programming with OpenMP	35
-3.1 Shared Memory Concepts and the OpenMP Implementation	35
-3.2 Directives and Internal Control Variables	38
-3.3 Core Constructs	42
-3.4 Tasks and Synchronisation	47
-3.5 Targets and Teams	50
-4.0 Distributed Memory Programming with OpenMPI	52
-4.1 Distributed Memory Concepts and the OpenMPI Implementation	52
-4.2 MPI Program Structure and OpenMPI Wrappers	54
-4.3 MPI's Basic Routines	59
-4.4 MPI Datatypes	68
-4.5 Extended Communications and Other Routines	71
-4.6 Compiler Differences	77
-4.7 Collective Communications	78
-5.0 Profiling and Debugging	87
-5.2 Memory Checking with Valgrind	90
-5.3 Debugging with GDB	93
-References	97
+0.0 Introduction
+0.1 Foreward
+0.1 Preface
 
+1.0 Current Trends in Computer Systems
+1.1 Computer System Architectures
+1.2 Processors, Cores, and Threads
+1.3 Multithreaded Applications
+1.4 Parallel Processing Performance
 
-# Foreward
+2.0 Sequential Programming with C and Fortran
+2.1 Fortran and C Fundamentals
+2.2 Program and Compilation
+2.3 Variables and Constants
+2.4 Data Types and Operations
+2.5 Loops and Branches
+2.6 Data Structures
+2.7 Input and Output
 
-John L. Gustafson
+3.0 OpenMP Parallel Programming
+3.1 Shared Memory Concepts
+3.2 Directives and Internal Control Variables
+3.3 Core Constructs
+3.4 Tasks and Synchronisation
+3.5 Targets and Teams
+
+4.0 OpenMPI Distributed Memory Programming
+4.1 Distributed Memory Concepts
+4.2 Program Structure and OpenMPI Wrappers
+4.3 Basic Routines
+4.4 Datatypes
+4.5 Extended Communications and Other Routines
+4.6 Compiler Differences
+4.7 Collective Communications
+
+5.0 Profiling and Debugging
+5.1 Profiling with TAU and PDT
+5.2 Memory Checking with Valgrind
+5.3 Debugging with GDB
+
+6.0 References
+
+# 0.0 Introduction
+
+# 0.1 Foreward
 
 It is finally time for a book like this one.
 
@@ -83,8 +92,9 @@ The models for shared and distributed memory programming have similarly stabiliz
 
 Lev Lafayette approaches the subject with just the right touch of Australian levity, increasing the readability of an admittedly dry topic.  He judiciously chooses the right amount of detail to cover the maximum amount of material in the smallest number of pages, imitating the classic Kernighan and Ritchie book that introduced the C language to a generation of programmers. Instead of listing the strict grammar rules, the author gives pointer about how you should write programs, the guidelines of style and clarity that are absent from a User’s Manual. If you only have time to read one book about parallel computing, this is it.
 
+John L. Gustafson
 
-# Introduction
+# 0.2 Preface
 
 In many ways contemporary computing is an elaboration of mechanical automation and calculation, whose origins can date back at least to the Antikythera mechanism, from approximately 150 to 100 BCE, and was used for astronomical positions and calendaring. From there multiple chains of inquiry can be traced to the development of programmable automata, the feedback mechanism for sails on windmills, centrifugal governor originally for mills and steam engines, the Jacquard loom's logic board, and Charles Babbage's Analytical Engine. The honour of the first real programmer goes to Ada Lovelace, who theorised that the Analytical Engine could engage in logical computation of symbols as well as numbers and wrote the first program which calculated a sequence of Bernoulli numbers.
 
@@ -118,9 +128,7 @@ I also wish to thank Matt Davis who reviewed this manuscript and publication pri
 
 Thanks are also given to the Victorian Partnership of Advanced Computing for the time and resources necessary for the publication of this book, and especially Bill Yeadon, manager of research and development, and Ann Borda, CEO, who authorised its publication.
 
-
 This book is part of a series designed to assist researchers, systems administrators, and managers in a variety of advanced computational tasks. Other books that will be published in this series include: Supercomputing with Linux., Mathematical Applications and Programming., Data Management Tools for eResearchers., Building HPC Clusters and Clouds., Teaching Research Computing to Advanced Learners., Quality Assurance in Technical Organisations., Technical Project Management, and A History of the Victorian Partnership of Advanced Computing.
-
 
 Lev Lafayette, Victorian Partnership for Advanced Computing, Melbourne, 2015
 
@@ -135,12 +143,10 @@ It is possible to illustrate the degree and development of parallelisation by us
 
 From this complex is four basic possibilities:
 
-Single Instruction Stream, Single Data Stream (SISD)
-Single Instruction Stream, Multiple Data Streams (SIMD)
-Multiple Instruction Streams, Single Data Stream (MISD)
-Multiple Instruction Streams, Multiple Data Streams (MIMD)
-
-Single Instruction Stream, Single Data Stream (SISD)
+* Single Instruction Stream, Single Data Stream (SISD)   
+* Single Instruction Stream, Multiple Data Streams (SIMD)    
+* Multiple Instruction Streams, Single Data Stream (MISD)   
+* Multiple Instruction Streams, Multiple Data Streams (MIMD)   
 (Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007)
 
 This is the simplest and, until recently, the most common processor architecture on desktop computer systems. Also known as a uniprocessor system it offers a single instruction stream and a single data stream. Whilst uniprocessor systems were not able to run programs in parallel (i.e., multiple tasks simultaneously), they were able or include concurrency (i.e., multiple logical tasks) through a number of different methods:
@@ -153,7 +159,7 @@ c) Instruction prefetch, where an instruction is requested from main memory befo
 
 d) Pipelines, on the instruction level or the graphics level, can also serve as an example of concurrent activity. An instruction pipeline (e.g., RISC) allows multiple instructions on the same circuitry by dividing the task into stages. A graphics pipeline implements different stages of rendering operations to different arithmetic units.
 
-### Single Instruction Stream, Multiple Data Streams (SIMD)
+**Single Instruction Stream, Multiple Data Streams (SIMD)**
 
 SIMD architecture represents a situation where a single processor performs the same instruction on multiple data streams. This commonly occurs in contemporary multimedia processors, for example MMX instruction set from the 1990s, which lead to Motorolla’s PowerPC Altivec, and more contemporary times AVE (Advanced Vector Extensions) instruction set used in Intel Sandy Bridge processors and AMD's Bulldozer processor. These developments have primarily been orientated towards real-time graphics, using short-vectors. Contemporary supercomputers are invariably MIMD clusters which can implement short-vector SIMD instructions. IBM is still continuing with a general SIMD architecture through their Power Architecture.
 
@@ -161,7 +167,7 @@ SIMD was also used especially in the 1970s and notably on the various Cray syste
 
 SIMD is also known as vector processing or data parallelism, in comparison to a regular SIMD CPU which operates on scalars. SIMD lines up a row of scalar data (of uniform type) as a vector and operates on it as a unit. For example, inverting an RGB picture to produce its negative, or to alter its brightness etc. Without SIMD each pixel would have to be fetched to memory, the instruction applied to it, and then returned. With SIMD the same instruction is applied to all the data, depending on the availability of cores, e.g., get n pixels, apply instruction, return. The main disadvantages of SIMD, within the limitations of the process itself, is that it does require additional register, power consumption, and heat.
 
-### Multiple Instruction Streams, Single Data Stream (MISD)
+**Multiple Instruction Streams, Single Data Stream (MISD)**
 
 Multiple Instruction, Single Data (MISD) occurs when different operations are performed on the same data. This is quite rare and indeed debatable as it is reasonable to claim that once an instruction has been performed on the data, it's not the same anymore. If one allows for a variety of instructions to be applied to the same data which can change, then various pipeline architectures can be considered MISD. 
 
@@ -169,7 +175,7 @@ Systolic arrays are another form of MISD. They are different to pipelines becaus
 
 MISD machines are rare; the Cisco PXF processor is an example. They can be fast and scalable, as they do operate in parallel, but they are really difficult to build.
 
-### Multiple Instruction Streams, Multiple Data Streams (MIMD)
+**Multiple Instruction Streams, Multiple Data Streams (MIMD)**
 
 Multiple Instruction, Multiple Data (MIMD) have independent and asynchronous processes that can operate on a number of different data streams. They are now the mainstream in contemporary computer systems and thus can be further differentiated between multiprocessor computers and their extension, multicomputer mutiprocessors. As the name clearly indicates, the former refers to single machines which have multiple processors and the latter to a cluster of these machines acting as a single entity.
 
@@ -177,7 +183,7 @@ Multiprocessor systems can be differentiated between shared memory and distribut
 
 With distributed memory systems, each processor has its own memory. Finally, another combination is distributed shared memory, where the (physically separate) memories can be addressed as one (logically shared) address space. A variant combined method is to have shared memory within each multiprocessor node, and distributed between them.
 
-### Divisions within MIMD
+**Divisions within MIMD**
 
 More recently further subdivisions within that category are considered. Specifically there are the taxons of Single Program Multiple Data streams (SPMD) and Multiple Programs Multiple Data streams (MPMD). These classifications have gained recent popularity given the widespread use of MIMD systems.
 
@@ -221,7 +227,7 @@ New multicore systems are being developed all the time. Using RISC CPUs, Tilera 
 
 ## 1.4 Parallel Processing Performance
 
-### Speedup and Locks
+**Speedup and Locks**
 
 Parallel programming and multicore systems should mean better performance. This can be expressed a ratio called speedup (c.f., C. Xavier, S. S. Iyengar, "Introduction to Parallel Algorithms", John Wiley and Sons, 5 Aug. 1998, pp52) 
         
@@ -239,7 +245,7 @@ A similar example is a livelock; the states of the processes involved in the liv
 
 Locks are currrently manually inserted in typically programming languages; without locks programs can be put in an inconsistent state. They are usually included as a way of guarding critical sections. Multiple locks in different places and orders can lead to deadlocks. Manual lock inserts is error-prone, tedious and difficult to maintain. Does the programmer know what parts of a program will benefit from parallelisation? To ensure that parallel execution is safe, a task’s effects must not interfere with the execution of another task. 
 
-### Amdahl's Law and the Gustafson-Barsis Law
+**Amdahl's Law and the Gustafson-Barsis Law**
 
 Amdahl's law, in the general sense, is a method to work out the maximum improvement to a system when only part of the system has been improved. A very typical use - and appropriate in this context - is the improvement in speedup with the adding on multiple processors to a computational task. Because some of the task is in serial, there is a maxiumum limit to the speedup based on the time that is required for the sequential task - no matter how many processors are thrown at the problem. For example, if there is a complex one hundred hour which will require five hours of sequential processing, only 95% of the task can be parallel - which means a maximum speedup of 20X.
 
@@ -257,11 +263,10 @@ Whilst originally expressed by Gene Amdahl in 1967, it wasn't until over twenty 
 
 If the problem size is allowed to grow with P, then the sequential fraction of the workload would become less and less important. A common metaphor is based on driving (computation), time, and distance (computational task). In Amdhal's Law, if a car had been travelling 40kmp/h and needs to reach a point 80km from the point of origin, no matter how fast the vehicle travels it will can only reach a maximum of a 80km/h average before reaching the 80km point, even if it travelled at infinite speed as the first hour has already passed. With the Gustafon-Barsis Law, it doesn't matter if the first hour has been at a plodding 40 km/h, this can be infinitely increased given enough time and distance. Just make the problem bigger!
 
-(Image from Wikipedia)
 
+(Image from Daniels220 from Wikipedia, CC BY-SA 3.0)
 
 # 2.0 Sequential Programming with C and Fortran
-
 
 ## 2.1 Fortran and C Fundamentals
 
@@ -291,25 +296,25 @@ The classic 'Hello World' example can be expressed as source in Fortran and C as
 
 In Fortran
 ```	
-	program hello
-		implicit none
-		print *, "Hello world!"
-	end program hello
+	program hello   
+		implicit none   
+		print *, "Hello world!"   
+	end program hello   
 ```
 In C
 
 ```
-	#include <stdio.h>
-	int main(void)
-	{
-	   printf("Hello, world!");
-	   return 0;
-	}
+	#include <stdio.h>   
+	int main(void)   
+	{   
+	   printf("Hello, world!");   
+	   return 0;   
+	}   
 ```
 
 Both can be compiled respectively as follows, with the source file (.c or .f) creating an executable binary:
 
-	`gfortran hello.f90 -o hellof`
+	`gfortran hello.f90 -o hellof`   
 	`gcc hello.c -o helloc`
 
 Which can be run by invoked ./hellof or ./helloc as appropriate from the executable directory.
