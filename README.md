@@ -13,3 +13,10 @@ As VPAC comes to a close, the following publication compiles some of the materia
 ## The Repository
 
 The top-level directory of this repository includes the book, "Sequential and Parallel Programming with C and Fortran" (ISBN 978-0-9943373-1-3). Programs and PBS submission scripts and other associated files are included in each directory according to the chapter number.
+
+## ISBN
+
+ISBN-10: 0-9943373-1-0
+ISBN-13: 978-0-9943373-1-3
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/isbn978-0-9943373-1-3.png" />

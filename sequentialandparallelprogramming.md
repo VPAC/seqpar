@@ -1,12 +1,14 @@
 #Sequential and Parallel Programming with C and Fortran
 
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/hpccover.png" />
+
 by Lev Lafayette
 
 ISBN-10: 0-9943373-1-0
 
 ISBN-13: 978-0-9943373-1-3
 
-Sequential and Parallel Programming with C and Fortran by Lev Lafayette, 2015. This edition 2017 (revised).
+Sequential and Parallel Programming with C and Fortran by Lev Lafayette, 2015. Print edition 2019.
 
 Published by the Victorian Partnership for Advanced Computing (trading as V3 Alliance) .
 
@@ -263,7 +265,7 @@ Whilst originally expressed by Gene Amdahl in 1967, it wasn't until over twenty 
 
 If the problem size is allowed to grow with P, then the sequential fraction of the workload would become less and less important. A common metaphor is based on driving (computation), time, and distance (computational task). In Amdhal's Law, if a car had been travelling 40kmp/h and needs to reach a point 80km from the point of origin, no matter how fast the vehicle travels it will can only reach a maximum of a 80km/h average before reaching the 80km point, even if it travelled at infinite speed as the first hour has already passed. With the Gustafon-Barsis Law, it doesn't matter if the first hour has been at a plodding 40 km/h, this can be infinitely increased given enough time and distance. Just make the problem bigger!
 
-
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/amdhal.png" />
 (Image from Daniels220 from Wikipedia, CC BY-SA 3.0)
 
 # 2.0 Sequential Programming with C and Fortran
@@ -285,6 +287,8 @@ It is commonly, if incorrectly, stated that languages like C and Fortran are com
 Contemporary Fortran and C programming is often described as imperative, procedural, and structured. In imperative programming algorithms are implemented in explicit steps to change the program's state. This is often contrasted with declarative programming, that express the logic of a computation without describing its control flow, leaving that to the specific language. By procedural programming what is meant is a sub-type of imperative programming where the the program is built from one or more procedures (also referred to as routines or functions). The significant change in procedural programming is that state changes can be localised; this technique would provide the foundation for object-orientated programming. 
 
 Finally, contemporary Fortran and C can both described as using a structured programming style. This makes extensive use of procedures and block structures rather than conditional jump branching (e.g., the goto statement). Structured programming is now extremely common to high level programming languages, as it is a powerful aid to readability and code maintenance. Structured programming also allows for greater ease in the development of pseudo-code, which should be requisite in any program of a non-trivial size, as it can replace non-unique expression calls to common functions. Writing pseudo-code should also be an aid for clarity in the program; programs that sacrifice clarity for cleverness are difficult to maintain.
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/goto.png" />
 	
 An important attribute of programming languages is the implementation of types. These are the rules that the assign properties and interfaces to a variety of common constructs, such as variables, expressions, procedures, etc, which are then checked at compilation (static type checking), at run time (dynamic type checking), or a combination thereof depending on the construct. In principle typing prevents logical errors (particularly of the 'not even wrong' variety e.g., 2 + zebra / glockenspiel = homeopathy works!) and memory errors. Both C and Fortran check their typing at compilation, and are therefore statically typed. They both use manifest typing which requires explicit type identification by the programmer, rather than deducing the type from context or dynamically assigning it at runtime. With these contributions, C and Fortran are often colloquially classified as 'strongly typed', meaning that they are likely to catch type errors when compiled.
 
@@ -2100,14 +2104,17 @@ mpif90 mpi-pingpong.f90 -o mpi-pingpongf
 
 qsub pbs-pingpong
 
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/compiling.png" />
+
 The pbs file should be modified to agree with the resource requirements and the executable being run.
 
 In the source code are new routines that extend the suite MPI communications along with other routines. As previously there is the mpi.h header include files, the initialisation routines, the establishment of a communications world and so forth.  In addition however there are some new routines, specifically MPI_Wtime, MPI_Abort, MPI_Status, and MPI_Ssend.  
 
-MPI_Wtime()
+**MPI_Wtime()**
 
 MPI_Wtime returns the elapsed time, as a floating point number in seconds, of the calling processor from an arbitrary point in the past. It can be applied in the following fashion:
 
+```
     {
        double starttime, endtime;
        starttime = MPI_Wtime();
@@ -2115,25 +2122,32 @@ MPI_Wtime returns the elapsed time, as a floating point number in seconds, of th
        endtime   = MPI_Wtime();
        printf("That took %f seconds\n",endtime-starttime);
     }
+```
 
 The syntax for MPI_Wtime() is as follows for C, Fortran, and C++.
 
 C Syntax
 
+```
 #include <mpi.h>
 double MPI_Wtime()
+```
 
 Fortran Syntax
 
+```
 INCLUDE ’mpif.h’
 DOUBLE PRECISION MPI_WTIME()
+```
 
 C++ Syntax
 
+```
 #include <mpi.h>
 double MPI::Wtime()
+```
 
-MPI_Abort()
+**MPI_Abort()**
 
 MPI_Abort() aborts (or at least tries to) all tasks in the group of a communicator. All associated processes are sent a SIGTERM.  The input parameters include comm, the communicator of taks to abort and errorcode, the error code to return to invoking the environment. The only output parameter is Fortran's , IERROR.
 
