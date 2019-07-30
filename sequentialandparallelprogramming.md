@@ -1537,6 +1537,9 @@ This brings us to an end of the chapter on OpenMP; rather like the following cha
 
 ## 4.1 Distributed Memory Concepts and the OpenMPI Implementation
 
+"Taking control is the key strategy!"
+Dr. Rolf Rabenseifner, High Performance Computing Center, Stuttgart
+
 The Message Passing Interface (MPI) is a widely used standard, initially designed by academia and industry initiated in 1991, to run on parallel computers. The goal of the group was to ensure source-code portability, and as a result they have a standard that defines an interface and specific functionality. As a standard, syntax and semantics are defined for core library routines which allow for programmers to write message-passing programs in Fortran or C. 
 
 Some implementations of these core library routine specifications are available as free and open-source software, such as Open MPI.  Open MPI combined three previous well-known implementations, namely FT-MPI from the University of Tennessee, LA-MPI from Los Alamos National Laboratory, and LAM/MPI from Indiana University, each of which excelled in particular areas, with additional contributions from the PACX-MPI team at the University of Stuttgart. OpenMPI combines the quality peer-review of a scientific free and open-source software project, and has been used in many of the world's top ranking supercomputers.
@@ -1554,88 +1557,64 @@ Major milestones in the development of MPI include the following:
 
 The message passing paradigm, as it is called, is attractive as it is portable on a wide variety of distributed architectures, including distributed and shared memory multiprocessor systems, networks of workstations, or even potentially a combination thereof. Although originally designed for distributed architectures (unicore workstations connected by a common network) which were popular at the time the standard was initiated, shared memory symmetric multiprocessing systems over networks created a hybrid distributed/shared memory systems, that is each system has shared memory within each machine but not the memory distributed between machines, which distribute data over the network communications. The MPI library standards and implementations were modified to handle both types of memory architectures.
 
-
-
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/chapter04/distmemory.png" />
 (image from Lawrence Livermore National Laboratory, U.S.A)
 
 Using MPI is a matter of some common sense. It is is the only message passing library which can really be considered a standard. It is supported on virtually all HPC platforms, and has replaced all previous message passing libraries, such as PVM, PARMACS, EUI, NX, Chameleon, to name a few predecessors. Programmers like it because there is no need to modify their source code when ported to a different system as long as that system also supports the MPI standard (there may be other reasons however to modify the code!). MPI has excellent performance with vendors able to exploit hardware features for optimisation.
 
 The core principle is that many processors should be able cooperate to solve a problem by passing messages to each through a common communications network. The flexible architecture does overcome serial bottlenecks, but it also does require explicit programmer effort (the "questing beast" of automatic parallelisation remains somewhat elusive). The programmer is responsible for identifying opportunities for parallelism and implementing algorithms for parallelisation using MPI. 
 
-MPI programming is best where there is not too many small communications, and where coarse-level breakup of tasks or data is possible.
+Data parallel programming, such as OpenMP, is best where there is not too many small communications, and where coarse-level breakup of tasks or data is possible. Where there is a greater number of communications, or the communications are over multiple computer nodes, MPI is a superior programming tool
 
 "In cases where the data layout is fairly simple, and the communications patterns are regular this [data-parallel] is an excellent approach. However, when dealing with dynamic, irregular data structures, data parallel programming can be difficult, and the end result may be a program with sub-optimal performance." 
 
 (Warren, Michael S., and John K. Salmon. "A portable parallel particle program." Computer Physics Communications 87.1 (1995): 266-290.)
 
-4.2 MPI Program Structure and OpenMPI Wrappers
+## 4.2 MPI Program Structure and OpenMPI Wrappers
 
 Walking through a `helloworld` example for C and Fortran illustrates some key routines in MPI.
 
 This is the text for mpi-helloworld.c
 
-#include <stdio.h>
-A standard include for C programs. 
-#include "mpi.h"
-A standard include for MPI programs. 
-int main( argc, argv )
-Beginning of the main function, establish arguments and vector. To incorporate input files argc (argument count) is the number of arguments, and argv (argument vector) is an array of characters representing the arguments. 
-int  argc; 
-Argument count is an integer
-char **argv; 
-Argument vector is a string of characters.
+````
+#include <stdio.h> A standard include for C programs. 
+#include "mpi.h" A standard include for MPI programs. 
+int main( argc, argv ) Beginning of the main function, establish arguments and vector. To incorporate input files argc (argument count) is the number of arguments, and argv (argument vector) is an array of characters representing the arguments. 
+int  argc; Argument count is an integer
+char **argv; Argument vector is a string of characters.
 {
- 
-    int rank, size; 
-Set rank and size from the inputs.
-    MPI_Init( &argc, &argv );
-Initialises the MPI execution environment. The input parameters argc is pointer to the number of arguments and argv is a pointer to the argument vector 
-    MPI_Comm_size( MPI_COMM_WORLD, &size );
-Determines the size of the group associated with a communicator. In input parameter is simply a handle (Contains all of the processes), the output parameter, size, is an integer of the number of processes in the group. 
-    MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-As above, except rank is rank of the calling process. 
+    int rank, size; Set rank and size from the inputs.
+    MPI_Init( &argc, &argv ); Initialises the MPI execution environment. The input parameters argc is pointer to the number of arguments and argv is a pointer to the argument vector 
+    MPI_Comm_size( MPI_COMM_WORLD, &size ); Determines the size of the group associated with a communicator. In input parameter is simply a handle (Contains all of the processes), the output parameter, size, is an integer of the number of processes in the group. 
+    MPI_Comm_rank( MPI_COMM_WORLD, &rank ); As above, except rank is rank of the calling process. 
     printf( "Hello world from process %d of %d\n", rank, size ); 
-Printing "Hello world" from each process.
-    MPI_Finalize();
-Terminates MPI execution environment 
-    return 0; 
-A successful program finishes!
+Printing "Hello world" from each process.     MPI_Finalize();
+Terminates MPI execution environment      return 0;  A successful program finishes!
 } 
-
+```
 
 It is compiled into an executable with the command: 
 
-mpicc mpi-helloworld.c -o mpi-helloworldc
+`mpicc mpi-helloworld.c -o mpi-helloworldc`
 
 A similar elaboration can occur with Fortran (mpi-helloworld.f)
 
-!  Fortran MPI Hello World
-A comment
-   program hello
-Program name
-   implicit none
-Suppress assumed variable datatypes
-   include 'mpif.h'
-Include file for MPI
-   integer rank, size, ierror, tag, status(MPI_STATUS_SIZE)
-Variables
-   call MPI_INIT(ierror)
-Start MPI
-   call MPI_COMM_SIZE(MPI_COMM_WORLD, size, ierror)
-Number of processers
-   call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierror)
-Process IDs
-   print*, 'node', rank, ': Hello world'
-Each processor prints "Hello World"
-   call MPI_FINALIZE(ierror)
-Finish MPI.
+```
+!  Fortran MPI Hello World A comment
+   program hello Program name
+   implicit none Suppress assumed variable datatypes
+   include 'mpif.h'  Include file for MPI
+   integer rank, size, ierror, tag, status(MPI_STATUS_SIZE) Variables
+   call MPI_INIT(ierror) Start MPI
+   call MPI_COMM_SIZE(MPI_COMM_WORLD, size, ierror) Number of processers
+   call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierror) Process IDs
+   print*, 'node', rank, ': Hello world' Each processor prints "Hello World"
+   call MPI_FINALIZE(ierror) Finish MPI.
    end
-
-
-
+```
 It is compiled into an executable with the command: 
 
-mpif90 mpi-helloworld.f90 -o mpi-helloworldf
+`mpif90 mpi-helloworld.f90 -o mpi-helloworldf`
 
 Compared with OpenMP it can be immediately noticed that the MPI routines have to be called directly from within the program, and the program has to be modified in such a manner to include these routines. In this sense, MPI is harder than OpenMP – however, it also can leverage distributed systems.
 
@@ -1643,12 +1622,12 @@ MPI code can be run on systems that have had an MPI implementation installed, su
 
 To run directly use simple invoke mpiexec (or mpirun, or orterun, they're all synonyms), assuming it's in your path. The following examples assume 8 cores.
 
-
-mpiexec -np 8 ./mpi-helloworldc
-mpiexec -np 8 ./mpi-helloworldf
+``mpiexec -np 8 ./mpi-helloworldc```
+```mpiexec -np 8 ./mpi-helloworldf```
 
 As there is no locking or communication between the cores, they will each run and complete their tasks independently (i.e., a race condition). The result of running such a command should be similar to the following:
 
+```
 Hello world from process 1 of 8
 Hello world from process 5 of 8
 Hello world from process 2 of 8
@@ -1657,9 +1636,11 @@ Hello world from process 3 of 8
 Hello world from process 7 of 8
 Hello world from process 6 of 8
 Hello world from process 4 of 8
+```
 
 The other option, using Torque, is to submit through a job submission system. For example submitting pbs-helloworld.
 
+```
 #!/bin/bash
 # To give your job a name, replace with an appropriate name
 #PBS -N HelloWorld
@@ -1675,38 +1656,35 @@ cd $PBS_O_WORKDIR
 # specify the number of processes or thier names. 
 module load openmpic-gcc
 mpiexec ./mpi-helloworldc
+```
 
 This PBS script can be submitted with 
 
-qsub pbs-helloworld
+`qsub pbs-helloworld`
 
 When this job completes it should have an output file with a similar output to above.
 
 The sample "hello world" programs should be understandable to any C or Fortran programmer (indeed, any programmer) and with the MPI-specific annotations, it should be clear what is going on. It is the same as any other program, but with a few MPI-specific additions. For example, one can check the mpi.h. For example:
 
-less /usr/local/openmpi/1.8.6-gcc/include/mpi.h
+`less /usr/local/openmpi/1.8.6-gcc/include/mpi.h`
 
 MPI compiler wrappers are used to compile MPI programs which perform basic error checking, integrate the MPI include files, link to the MPI libraries and pass switches to the underlying compiler. The wrappers are as follows:
 
-mpif77
-OpenMPI Fortran 77 wrapper compiler (deprecated from OpenMPI 1.7 onwards)
-mpif90
-OpenMPI Fortran 90 wrapper compiler (deprecated from OpenMPI 1.7 onwards)
-mpifort
-OpenMPI Fortran wrapper (OpenMPI 1.7+), can be used for all versions of Fortran.
-mpicc
-OpenMPI C wrapper compiler
-mpicxx
-OpenMPI C++ wrapper compiler. Also, mpic++ mpiCC can be used.
+```
+mpif77 OpenMPI Fortran 77 wrapper compiler (deprecated from OpenMPI 1.7 onwards)
+mpif90 OpenMPI Fortran 90 wrapper compiler (deprecated from OpenMPI 1.7 onwards)
+mpifort OpenMPI Fortran wrapper (OpenMPI 1.7+), can be used for all versions of Fortran.
+mpicc OpenMPI C wrapper compiler
+mpicxx OpenMPI C++ wrapper compiler. Also, mpic++ mpiCC can be used.
+```
 
 Open MPI is comprised of three software layers or modules: OPAL (Open Portable Access Layer), ORTE (Open Run-Time Environment), and OMPI (Open MPI).  Each layer provides the following wrapper compilers:
 
-OPAL
-opalcc and opalc++
-ORTE
-ortecc and ortec++
-OMPI
-mpicc,  mpic++,  mpicxx,  mpiCC  (only on systems with case-senstive file systems), mpif77, and mpif90.  Note that mpic++, mpicxx, and mpiCC all invoke the same underlying C++ compiler with the same options.  All are provided as compatibility with other MPI implementations.
+OPAL opalcc and opalc++
+ORTE ortecc and ortec++
+OMPI mpicc,  mpic++,  mpicxx,  mpiCC  (only on systems with case-senstive file systems), mpif77, and mpif90.
+
+Note that mpic++, mpicxx, and mpiCC all invoke the same underlying C++ compiler with the same options.  All are provided as compatibility with other MPI implementations.
 
 The distinction between Fortran and C routines in MPI are fairly minimal. All the names of MPI routines and constants in both C and Fortran begin with the same MPI_ prefix. The main differences are:
 
@@ -1727,7 +1705,7 @@ The MPI specific routines however are very important, as they illustrate the abs
 
 With the addition of these four routines, any existing C or Fortran code can be converted into at least a minimal MPI program. 
 
-4.3 MPI's Basic Routines
+## 4.3 MPI's Basic Routines
 
 The core theoretical concept in MPI programming is the move from a model where the processor and memory act in a sequence to each other to  model where the memory and processor act in parallel and pass information through a communications network.
 
@@ -1739,7 +1717,7 @@ It shouldn't take long!
 
 However, without delving into the deep matters of paraconsistent logic, it can be simple stated that MPI is large, insofar that there are well over a hundred different routines. But most of these are only called when one is engaging in advanced MPI programming and various edge cases. It is therefore perhaps fair to say that in a sense that MPI is small, as there are only a handful of basic routines that are usually needed, of which we've seen four. There are two others (MPI_Send, MPI_Recv) which can also be considered "basic routines".
 
-MPI_Init()
+### MPI_Init()
 
 This routine initializes the MPI execution environment Every MPI program must call this routine once, and only once, and before any other MPI routines; subsequent calls to MPI_Init will produce an error. With MPI_Init() processes are spawned and ranked with communication channels established and the defafult communicator, MPI_COMM_WORLD created. Communicators are considered analoguous to the mail or telephone system; every message travels in the communicator, with every message passing call having a communcator argument.
 
@@ -1747,21 +1725,26 @@ The input paramters are argc, a pointer to the number of arguments, and argv, th
 
 The syntax for MPI_Init() is as follows for C, Fortran, and C++. 
 
-C Syntax
+C Syntax 
+```
        #include <mpi.h>
-       int MPI_Init(int *argc, char ***argv)
+       int MPI_Init(int *argc, char ***argv)```
 
 Fortran Syntax
+```
        INCLUDE ’mpif.h’
        MPI_INIT(IERROR)
             INTEGER   IERROR
+```
 
 C++ Syntax
+```
        	#include <mpi.h>
        	void MPI::Init(int& argc, char**& argv)
        	void MPI::Init()
+```
 
-MPI_Comm_size()
+### MPI_Comm_size()
 
 This routine indicates the number of processes involved in a communicator, such as MPI_COMM_WORLD. The input parameter is comm, which the handle for the communicator, and the output paramter is size, the number of processes in the group of comm (integer) and the Fortran only IERROR providing the error status as integer.
 
@@ -1770,46 +1753,54 @@ A communicator is effectively a collection of processes that can send messages t
 The syntax for MPI_Comm_size() is as follows for C, Fortran, and C++. 
 
 C Syntax
+```
        #include <mpi.h>
        int MPI_Comm_size(MPI_Comm comm, int *size)
+```
 
 Fortran Syntax
+```
        INCLUDE ’mpif.h’
        MPI_COMM_SIZE(COMM, SIZE, IERROR)
             INTEGER   COMM, SIZE, IERROR
+```
 
 C++ Syntax
+```
        #include <mpi.h>
        int Comm::Get_size() const
+```
 
-
-
- 
-MPI_Comm_rank()
+### MPI_Comm_rank()
 
 This routine indicates the rank rank number of the calling processes within the pool of MPI communicator processes. The input parameters are comm, the communicator handle and the outpit paramters are rank, the rank of the calling processses expressed as an integer, and the ever present, IERROR error status for Fortran. It is common for MPI programs to be written in a manager/worker model, where one process (typically rank 0) acts in a supervisory role, and the other processes act in a computational role.
 
 The syntax for MPI_Comm_rank() is as follows for C, Fortran, and C++. 
 
 C Syntax
+```
        #include <mpi.h>
        int MPI_Comm_rank(MPI_Comm comm, int *rank)
+```
 
 Fortran Syntax
+```
        INCLUDE ’mpif.h’
        MPI_COMM_RANK(COMM, RANK, IERROR)
             INTEGER COMM, RANK, IERROR
+```
 
 C++ Syntax
+```
        #include <mpi.h>
        int Comm::Get_rank() const
+```
 
-MPI_Send()
+### MPI_Send()
 
 This routine performs a standard-mode, blocking send. By "blocking" what is mean that this routine will block until the message is sent to the destination.
 
-The message-passing system handle many messages going to and from 
-many different sources. The programmer just needs to state send/recv's messages in appropriate way, without needing to know underlying implementation. The message-passing system take care of delivery. However this “appropriate way” means stating various characteristics of the message just like the post or email; who is sending it, where it’s being sent to, what it’s about, and so forth.
+The message-passing system handle many messages going to and from many different sources. The programmer just needs to state send/recv's messages in appropriate way, without needing to know underlying implementation. The message-passing system take care of delivery. However this "appropriate way" means stating various characteristics of the message just like the post or email; who is sending it, where it’s being sent to, what it’s about, and so forth.
 
 The input parameters include buf, the initial address of the send buffer., count, an integer of the number of elements., datatype, a handle of the datatype of each send buffer., dest, an integer rank of the destination., tag, an integer message tag, and comm, the communicator handle. The only output parameter is Fortran's , IERROR.
 
@@ -1833,7 +1824,7 @@ C++ Syntax
        void Comm::Send(const void* buf, int count, const Datatype&
             datatype, int dest, int tag) const
             
-MPI_Recv()
+### MPI_Recv()
 
 As what is sent should be received, the MPI_Recv routine, provides a standard-mode, blocking receive. A message can be received only if addressed to the receiving process, and if its source, tag, and communicator (comm) values match the source,  tag,  and  comm  values  specified.  After a matching send has been initiated, a receive will block and until that send has completed. The length of the received message must be less than or equal to the length of the receive buffer, otherwise an overflow error will be returned.
 
@@ -1862,11 +1853,7 @@ C++ Syntax
 
 The importance of MPI_Send() and MPI_Recv()  refers to the nature of process variables, which remain private unless passed by MPI in the Communications World.
 
-
-
-
-
-MPI_Finalize() 
+### MPI_Finalize() 
 
 This routine should be called when all communications are completed. Whilist it cleans up MPI data structures etc., it does not cancel continuing communications which the programmer should look out for. Once called, no other routines can be called (with some minor exceptions), not even MPI_Init.  There are no input parameters. The only output paramter is Fortran's IERROR.
 
@@ -1887,6 +1874,7 @@ C++ Syntax
 
 Whilst the previous mpi-helloworld.c and the mpi-helloworld.f90 examples illustrated the use of four of the six core routines of MPI, it did not illustrate the use of the MPI_Recv and MPI_Send routines. The following program, of no greater complexity, does this. There is no need to provide additional explanation of what is happening, as this should be discerned from the routine explanations given. Each program should be compiled with mpicc and mpif90 respectively, submitted with qsub, with the results checked.
 
+```
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <mpi.h> 
@@ -1918,9 +1906,11 @@ char *argv[];
     } 
     MPI_Finalize(); 
 } 
+```
 
-The mpi-sendrecv.f program; compile with mpif90 mpi-sendrecv.f90, submit with qsub pbs-sendrecv
+The `mpi-sendrecv.f` program; compile with mpif90 mpi-sendrecv.f90, submit with qsub pbs-sendrecv
 
+```
       program sendrecv 
       include "mpif.h" 
 	 implicit none
@@ -1949,33 +1939,21 @@ The mpi-sendrecv.f program; compile with mpif90 mpi-sendrecv.f90, submit with qs
       call MPI_FINALIZE(ierr) 
       stop 
       end 
+```
 
 It is left to the reader's own investigations on why the buffer is so interesting.
 
 The following provides a summary use of the six core routines in C and Fortran.
 
-
-Purpose
-C 
-Fortran
-Include header files
-#include <mpi.h>
-INCLUDE ’mpif.h’
-Initialize MPI
-int MPI_Init(int *argc, char ***argv)
-INTEGER IERROR
+Purpose C Fortran
+Include header files #include <mpi.h> INCLUDE ’mpif.h’
+Initialize MPI int MPI_Init(int *argc, char ***argv) INTEGER IERROR
 CALL MPI_INIT(IERROR)
-Determine number of processes within a communicator
-int MPI_Comm_size(MPI_Comm comm, int *size)
-INTEGER COMM,SIZE,IERROR
-CALL MPI_COMM_SIZE(COMM,SIZE,IERROR)
-Determine processor rank within a communicator
-int MPI_Comm_rank(MPI_Comm comm, int *rank)
-INTEGER COMM,RANK,IERROR
+Determine number of processes within a communicator int MPI_Comm_size(MPI_Comm comm, int *size)
+INTEGER COMM,SIZE,IERROR CALL MPI_COMM_SIZE(COMM,SIZE,IERROR)
+Determine processor rank within a communicator int MPI_Comm_rank(MPI_Comm comm, int *rank) INTEGER COMM,RANK,IERROR
 CALL MPI_COMM_RANK(COMM,RANK,IERROR)
-Send a message
-int MPI_Send (void *buf,int count, MPI_Datatype
-datatype, int dest, int tag, MPI_Comm comm)
+Send a message int MPI_Send (void *buf,int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
 <TYPE> BUF(*) 
 INTEGER COUNT, DATATYPE,DEST,TAG
 INTEGER COMM, IERROR
@@ -1991,59 +1969,36 @@ Exit MPI
 int MPI_Finalize()
 CALL MPI_FINALIZE(IERROR)
 
-4.4 MPI Datatypes
+## 4.4 MPI Datatypes
 
 Like C and Fortran (and indeed, almost every programming language that comes to mind), MPI has datatypes, a classification for identifying different types of data (such as real, int, float, char etc). In the introductory MPI program there wasn’t really much complexity in these types; as one delves deeper however more will be encountered. Forewarned is forearmed, so the following provides a handy comparison chart between MPI, C, and Fortran.
 
 
-MPI DATATYPE
-FORTRAN DATATYPE
-MPI_INTEGER
-INTEGER
-MPI_REAL
-REAL
-MPI_DOUBLE_PRECISION
-DOUBLE PRECISION
-MPI_COMPLEX
-COMPLEX
-MPI_LOGICAL
-LOGICAL
-MPI_CHARACTER
-CHARACTER
-MPI_BYTE
-
+MPI DATATYPE FORTRAN DATATYPE 
+MPI_INTEGER INTEGER
+MPI_REAL REAL
+MPI_DOUBLE_PRECISION DOUBLE PRECISION
+MPI_COMPLEX COMPLEX
+MPI_LOGICAL LOGICAL
+MPI_CHARACTER CHARACTER
+MPI_BYTE 
 MPI_PACKED
 
-
-MPI DATATYPE
-C Datatype
-MPI_CHAR
-signed char
-MPI_SHORT
-signed short int
-MPI_LONG
-signed long int
-MPI_UNSIGNED_CHAR
-unsigned char
-MPI_UNSIGNED_SHORT
-unsigned short int
-MPI_UNSIGNED
-unsigned int
-MPI_UNSIGNED_LONG
-unsigned long int
-MPI_FLOAT
-float
-MPI_DOUBLE
-double
-MPI_LONG_DOUBLE
-long double
+MPI DATATYPE C Datatype 
+MPI_CHAR signed char
+MPI_SHORT signed short int
+MPI_LONG signed long int
+MPI_UNSIGNED_CHAR unsigned char
+MPI_UNSIGNED_SHORT unsigned short int
+MPI_UNSIGNED unsigned int
+MPI_UNSIGNED_LONG unsigned long int
+MPI_FLOAT float
+MPI_DOUBLE double
+MPI_LONG_DOUBLE long double
 MPI_BYTE
-
 MPI_PACKED
 
-
-
-Derived Data Types
+### Derived Data Types
 
 Derived types are essentially a user define type for MPI_Send()‏. They are described as 'derived' as they are derived from existing primitive datatype like int and float. The main reason to use them in in MPI context is that they make message passing more efficient and easier to code.
 
@@ -2136,8 +2091,7 @@ MPI_Datatype datatype, int *count )‏
 
 Then the application dynamically allocate the recv buffer, and call MPI_Recv.
 	
-4.5 Extended Communications and Other Routines
-----------------------------------------------
+## 4.5 Extended Communications and Other Routines
 
 Included in the source code files that accompany this book there are two programs (mpi-pingpong.c, mpi-pingpong.f90) from the  University of Edinburgh Parallel Computing Centre. This program tests time for communication according to packet sizes, asynchronous, and bi-directional. The usual methods can be used for compiling and submitting these programs, e.g.,
 
