@@ -59,10 +59,15 @@ All trademarks are property of their respective owners.
 4.6 Compiler Differences
 4.7 Collective Communications
 
-5.0 Profiling and Debugging
-5.1 Profiling with TAU and PDT
-5.2 Memory Checking with Valgrind
-5.3 Debugging with GDB
+5.0 GPU Programming
+5.1 GPU Technology
+5.2 OpenACC Pragmas
+5.3 CUDA Programming
+
+6.0 Profiling and Debugging
+6.1 Profiling with TAU and PDT
+6.2 Memory Checking with Valgrind
+6.3 Debugging with GDB
 
 6.0 References
 
@@ -2592,6 +2597,257 @@ The second example is designed to gain a practical example of the use of MPI der
 
 Then seed the random number sequence on the root processor only, and determine how many particles are to be assigned among the respective processors (same as for last exercise) and collectively assign their data using the MPI derived data type you have implemented.
 
+
+5.0 GPU Programming
+===================
+
+5.1 GPU Technology
+------------------
+
+* The Graphic Processing Unit (GPU) is a processor that was specialised for processing graphics.
+* A general purpose GPU recognises that algorithms, not designed for graphics processing, can also make use of the architecture. 
+* A CPU has low latency and good throughput (compute a job as quickly as possible), whereas a GPU has high throughput and good latency (compute as many jobs as possible). 
+
+<img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/gpuimage.png" /><br />
+Image from Felipe A. Cruz, GeForce GTX 280
+
+* The die includes processor cores, render output units, frame buffers, thread scheduler, and texture mapping units
+* GPGPU technology is massively parallel compared to CPUs (more cores, more threads), is inexpensive, and programmable (e.g., with CUDA).
+* However GPGPU technology is accelerating faster than CPU technology. 
+* CPUs are becoming more “GPU-like”; Increasing number of cores, Increasing vector parallelism,  and GPUs are becoming more “CPU-like”; Increasing levels and sizes of cache, Increasing capability of thread management
+
+
+* GPU programming is a type of SIMD parallelisation; single instruction, multiple data. 
+* Impressive performance gains; 5x, 10x, 20x - and energy efficiency (10x performance, c5x energy per socket) 
+* Several APIs; CUDA, OpenACC, OpenMP, and OpenCL.
+
+<img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-DP-600x-300x232.png" /> <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-mem-bw-600x-300x241.png" /><br />
+Images from HPCWire `https://www.hpcwire.com/2016/08/23/2016-important-year-hpc-two-decades/`
+
+* Third party libraries and application extensions; minimal effort, excellent performance, not very flexible.
+* OpenACC/OpenMP directives; minor effort, lowest performance, portable between GPU/CPU and CPU-only systems.
+* Programming extensions (CUDA, OpenCL); significant effort, potentially best performance, not very flexible.
+
+* OpenACC (open accelerators) uses compiler directives to invoke acceleration. Works with C, C++ and Fortran source code. See: http://www.openacc-standard.org
+* Since v4.0, OpenMP also supports accelerator directive. See: http://openmp.org
+
+* CUDA was introduced by NVidia in 2006, as a compiler and application toolkit for NVidia GPGPUs. Originally Compute Unified Device Architecture. See: https://developer.nvidia.com/about-cuda
+* CUDA does provide a high level of hardware abstraction and automation of thread management. There is also  numerical libraries, such as cuBLAS, and cuFFT.
+
+* OpenCL will become an industry standard in the future, however is a lower-level specification and therefore harder to program than with CUDA. See: https://www.khronos.org/opencl/
+* OpenCL is cross-platform and multiple vendor open standard for C/C++
+* Works on a diverse compute resources (e.g., CPU, GPU, DSP, FPGA) and can use same code base on each.
+
+* Check a node with `nvidia-smi`.
+
+* A number of applications on Spartan have already been compiled with CUDA-specific toolchains
+* These are like any other job submission with the following caveats: (1) You will need to specifiy the partition that you are using., (2) You will need to specify the account (projectID) that you are using for the gpgpu partitions., (3) You will need to request a generic resource for your job 
+script. 
+
+* Example scripts available.
+
+5.2 OpenACC Pragmas
+-------------------
+
+* The general structure of OpenACC is astoundingly simple; see `/usr/local/common/OpenACC`. It combines the process of decomposition on a hetrogenous system with pragmas. However OpenACC only works with a limited range of compilers (on Spartan, PGI compilers only, and GCC 6+). API is for C, C++, and Fortran.
+
+* OpenACC directives are portable; across operating systems, host CPUs, and accelerators. Can be used  with GPU accelerated libraries, explicit parallel programming languages (e.g., CUDA), MPI, and OpenMP, all in the same program.
+* As with OpenMP and OpenMPI directives, the pragmas in OpenACC are treated as comments by compilers that do not use them. 
+
+* Example problem (from the Pawsey Supercomputing Centre); Heating a metal plate, simulated by solving Laplace equation ∇^2 f x,y = 0.
+* The steady state response is solved as a 2D grid where the temperature of every ith grid point is an average of its 4 neighbours.
+* Compile the example program in `/usr/local/common/OpenACC`, then run the profiler. Notice that loops are identified as intensive regions.
+
+* The `kernels` pragma suggests to the compiler to concentrate on loops in the code block.
+* The compiler will run in parallel if it can.
+* The syntax is `#pragma acc kernels directive [clause]` in C or `!$acc kernels` and `$!acc kernels end` in Fortran.
+
+* The introduction of pragmas to the example in `/usr/local/common/OpenACC` actually makes the code slower!
+* Simply making a loop available for parallel execution is insufficient. This may remove some compute bottlenecks, but it may also introduce new bottlenecks, such as memory transfer. The CPU (host) and the GPU (device) are separate processors.
+
+<img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/pci-e_single_dual.png" />><br />
+Image from NVidia developer blog
+
+* The `data` construct suggests to the compiler the scoping of data and granularity data movement. It facilitates sharing data between multiple parallel regions.
+* As a structure construct it must start and end in the scope of the same function or routine.
+* The syntac is `#pragma acc data [clause]` in C or `!$acc data` and `!$acc end data` in Fortran.
+
+* Several clauses can be used with the kernels, and data constructs (among others), including copy(list), copyin(list), copyout(list), create(list), present(list), presentor\_or\_*(list)
+
+* The clause copy(list) will read and write data in list from host memory to device memory, copyin(list) will read, copyout(list) will write, create (list) will create and destroy variables on device (temporary buffers), present(list) will declare on device, present_or_*(list) will suggest that the compiler to check if the variable in the list exists or needs an action. Also used as short form e.g. pcopy(list), pcopyin(list), pcopyout(list)
+
+* Array shaping for data constructs is often required in C so the compiler can understand the size and shape of the array; Fortran is better at this.
+* In C the array shape is described as x[start:count], with another [] for additional dimensions e.g. x[start:count][start:ccount]; 'start' is the start index in the dimension and 'count' is the contiguous memory
+address after start. In Fortran, array shape is described as y[start:end].
+
+* The `kernels` directive, used in this course, is a general case statement and is descriptive.
+* The `parallel` directive, is prescriptive and allows further finer-grained control of how the compiler will attempt to structure work on the accelerator. 
+
+* The `parallel` directive can be combined with a `loop` directive, creating a `parallel loop`, forcing the compiler to process the loop in parallel.
+e.g., 
+``` #pragma acc parallel loop 
+for (int i=0; i<N; i++)
+	{ C[i] = A[i] + B[i];
+	}
+``` 
+* With the `kernel` directive it is the compiler's responsibility to determine what it safe to parallize. A single directive can cover a large area of code.
+* With the `parallel loop` directive, the programmer has the responsibility. May be easier is the programmer is familiar with OpenMP.
+
+
+5.3 CUDA Programming
+--------------------
+
+* Just like other parallel codes, work with decomposition. General structure of separates CPU functions from CUDA functions. 
+* The __global__ keyword indicates that the following function will run on the GPU, and can be invoked globally, which in this context means either by the CPU, or, by the GPU. Functions defined with the __global__ keyword must return type void. The function called to run on a GPU is referred to as a kernel.
+
+* Basic Function modifiers are `__global__` (to be called by the host but executed by the GPU) and `__host__ ` (to be called and executed by the host).
+* Basic variable modifiers are `__shared__` (variable in shared memory), and `__syncthreads()` (sync of threads within a block).
+* Basic kernel launch paramters are Block size and Grid Size - depends on hardware.
+
+* When a kernel is launched, an execution configuration must be provided, by using the <<< ... >>> syntax just prior to passing the kernel any expected arguments.
+* The execution configuration allows programmers to specify the thread hierarchy for a kernel launch, which defines the number of thread groupings (blocks), as well as how many threads to execute in each block.
+
+* Unlike most C/C++, launching CUDA kernels is asynchronous; the CPU code will continue to execute without waiting for the kernel launch to complete.
+* A call to `cudaDeviceSynchronize` will cause the host (CPU) code to wait until the device (GPU) code
+completes, and only then resume execution on the CPU.
+
+
+* Refactor the "Hello World" example code in `/usr/local/common/CUDA/` to use the GPU.
+* Note the compilation process; launch an interactive job, load a CUDA module (e.g., `CUDA/8.0.44-GCC-4.9.2`),  compile with `nvcc vecAdd.cu -o helloWorld -gencode arch=compute_60,code=sm_60`
+
+* With NVCC the `-arch` flag specifies the name of the NVidia GPU architecture that the CUDA files.
+* Architectures can be specified with `sm_XX` and `compute_XX`, for real and virtual architectures respectively.
+* Compile for the architecture (both virtual and real), that represents the GPUs you wish to target. i.e., `-gencode arch=compute_XX,code=sm_XX`.
+
+* A CUDA _kernel_ (a C program) is executed by _thread_. Each thread has it own ID, execute same kernel and will access registers and local memory. 
+* Threads are grouped into _blocks_, which will access shared memory, and threads in a block can synchronize execution. 
+* Blocks are grouped into a _grid_, that can access global memory, and each block must be independent.
+
+* The execution configuration specificies how many thread blocks, (or blocks) and how many threads they would like each thread block to contain. The general syntax for this is: `<<< NUMBER_OF_BLOCKS, NUMBER_OF_THREADS_PER_BLOCK>>>`
+* `someKernel<<<1, 1>>()` Single block, single thread, will run once.
+* `someKernel<<<1, 10>>()` Single block, ten thread, will run ten times.
+* `someKernel<<<10, 1>>()` Ten blocks, single thread per block, will run ten times.
+
+* Each thread has an index within its thread block, starting at 0. Each block is given an index, starting at 0. CUDA kernels have access to variables identifying both the index of the thread within the block (threadIdx x) that is executing the kernel and the index of the block within the grid (and blockIdx x).
+
+* As with other forms of parallelisation, loops in CPU-only applications are promising target for CUDA as each iteration of the loop can be run in parallel in its own thread. 
+* To parallelise a loop, two things need to be done; (1) a kernel must be written to do the work of a single iteration of the loop and (2) the execution configuration must ensure the kernel executes the correct number of times.
+
+* The number of threads in a block is limited to 1024. Beyond this, coordination is required across multiple thread blocks using the variable `blockDim.x`. When used with `blockIdx.x` and `threadIdx.x`, coordination is achieved across multiple blocks of multiple threads.
+* Parallel execution accross multiple blocks of multiple uses the expression threadIdx.x + blockIdx.x * blockDim.x. Modify blockDim.x to increment.
+
+* The most basic CUDA memory management technique involves a pointer that can be referenced in both host and device code, replace calls to `malloc` and `free` with `cudaMallocManaged` and `cudaFree`.
+
+<img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/gpumemarch.png" />
+
+* A common issue is having block/thread sizes mismatched with the iterations of a loop. This can be resolved by (1) writing an execution that creates more threads than necessary and (2) pass an argument, N, into the kernel that represents how many times the kernel should run, and (3) calculating the thread's index within the grid (using tid+bid*bdim), check that this index does not exceed N befor executing.
+
+* The number of threads in a grid may be smaller than the size of a data set (e.g., a grid of 250 threads, an array of 1000 datasets). To resolve this, a grid-stride loop can be used within the kernel.
+* Each thread calculates its unique index within the grid using `tid+bid*bdim`, perform its operation on the element at that index within the array, then add to its index the number of threads in the grid until it is out of range of the array.
+
+The gridDim.x Variable
+* CUDA provides a variable giving the number of blocks in a grid, `gridDim.x`. Calculating the total number of threads in a grid then is simply the number of blocks in a grid multiplied by the number of threads in each block, gridDim.x * blockDim.x
+
+* Most CUDA functions return a value of type cudaError_t, which can be used to check for errors when calling a function. Launching kernels will not return a value of type `cudaError_t`
+* To check for errors occuring at the time of a kernel launch, CUDA provides the `cudaGetLastError` function, which does return a value of type `cudaError_t`.
+
+* In order to catch errors that occur asynchronously it is necessary to check the error returned by `cudaDeviceSynchronize`, which will return an error if one of the kernel executions it is synchronizing on should fail.
+
+
+-- *Slide End* --
+
+
+
+
+### Part 1: Programming GPGPUs
+* GPUs are not suitable for all programming tasks. Investigate other algorithms if possible. Break the problem into discrete sections of work that can be distributed to multiple tasks (decomposition).
+* The main challenge to the programmer - keep the GPGPU busy!
+* GeForce GTX 280 is 10 years old, still runs well.
+
+### Part 1: OpenACC, OpenMP, CUDA
+* The CUDA API extends the C, C++ programming languages. Specific to NVIDIA hardware. 
+* Porting CUDA to OpenCL is becoming easier.
+* OpenACC Vendor-neutral API is developed by Cray, CAPS, NVidia and PGI for GPU/CPU systems.
+
+### Part 1: OpenCL
+* Not taught in this *introductory* course.
+
+### Part 1: GPUs on Spartan
+* K80s specs (2.9TF double precision, 4992 CUDA cores, 562 MHz); P100 specs (4.7TF, 3584 CUDA cores, 1126MHz) - greater with NVLink
+* There are three nodes (only) available for general use (gpu partition), five nodes for physics (two exclusive, three shared), and a much larger set of GPGPU partitions (shortgpgpu, 6 nodes; gpgpu partition 59 nodes, gpgpu-test 6 nodes, deeplearn (engineering purchased) 4 nodes). 
+* MDHS inc. StV – 5.22 Nodes, Melbourne Bio – 10.43, Resplat (General Access) – 10.43, MSE – 24.4, MSE Mech Eng – 4.86, Latrobe – 5.22, RMIT – 5.22, Deakin – 5.22. Total Nodes = 71 (excludes 2 nodes for testing)
+* These GPGPU nodes will be presented in 3 subclusters and will be released in stages. 
+
+### Part 1: CUDA and Slurm
+* Including CUDA from 7.0.28 to 9.2.88, FFTW, GROMACS, NAMD, OpenMPI, PyTorch, Python, RapidCFD, Tensorflow, Torch, etc.
+* CUDA toolchain is required to make GPUs work as expected. Approximately 250 applications and libraries in total
+* For example #SBATCH --partition gpu and #SBATCH --partition gpgpu. For example  For example #SBATCH --gres=gpu:2 will request two GPUs for your job.
+* You can specify project at submission time: e.g., sbatch -A projectID script.slurm
+
+### Part 1: Example Slurm Scripts
+CPU Example WallClock: 66.138824  CPUTime: 64.785332  Memory: 236.933594 MB
+GPU Example WallClock: 18.759842  CPUTime: 17.847618  Memory: 1319.082031 MB
+
+### Part 2: Introduction to OpenACC
+GCC > 6.0 supports OpenACC 2.0a - I haven't tested this!
+
+### Part 2: OpenACC Kernels Construct
+Will attempt to resolve any data dependencies, and data movement. If successful, it produces a kernel to run on the accelerator or it let's the programmer know that the region was not available for parallel execution
+
+### Part 2: Array Shaping
+* e.g., #pragma acc data pcopyin(x[0:ROWS][0:COLS], y[0:ROWS][0:COLS])) pcopyout[y[0:ROWS][0:COLS])
+
+### Part 2: Kernels vs Parallel Directives
+Kernel They direct the compiler to produce and arbitrary numebr of kernels of arbitrary dimensions, to execute in sequence, and to offload code sections to the accelerator.
+Parallel by specifying specific dimensions of parallelisation (e.g., `vector` and `gang` parallelism)
+See README.md
+
+
+### Part 3: CUDA Synchronisation
+
+### Part 3: "Hello World", CUDA-style
+The kernel is launching with 1 block of threads (the first execution configuration argument) which contains 1 thread (the second configuration argument).
+
+### Part 3: CUDA Compilation Flags
+`-gencode` allows for more PTX (Parallel Thread Execution) generations, and can be repeated many times for different architectures, and repeat the sequence for each target
+
+### Part 3: Launching Parallel Kernels
+compile and modify `01-basic-parallel.cu` to represent choices.
+Vector addition as well? Ai+Bi=Ci
+
+### Part 3: CUDA Thread Hierarchy Variables
+Comile and modify `01-single-block-loop-solution.cu`
+
+### Coordinating Parallel Threads
+Compile and modify `02-multi-block-loop.cu`
+
+### Part 3: CPU and GPU Memory Allocation
+The program allocates an array, initializes it with integer values on the host, attempts to double each of these values in parallel on the GPU, and then confirms whether or not the doubling operations were successful, on the host.
+
+Currently the program will not work: it is attempting to interact on both the host and the device with an array at pointer a, but has only allocated the array (using malloc) to be accessible on the host. 
+
+Refactor the application to meet the following conditions:
+a should be available to both host and device code.
+The memory at a should be correctly freed.
+
+Compile and modify `01-double-elements-solution.cu`
+
+### Part 3: Blocks, Threads and Loop Mismatch
+The program in 02-mismatched-config-loop.cu allocates memory, using cudaMallocManaged for a 1000 element array of integers, and then seeks to initialize all the values of the array in parallel using a CUDA kernel. 
+
+Assign a value to number_of_blocks that will make sure there are at least as many threads as there are elements in a to work on.
+
+Update the initializeElementsTo kernel to make sure that it does not attempt to work on data elements that are out of range.
+
+Compile and modify `02-mismatched-config-loop-solution.cu`
+
+### Part 3: Data Sets Larger then the Grid
+A grid-stride loop in the doubleElements kernel, in order that the grid, which is smaller than N, can reuse threads to cover every element in the array. The program will print whether or not every element in the array has been doubled, currently the program accurately prints FALSE.
+
+### Part 3: CUDA Error Handling
+Check README.md Compile and modify 01-add-error-handling-solution.cu 01-add-error-handling.cu
+
+
 5.0 Profiling and Debugging
 ===========================
 
@@ -2979,5 +3235,11 @@ References
 
 Fork-join image by Qwertyus, https://commons.wikimedia.org/wiki/File:Fork_join.svg, This file is licensed under the Creative Commons Attribution 3.0 Unported license.
 
+Accelerate code on GPUs with OpenACC, Pawsey Supercomputing Centre
+Accelerating Applications with CUDA C/C++, NVidia
+GPU Programming Essentials, Pawsey Supercomputing Centre
+Introduction to OpenACC, NVidia
+The Graphics Processing Unit (GPU) revolution, Ramu Anandakrishnan, Virginia Polytechnic Institute and State University
+Tutorial on GPU computing: With an introduction to CUDA, Felipe A. Cruz, University of Bristol
 
 
