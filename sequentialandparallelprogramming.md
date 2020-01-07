@@ -16,8 +16,6 @@ Cover art composed by Michael D'Silva, featuring several clusters operated by th
 
 Sequential and Parallel Programming with C and Fortran, is licensed under a Creative Commons Attribution 4.0 International License. 
 
-Supercomputing with Linux, is licensed under a Creative Commons Attribution 4.0 International License. 
-
 ![CCSA License](https://github.com/VPAC/superlinux/blob/master/images/ccsa.png)
 
 All trademarks are property of their respective owners.
@@ -59,13 +57,13 @@ All trademarks are property of their respective owners.
 4.6 Compiler Differences
 4.7 Collective Communications
 
-5.0 GPU Programming
-5.1 GPU Technology
+5.0 GPGPU Programming
+5.1 GPGPU Technology
 5.2 OpenACC Pragmas
 5.3 CUDA Programming
 
 6.0 Profiling and Debugging
-6.1 Profiling with TAU and PDT
+6.1 Profiling with Grof, TAU and PDT
 6.2 Memory Checking with Valgrind
 6.3 Debugging with GDB
 
@@ -2288,26 +2286,11 @@ C++ Syntax
 A Summary of Some Other MPI Send/Receive Modes
 
 
-Send Mode
-Explanation
-Benefits
-Problems
-MPI_Send()
-Standard send. May be synchronous or buffering
-Flexible tradeoff; automatically uses buffer if available, but goes for synchronous if not.
-Can hide deadlocks, uncertainty of type makes debugging harder.
-MPI_Ssend()
-Synchronous send. Doesn't return until receive has also completed.
-Safest mode, confident that message has been received. 
-Lower performance, especially without non-blocking.
-MPI_Bsend()
-Buffered send. Copies data to buffer, program free to continue whilst message delivered later.
-Good performance. Need to be aware of buffer space.
-Buffer management issues.
-MPI_Rsend()
-Receive send. Message must be already posted or is lost.
-Slight performance increase since there's no handshake.
-Risky and difficult to design.
+Send Mode	Explanation	Benefits	Problems
+MPI_Send()	Standard send. May be synchronous or buffering	Flexible tradeoff; automatically uses buffer if available, but goes for synchronous if not.	Can hide deadlocks, uncertainty of type makes debugging harder.
+MPI_Ssend()	Synchronous send. Doesn't return until receive has also completed.	Safest mode, confident that message has been received. 	Lower performance, especially without non-blocking.
+MPI_Bsend()	Buffered send. Copies data to buffer, program free to continue whilst message delivered later.	Good performance. Need to be aware of buffer space.	Buffer management issues.
+MPI_Rsend()	Receive send. Message must be already posted or is lost.	Slight performance increase since there's no handshake.	Risky and difficult to design.
 
 As described previously the arguments dest and source in the various modes of send are the ranks of the receiving and the sending processes. MPI also allows source to be a "wildcard" through the predefined constant MPI_ANY_SOURCE (to receive from any source) and MPI_ANY_TAG (to receive with any source). There is no wildcard for dest. Again using the postal analogy, a recipient may be ready to receive a message from anyone, but they can't send a message to anywhere (as we'll see in the next section, you can however send to everywhere)!
 
@@ -2495,32 +2478,19 @@ void MPI::Intracomm::Reduce(const void* sendbuf, void* recvbuf,
 MPI reduction operations include the following:
 
 
-MPI_Name
-Function
-MPI_Max
-Maximum
-MPI_MIN
-Minimum
-MPI_SUM
-Sum
-MPI_PROD
-Product
-MPI_LAND
-Logical AND
-MPI_BAND
-Bitwise AND
-MPI_LOR
-Logical OR
-MPI_BOR
-Bitwise OR
-MPI_LXOR
-Logical exclusive OR
-MPI_BXOR
-Bitwise exclusive OR
-MPI_MAXLOC
-Maximum and location
-MPI_MINLOC
-Miniumun and location
+MPI_Name	Function
+MPI_Max		Maximum
+MPI_MIN		Minimum
+MPI_SUM		Sum
+MPI_PROD	Product
+MPI_LAND	Logical AND
+MPI_BAND	Bitwise AND
+MPI_LOR		Logical OR
+MPI_BOR		Bitwise OR
+MPI_LXOR	Logical exclusive OR
+MPI_BXOR	Bitwise exclusive OR
+MPI_MAXLOC	Maximum and location
+MPI_MINLOC	Miniumun and location
 
 Other Collective Communications
 
@@ -2598,45 +2568,58 @@ The second example is designed to gain a practical example of the use of MPI der
 Then seed the random number sequence on the root processor only, and determine how many particles are to be assigned among the respective processors (same as for last exercise) and collectively assign their data using the MPI derived data type you have implemented.
 
 
-5.0 GPU Programming
-===================
+5.0 GPGPU Programming
+=====================
 
-5.1 GPU Technology
-------------------
+5.1 GPGPU Technology
+--------------------
 
-* The Graphic Processing Unit (GPU) is a processor that was specialised for processing graphics.
-* A general purpose GPU recognises that algorithms, not designed for graphics processing, can also make use of the architecture. 
-* A CPU has low latency and good throughput (compute a job as quickly as possible), whereas a GPU has high throughput and good latency (compute as many jobs as possible). 
+A Graphic Processing Unit (GPU) is a processor that was specialised for processing graphics. The use of the past tense is deliberate here, as in more recent years it has become clear that the particular architecture of the processor means that the GPU has become increasingly suitable to particular types of parallel compution. For what it's worth, the name Graphics Processing Unit GPU was first coined by Sony in 1994 for the Playstation, but really become notable with NVidia who marketed the GeForce 256 as "the world's first GPU", which is not exactly true. As an aside, ATI tried to have an alternative name, a "visual processing unity", or VPU, with the Radeon 9700 in 2002. That failed to catch on, for some pretty obvious marketing reasons (it wasn't first, it wasn't in a dominant marketing position, etc).
+
+The development of the GPU, even before the name was coined, was based on the need to offload a particular type of computation to a specialist processor. Rather than have, for example, the values of thousands of pixels calculated on a CPU it was evident that specialist processor architecture would be appropriate for this task. Initially, GPUs were designed around fixed pipelines, but over time functional improvements led to increasingly "realistic" graphics.
+
+As mentioned, GPUs have become increasingly popular as a tool for some forms of parallel processing. A general purpose GPU recognises that algorithms, not designed for graphics processing, can also make use of the GPU architecture. Technically, *any* computational problem that could be used on a CPU could be used on a GPU, but not always with preferred levels of efficiency. When GPUs are used for non-graphical processing it has become increasingly common to refer to the system as GPGPUs which is supposed to stand for "General-purpose computing on graphics processing units". That's quite a mouthful and thankfully is typically referred by the acronym instead, which was coined by Mark Harris in 2002 launching a webpage to "name this thing people are doing!"
+
+The architecture of a GPU uses an electronic circuit to rapidly manipulate memory and create images for a frame buffer to be used on a display device (e.g., mobile phone, personal computer etc). As most of these operations involve extensive matrix and vector operations, GPUs are particularly well-suited for "pleasingly parallel" problems. Whereas a CPU has low latency and good throughput, it is particularly well suited to compute a job as quickly as possible, whereas a GPU has high throughput and good latency, and is best when one wants to compute as many jobs as possible. With this massive speed in parallel computation, GPUs have quickly become dominant in supercomputer metrics, such as the Top500, where GPU processors are increasingly surpassing CPUs in their capacity to perform floating point operations. In addition, whilst memory on a GPU is usually quite low compared to a CPU, it has much higher bandwidth. The combination of computational throughput and memory bandwidth also lead to impressive power efficiency as well, for particular computational tasks.
 
 <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/gpuimage.png" /><br />
 Image from Felipe A. Cruz, GeForce GTX 280
 
-* The die includes processor cores, render output units, frame buffers, thread scheduler, and texture mapping units
-* GPGPU technology is massively parallel compared to CPUs (more cores, more threads), is inexpensive, and programmable (e.g., with CUDA).
-* However GPGPU technology is accelerating faster than CPU technology. 
-* CPUs are becoming more “GPU-like”; Increasing number of cores, Increasing vector parallelism,  and GPUs are becoming more “CPU-like”; Increasing levels and sizes of cache, Increasing capability of thread management
+The following table makes explicit the performance improvements of GPUs in recent years.
 
+Year Architecture Model GHz SMP Cores GFLOPs TDP W GFLOP/W RAM GB RAM GB/s IO GB/s
+2007 Tesla C870 1.35 8x16 128 - 171 - 1.5 76.8 8
+2009 Tesla C1060 1.30 15x16 240 78 188 0.42 4 102 8
+2011 Fermi C2050 1.15 14x32 448 515 247 2.09 3 144 15.8
+2012 Kepler K20 0.70 13x192 2496 1175 225 5.22 5 208 15.8
+2013 Kepler K40 0.73 15x192 2880 1680 235 7.15 12 288 15.8
+2015 Maxwell M40 0.95 24x128 3072 214 250 0.86 12 288 15.8
+2016 Pascal P100 1.33 56x64 3584 4670 250 18.7 16 732 15.8/80
 
-* GPU programming is a type of SIMD parallelisation; single instruction, multiple data. 
-* Impressive performance gains; 5x, 10x, 20x - and energy efficiency (10x performance, c5x energy per socket) 
-* Several APIs; CUDA, OpenACC, OpenMP, and OpenCL.
+The die of a GPU includes processor cores, render output units, frame buffers, thread scheduler, and texture mapping units. Compared to a CPU, GPU technology is massively parallel; it has many more cores, and many more threads, they are extremely inexpensive in comparison, and, of course, they are programmable (e.g., with OpenACC, CUDA, OpenCL). At the time of writing, GPU technology is accelerating much faster than CPU technology. However, it is worth noting that CPUs are becoming more like GPUs; architecture developments notes an increasing number of cores, increasing capacity for vector parallelism, whereas GPUs are becoming more like CPUs, with increasing levels and sizes of cache, and capability for thread management. It will be a while however before the two technologies approach anything close to a merger.
+
+To express simply, GPGPU programming is a type of SIMD parallelisation, using a single instruction stream over multiple data. It works especially well when one requires fine-grained parallelism over many threads; it is less well suited for other algorithms. Whilst pleasingly parallel applications are very well-suited for GPGPUs, the same principles expressed much earlier in this text, the limits of Amdahl's Law, still apply. The maximum acceleration is still limited by the serial component of the application. This said, the same sort of solutions apply as well. 
+
+Programming an application for GPGPU acceleration does require modification to the source code however, as we shall see, there is becoming easier with directive support. As with other forms of parallel programming it is best to start with a working serial version of an application and then identify what regions can make use of GPU acceleration, and which of several APIs (e.g., OpenACC, OpenMP, CUDA, OpenCL) to use. Of particular note it is important not to move data across the PCI-Express link unncessarily. Obviously, it is necessary to move some data so that the GPU can process it, but one needs to be aware of where data is located when making modification to the code and minimise the transfers between the CPU region and the GPU region.
+
+When making a choice on how to modify an application to make use of GPUs, essentially there are three options; (a) Make use of third party libraries and application extensions., (b) Make use of compiler directives., or (c) Use a programming language or API. Each of these have advantages and disadvantages which basically come down to ease of use to performance and flexibility. The use of libraries and extensions, has minimum effort, usually has excellent performance, but is not very flexible (e.g., Linear Solver Library for OpenFOAM). In comparison, a directive-based solution (e.g., OpenACC) requires some minor modification to the source code, which remains portable between GPU-enabled and CPU-only systems, but offers the lowest performance improvement. Finally, programming language extensions (e.g., OpenCL, CUDA) do require significant effort, but offer the best potential performance improvement and are, of course, extremely flexible as the programmer has the greatest level of control.
+
+This text will explores the use of OpenACC ("open accelerators) and CUDA programming. OpenACC uses compiler directives to invoke offloading to a GPU (See: http://www.openacc-standard.org). These directives work with applications written in C, C++ and Fortran source code. Since v4.0, OpenMP also supports accelerator directives (See: http://openmp.org). A particularly nice touch is that one can combine OpenACC directives and OpenMP directives in the same code without conflict.
+
+In contrast there is also CUDA which was introduced by NVidia in 2006, as a compiler and application toolkit for NVidia GPGPUs. As such thigs are, it was originally an acronym; "Compute Unified Device Architecture", but these days it is usually referred to just as CUDA. CUDA does provide a high level of hardware abstraction and automation of thread management. There is also  numerical libraries, such as cuBLAS, and cuFFT. (See: https://developer.nvidia.com/about-cuda).
+
+The main disadvantage with CUDA is that, whilst in significant use throughout the industry, it that the language is locked into NVidia, and vendor lock-in is something which no engineer, programmer, or even manager for that matter, should desire. There is a multiple-vendor, open standard for C/C++ known as OpenCL which uses the same principles as CUDA. However, it is a lower-level specification and, as a result, is harder to program in that with CUDA. It is also worth noting that OpenCL supports a variety of compute resources (e.g., CPU, GPU, DSP, FPGA) and can use same code base on each. See: https://www.khronos.org/opencl/
+
 
 <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-DP-600x-300x232.png" /> <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-mem-bw-600x-300x241.png" /><br />
 Images from HPCWire `https://www.hpcwire.com/2016/08/23/2016-important-year-hpc-two-decades/`
 
-* Third party libraries and application extensions; minimal effort, excellent performance, not very flexible.
-* OpenACC/OpenMP directives; minor effort, lowest performance, portable between GPU/CPU and CPU-only systems.
-* Programming extensions (CUDA, OpenCL); significant effort, potentially best performance, not very flexible.
 
-* OpenACC (open accelerators) uses compiler directives to invoke acceleration. Works with C, C++ and Fortran source code. See: http://www.openacc-standard.org
-* Since v4.0, OpenMP also supports accelerator directive. See: http://openmp.org
 
-* CUDA was introduced by NVidia in 2006, as a compiler and application toolkit for NVidia GPGPUs. Originally Compute Unified Device Architecture. See: https://developer.nvidia.com/about-cuda
-* CUDA does provide a high level of hardware abstraction and automation of thread management. There is also  numerical libraries, such as cuBLAS, and cuFFT.
 
-* OpenCL will become an industry standard in the future, however is a lower-level specification and therefore harder to program than with CUDA. See: https://www.khronos.org/opencl/
-* OpenCL is cross-platform and multiple vendor open standard for C/C++
-* Works on a diverse compute resources (e.g., CPU, GPU, DSP, FPGA) and can use same code base on each.
+
+
+
 
 * Check a node with `nvidia-smi`.
 
@@ -2848,11 +2831,11 @@ A grid-stride loop in the doubleElements kernel, in order that the grid, which i
 Check README.md Compile and modify 01-add-error-handling-solution.cu 01-add-error-handling.cu
 
 
-5.0 Profiling and Debugging
+6.0 Profiling and Debugging
 ===========================
 
-5.1 Profiling with TAU/PDT and PAPI
------------------------------------
+6.1 Profiling with GProf, TAU/PDT and PAPI
+-------------------------------------------
 
 Parallel Performance Issues include the following:
 
@@ -2955,7 +2938,7 @@ $ paraprof &
 
 Obviously this is but a basic introduction to TAU/PDT and PAPI, which provided information on compiling with TAU and generating profiles. The documentation from the appropriate providers should be consulted if detail on the much greater range of options and interpretation is desired. 
 
-5.2 Memory Checking with Valgrind
+6.2 Memory Checking with Valgrind
 ---------------------------------
 
 Originally developed by Julian Seward (who in 2006 won a Google-O'Reilly Open Source Award for his work on this application), Valgrind performs memory debugging, memory leak detection, and profiling - although it is its first two tasks which is what it is primarily used for. Through inserted instrumentation and wrappers, Valgrind can identify memory leaks, deallocation errors, etc in an application. The major tools provided are memcheck, for memory errors., helgrind and DRD for thread errors., Massif and DHAT, heap profilers., Cachegrind and Callgrind for cache, branch-prediction profiler and call-graph generating cach profiler.
@@ -3053,7 +3036,7 @@ Running the program again, valgrind will still report the memory that has been l
 
 $ mpiexec -np 2 valgrind --tool=memcheck --suppressions=mpi-suppress.supp ./mpi-debugc 
 
-5.3 Debugging with GDB
+6.3 Debugging with GDB
 ----------------------
 
 It has taken many years for this essential truth to be realised, that software equals bugs – a great example of this is Paul Fenwick's presentation to OSDC on “An Illustrated History of Failure” (2008), which reported some rather inglorious examples such as the Therac-25, the Ariane 5, Northeast America 2003 Power Outage, and many others. In sequential programming bugs are common enough - parallel systems, the bugs are particularly difficult to diagnose, and the core principle of parallelisation suggests race conditions and deadlocks. According to a 2002 study by the US Department of Commerce determined, "software bugs, or errors, are so prevalent and so detrimental that they cost the US economy an estimated $59 billion annually, or about 0.6 percent of the gross domestic product".
