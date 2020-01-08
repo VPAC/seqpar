@@ -2692,7 +2692,6 @@ The __global__ keyword indicates that the following function will run on the GPU
 
 The basic Function modifiers are `__global__` (to be called by the host but executed by the GPU) and `__host__ ` (to be called and executed by the host). The basic variable modifiers are `__shared__` (variable in shared memory), and `__syncthreads()` (sync of threads within a block), and the basic kernel launch paramters are Block size and Grid Size - depends on hardware.
 
-
 The first issue of note is that determining what versions of CUDA and what GPGPUs are in use, which themselves require the installation of particular kernel modules. To determine what versions of CUDA are available a test of environment modules will be sufficient. To determine the GPGU card in use, check a node by logging in as an interactive job with `nvidia-smi`. This command should provide output that gives the version of the `nvidia-smi` tool being used, and the GPGPUs on the system, along with their current temperature, power utilisation, bus-ID etc. For example, on the Edward system managed by VPAC, the following 
 
 [lev@edward]$ qsub -l walltime=0:30:00,nodes=1:ppn=2 -I -q gpu
@@ -2700,34 +2699,25 @@ The first issue of note is that determining what versions of CUDA and what GPGPU
 cuda/4.2 cuda/5.0.35 cuda/5.5.22 cuda/6.5.14
 [lev@edward091 ~]$ module load cuda/5.5.22
 
-
-
 Below are the supported sm variations and sample cards from that generation
 
 Supported on CUDA 7 and later
 
-Fermi (CUDA 3.2 until CUDA 8) (deprecated from CUDA 9):
-        SM20 or SM_20, compute_30 – Older cards such as GeForce 400, 500, 600, GT-630
+Fermi (CUDA 3.2: SM20 or SM_20, compute_30, for GeForce 400, 500, 600, GT-630
 
 Kepler (CUDA 5 and later):
-        SM30 or SM_30, compute_30 – Kepler architecture (generic – Tesla K40/K80, GeForce 700, GT-730)
-        Adds support for unified memory programming
-        SM35 or SM_35, compute_35 – More specific Tesla K40
-        Adds support for dynamic parallelism. Shows no real benefit over SM30 in my experience.
-        SM37 or SM_37, compute_37 – More specific Tesla K80
-        Adds a few more registers. Shows no real benefit over SM30 in my experience
+SM30 or SM_30, compute_30; Kepler architecture, for Tesla K40/K80, GeForce 700, GT-730). 
+SM35 or SM_35, compute_35; Tesla K40. 
+SM37 or SM_37, compute_37; Tesla K80
 
 Maxwell (CUDA 6 and later):
-        SM50 or SM_50, compute_50 – Tesla/Quadro M series
-        SM52 or SM_52, compute_52 – Quadro M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan X
-        SM53 or SM_53, compute_53 – Tegra (Jetson) TX1 / Tegra X1
+SM50 or SM_50, compute_50; Tesla/Quadro M series
+SM52 or SM_52, compute_52; Quadro M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan X
+SM53 or SM_53, compute_53; Tegra (Jetson) TX1 / Tegra X1
 
 
 
-
-
-
-* When a kernel is launched, an execution configuration must be provided, by using the <<< ... >>> syntax just prior to passing the kernel any expected arguments.
+When a kernel is launched, an execution configuration must be provided, by using the <<< ... >>> syntax just prior to passing the kernel any expected arguments.
 * The execution configuration allows programmers to specify the thread hierarchy for a kernel launch, which defines the number of thread groupings (blocks), as well as how many threads to execute in each block.
 
 * Unlike most C/C++, launching CUDA kernels is asynchronous; the CPU code will continue to execute without waiting for the kernel launch to complete.
