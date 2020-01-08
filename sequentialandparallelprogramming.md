@@ -2695,14 +2695,8 @@ The basic Function modifiers are `__global__` (to be called by the host but exec
 
 The first issue of note is that determining what versions of CUDA and what GPGPUs are in use, which themselves require the installation of particular kernel modules. To determine what versions of CUDA are available a test of environment modules will be sufficient. To determine the GPGU card in use, check a node by logging in as an interactive job with `nvidia-smi`. This command should provide output that gives the version of the `nvidia-smi` tool being used, and the GPGPUs on the system, along with their current temperature, power utilisation, bus-ID etc. For example, on the Edward system managed by VPAC, the following 
 
-[lev@edward]$ qsub -l walltime=0:30:00,nodes=1:ppn=2 -I -X
-[lev@edward006 ~]$ cd $PBS_O_WORKDIR
-[lev@edward006 ch05]$ module load tau
-[lev@edward006 ch05]$ tau_cc.sh mpi-debug.c -o mpi-debugc
-[lev@edward006 ch05]$ mpiexec -np 2 tau_exec -io ./mpi-debugc
-
 [lev@edward]$ qsub -l walltime=0:30:00,nodes=1:ppn=2 -I -q gpu
-[lev@edward091 ~]$ module avail cuda
+[lev@edward091 ~]$ module avail |& grep -i cuda
 cuda/4.2 cuda/5.0.35 cuda/5.5.22 cuda/6.5.14
 [lev@edward091 ~]$ module load cuda/5.5.22
 
