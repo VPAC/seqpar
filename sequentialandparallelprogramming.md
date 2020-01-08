@@ -2610,24 +2610,13 @@ In contrast there is also CUDA which was introduced by NVidia in 2006, as a comp
 
 The main disadvantage with CUDA is that, whilst in significant use throughout the industry, it that the language is locked into NVidia, and vendor lock-in is something which no engineer, programmer, or even manager for that matter, should desire. There is a multiple-vendor, open standard for C/C++ known as OpenCL which uses the same principles as CUDA. However, it is a lower-level specification and, as a result, is harder to program in that with CUDA. It is also worth noting that OpenCL supports a variety of compute resources (e.g., CPU, GPU, DSP, FPGA) and can use same code base on each. See: https://www.khronos.org/opencl/
 
-
 <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-DP-600x-300x232.png" /> <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-mem-bw-600x-300x241.png" /><br />
 Images from HPCWire `https://www.hpcwire.com/2016/08/23/2016-important-year-hpc-two-decades/`
 
+In an HPC environment, your friendly system administrators would have pre-compiled a number of applications from source to work with CUDA (or similar). As this is subject to a variety of constraints it is worth reviewing common issues that come up in such an environment. Often access to GPUs are restricted to particularly queues because of the cost of installation and to particular research groups that have funded their purchased. In the future they may become more sufficiently common, but at the time of writing it is not unusual that a user will need to specifiy the queue that the GPUs are located on, the account (projectID) that you are using for the gpgpu partitions, and generic resource in the job submission script. 
 
 
 
-
-
-
-
-* Check a node with `nvidia-smi`.
-
-* A number of applications on Spartan have already been compiled with CUDA-specific toolchains
-* These are like any other job submission with the following caveats: (1) You will need to specifiy the partition that you are using., (2) You will need to specify the account (projectID) that you are using for the gpgpu partitions., (3) You will need to request a generic resource for your job 
-script. 
-
-* Example scripts available.
 
 5.2 OpenACC Pragmas
 -------------------
@@ -2680,12 +2669,69 @@ for (int i=0; i<N; i++)
 5.3 CUDA Programming
 --------------------
 
-* Just like other parallel codes, work with decomposition. General structure of separates CPU functions from CUDA functions. 
-* The __global__ keyword indicates that the following function will run on the GPU, and can be invoked globally, which in this context means either by the CPU, or, by the GPU. Functions defined with the __global__ keyword must return type void. The function called to run on a GPU is referred to as a kernel.
+As with all parallel programming, start with serial code, engage in decomposition, then generate parallel code. The general structure of CUDA code separates CPU functions from CUDA functions. i.e.,
 
-* Basic Function modifiers are `__global__` (to be called by the host but executed by the GPU) and `__host__ ` (to be called and executed by the host).
-* Basic variable modifiers are `__shared__` (variable in shared memory), and `__syncthreads()` (sync of threads within a block).
-* Basic kernel launch paramters are Block size and Grid Size - depends on hardware.
+```
+void CPUFunction()
+{
+        printf("This function is defined to run on the CPU.\n");
+}
+__global__ void GPUFunction()
+{
+        printf("This function is defined to run on the GPU.\n");
+}
+int main()
+{
+        CPUFunction();
+        GPUFunction<<<1, 1>>>();
+        cudaDeviceSynchronize();
+}
+``
+
+The __global__ keyword indicates that the following function will run on the GPU, and can be invoked globally, which in this context means either by the CPU, or, by the GPU. Functions defined with the __global__ keyword must return type void. The function called to run on a GPU is referred to as a kernel. Often, code executed on the CPU is referred to as host code, and code running on the GPU is referred to as device code.
+
+The basic Function modifiers are `__global__` (to be called by the host but executed by the GPU) and `__host__ ` (to be called and executed by the host). The basic variable modifiers are `__shared__` (variable in shared memory), and `__syncthreads()` (sync of threads within a block), and the basic kernel launch paramters are Block size and Grid Size - depends on hardware.
+
+
+The first issue of note is that determining what versions of CUDA and what GPGPUs are in use, which themselves require the installation of particular kernel modules. To determine what versions of CUDA are available a test of environment modules will be sufficient. To determine the GPGU card in use, check a node by logging in as an interactive job with `nvidia-smi`. This command should provide output that gives the version of the `nvidia-smi` tool being used, and the GPGPUs on the system, along with their current temperature, power utilisation, bus-ID etc. For example, on the Edward system managed by VPAC, the following 
+
+[lev@edward]$ qsub -l walltime=0:30:00,nodes=1:ppn=2 -I -X
+[lev@edward006 ~]$ cd $PBS_O_WORKDIR
+[lev@edward006 ch05]$ module load tau
+[lev@edward006 ch05]$ tau_cc.sh mpi-debug.c -o mpi-debugc
+[lev@edward006 ch05]$ mpiexec -np 2 tau_exec -io ./mpi-debugc
+
+[lev@edward]$ qsub -l walltime=0:30:00,nodes=1:ppn=2 -I -q gpu
+[lev@edward091 ~]$ module avail cuda
+cuda/4.2 cuda/5.0.35 cuda/5.5.22 cuda/6.5.14
+[lev@edward091 ~]$ module load cuda/5.5.22
+
+
+
+Below are the supported sm variations and sample cards from that generation
+
+Supported on CUDA 7 and later
+
+Fermi (CUDA 3.2 until CUDA 8) (deprecated from CUDA 9):
+        SM20 or SM_20, compute_30 – Older cards such as GeForce 400, 500, 600, GT-630
+
+Kepler (CUDA 5 and later):
+        SM30 or SM_30, compute_30 – Kepler architecture (generic – Tesla K40/K80, GeForce 700, GT-730)
+        Adds support for unified memory programming
+        SM35 or SM_35, compute_35 – More specific Tesla K40
+        Adds support for dynamic parallelism. Shows no real benefit over SM30 in my experience.
+        SM37 or SM_37, compute_37 – More specific Tesla K80
+        Adds a few more registers. Shows no real benefit over SM30 in my experience
+
+Maxwell (CUDA 6 and later):
+        SM50 or SM_50, compute_50 – Tesla/Quadro M series
+        SM52 or SM_52, compute_52 – Quadro M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan X
+        SM53 or SM_53, compute_53 – Tegra (Jetson) TX1 / Tegra X1
+
+
+
+
+
 
 * When a kernel is launched, an execution configuration must be provided, by using the <<< ... >>> syntax just prior to passing the kernel any expected arguments.
 * The execution configuration allows programmers to specify the thread hierarchy for a kernel launch, which defines the number of thread groupings (blocks), as well as how many threads to execute in each block.
@@ -2837,6 +2883,65 @@ Check README.md Compile and modify 01-add-error-handling-solution.cu 01-add-erro
 6.1 Profiling with GProf, TAU/PDT and PAPI
 -------------------------------------------
 
+
+Profiling and performance analysis tools check the execution of a program to determine where it is spending time and resources, and thus allowing the opportunity to identify where in code improvements can be made, which might not be obvious by just reading the source code. There are a number of profiling tools available, and as a result only a selection are reviewed here, chosen because of their common usage and availability. 
+
+**GProf**
+
+GProf has its origins are with a team lead by Susan L. Graham at University of California, Berkeley for BSD-UNIX in 1982, and was introduced to the GNU Binutils suite in 1988. It is probably the single-most common profiling and performance tool in use, being well-established and highly-available. Grof produces an "execution profile" for C, Fortran, and Pascal programs.
+
+Profiling requires a  number of steps. Firstly, a program must be compiled and linked with profiling enabled. By adding the `-pg` options (in addition to whatever usual options are being used, additional code is created to write profile information which gprof can use. Secondly, one must execute the program to generate a call graph profile file (gmon.out is the default). Finally, one must run `gprof` to analyse the data file. Gprof requires that binutils is in the user's environment. If it is not available either install binutils for a personal system using a favourite package manager, or in an VPAC HPC environment load the `binutils` environment module.
+
+A short example, specifically for gprof, has been written some years ago by from Himanshu Arora and published on The Geek Stuff is included in the chapter06 directory of the git repository for this book. It's a good example because it's short, but spends time in particular functions. But it doesn't do anything useful. After the program is run it will produce a binary `gmon.out` file.
+
+```
+$ gcc -Wall -pg test_gprof.c test_gprof_new.c -o test_gprof
+[lev@spartan-login2 Debug]$ ./test_gprof 
+ Inside main()
+ Inside func1 
+ Inside new_func1()
+ Inside func2 
+$ ls gmon.out
+gmon.out
+```
+
+Note that the above example is with the system GCC. If one is in an HPC environment and profiling against a *particular* version of GCC, which one should do in a production setting, then that environmental module should be loaded first.
+
+With the `gmon.out` file created along with the executable `test_grof`, the `grof` application can be run against the executable with `gmout.out` as an argument; the output is redirected to a textfile, `analysis.txt`, which can be viewed, providing both a flat profile and a call-graph. The flat profile will simply express how much time was spent in each function. The call graph will give this information and how much time and how often was spent in functions that it called (child functions).
+ 
+$ gprof test_gprof gmon.out > analysis.txt
+$ analysis.txt
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 34.61      8.49     8.49        1     8.49    16.75  func1
+ 33.70     16.75     8.27        1     8.27     8.27  new_func1
+ 32.75     24.79     8.03        1     8.03     8.03  func2
+  0.12     24.82     0.03                             main
+...
+                     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.04% of 24.82 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.03   24.79                 main [1]
+                8.49    8.27       1/1           func1 [2]
+                8.03    0.00       1/1           func2 [4]
+-----------------------------------------------
+...
+```
+
+There are, unsurprisingly, a number of options to `grof`, the most common being the `-a` and `b` options. The `-a` option prevents printing statically declared functions and the `-b` option prevents the printing of verbose explanations of the fields. 
+
+
+**TAU**
+
+Initially developed at the University of Oregon, The Tuning and Analysis Utilities (TAU) is developed for the US Department of Eenergy Office of Science, the ASC initiatives at Lawrence Livermore National Laboratory, the ZeptoOS project at Argonne National Laboratory, and the Los Alamos National Laboratory. As a profiling and tracing tookit, for C, C++, Fortran, Java, and Python and works with parallel code.  The profiling that TAU provides shows how much time was spent on each routine, and the tracing shows when events took place. It used PDT (Program Database Toolkit) as a high-level interface of source code for analysis.
+
 Parallel Performance Issues include the following:
 
 * Coverage - % of the code that is parallel
@@ -2845,17 +2950,13 @@ Parallel Performance Issues include the following:
 * Locality - Communication structure
 * Synchronization - Locking latencies
 
-Since the performance of parallel programs are dependent on so many issues, it is an inherently difficult task to profile parallel programs.
-
-Developed at the University of Oregon, the TAU (Tuning and Analysis Utilities) Performance System(R) and API is a profiling and tracing tookit, for C, C++, Fortran, Java, and Python and works with parallel code.  The profiling that TAU provides shows how much time was spent on each routine, and the tracing shows when events took place. It used PDT (Program Database Toolkit) as a high-level interface of source code for analysis.
-
-It uses three methods to track the performance of applications; library interposition using tau_exec, or compiler directives and source transformation using PDT (Program Database Toolkit). Use of the tau_exec only requires shared library support, whereas compiler instrumentation requires recompiling, source instrumentation requires the source code. As a result, it is recommended that profiling and performance analysis starts with the library interposition and work towards the source as needed. MPI events can be instrumented from the interposition stage, as can throttling. Routine-level events require recompilation. Low-level events, such as loops etc require PDT and source code.
+Since the performance of parallel programs are dependent on so many issues, it is an inherently difficult task to profile parallel programs. TAU uses three methods to track the performance of applications; library interposition using tau_exec, or compiler directives and source transformation using PDT (Program Database Toolkit). Use of the tau_exec only requires shared library support, whereas compiler instrumentation requires recompiling, source instrumentation requires the source code. As a result, it is recommended that profiling and performance analysis starts with the library interposition and work towards the source as needed. MPI events can be instrumented from the interposition stage, as can throttling. Routine-level events require recompilation. Low-level events, such as loops etc require PDT and source code.
 
 The steps involved in profiling parallel code are outlined as follows:
 
-Instrument the source code with Tau macros
-Compile the instrumented code
-Run the program to view profile.* files  for each separate process
+1) Instrument the source code with Tau macros
+2) Compile the instrumented code
+3) Run the program to view profile.* files  for each separate process
 
 The instrumentation of source code can be done manually or with the help of another utility called PDT, which automatically parses source files and instruments them with Tau macros.
 
@@ -2895,13 +2996,13 @@ processor            0  sent         1729
 [lev@edward006 ch05]$ pprof
 [lev@edward006 ch05]$ paraprof
 
-
-The instrumentation of a program can be customised by a file, which states which parts of an application are profiles and how. When using the TAU compiler wrapper scripts the -tau_options=-optTauSelectFile=<file> can be used to enable selective
-instrumentation. Selective instrumentation is only available when using source-level instrumentation (PDT).
+The instrumentation of a program can be customised by a file, which states which parts of an application are profiles and how. When using the TAU compiler wrapper scripts the -tau_options=-optTauSelectFile=<file> can be used to enable selective instrumentation. Selective instrumentation is only available when using source-level instrumentation (PDT).
 
 After instrumentation and compilation are completed, the profiled application is run to generate the profile data files. These files can be stored in a directory specified by the environment variable PROFILEDIR. By default, profiles are placed in the current directory. A TAU_VERBOSE environment variable can be set to see the steps the TAU measurement systems takes when the application is running. Other environment variables that can set to enable MPI measurement features are TAU_TRACK_MESSAGE to track MPI message statistics when profiling or messages lines when tracing, and TAU_COMM_MATRIX to generate MPI communication matrix data. 
 
-In addition, many modern processors have performance counters, which measure events such as floating point operations, cache misses and so forth while an application executes. The Performance Data Standard and API (PAPI) provides a uniform interface to access these performance counters, which TAU can be compiled against. To use these counters, you must first find out which PAPI events your system supports. To do so type:
+**TAU/PDT and PAPI**
+
+In addition, many modern processors have performance counters, which measure events such as floating point operations, cache misses and so forth while an application executes. The Performance Data Standard and API (PAPI) provides a uniform interface to access these performance counters, which TAU can be compiled against. To use these counters, you must first find out which PAPI events your system supports. 
 
 $ module load papi
 $ papi_avail
@@ -2938,8 +3039,7 @@ $ paraprof &
 
 Obviously this is but a basic introduction to TAU/PDT and PAPI, which provided information on compiling with TAU and generating profiles. The documentation from the appropriate providers should be consulted if detail on the much greater range of options and interpretation is desired. 
 
-6.2 Memory Checking with Valgrind
----------------------------------
+## 6.2 Memory Checking with Valgrind
 
 Originally developed by Julian Seward (who in 2006 won a Google-O'Reilly Open Source Award for his work on this application), Valgrind performs memory debugging, memory leak detection, and profiling - although it is its first two tasks which is what it is primarily used for. Through inserted instrumentation and wrappers, Valgrind can identify memory leaks, deallocation errors, etc in an application. The major tools provided are memcheck, for memory errors., helgrind and DRD for thread errors., Massif and DHAT, heap profilers., Cachegrind and Callgrind for cache, branch-prediction profiler and call-graph generating cach profiler.
 
