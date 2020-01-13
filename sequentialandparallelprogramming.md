@@ -119,6 +119,8 @@ One particular type of parallellism is the shared memory, multi-threaded approac
 
 Moving from shared memory to parallel programming involves a conceptual change from multi-threaded programming to a message passing paradigm. In this case, MPI (Message Passing Interface) is one of the most popular standards and is used here, along with an implementation as OpenMPI. In this chapter core routines for establishing and closing communications worlds are explored, along with interprocess communication, and then collective communications, before concluding with multiple communication worlds.
 
+The introduction of using graphics-processing units (GPU) for general purpose computational problems (GPGPUs) is an exciting development in parallel processing. Although only capable of a smaller subset of parallel problems and currently with a moderate memory cache, the exceptional performance of GPUs comes from their "closeness" of the cores to each other. This book provides an introduction to the technology, lower-entry OpenACC pragma-driven programming, and CUDA programming.
+
 Finally, relevant to sequential, multi-threaded, and message passing programs, is the issues of profiling and debugging. In particular the applications TAU (Tuning and Analysis Utilities), Valgrind, and GDB (GNU Debugger) are explored in some detail with some practical examples on how to improve one's code.
 
 As a whole it must be reiterated that this book gives but a broad introduction to the subjects in question. There are, of course, some very detailed books on each of the subjects addressed; books on multicore systems, books on Fortran, books on C, books on OpenMP, MPI, debugging and profiling. Designed as two-days of learning material, this is no substitute for the thousands of pages of material that in-depth study can provide on each subject.
@@ -152,9 +154,16 @@ From this complex is four basic possibilities:
 * Single Instruction Stream, Multiple Data Streams (SIMD)    
 * Multiple Instruction Streams, Single Data Stream (MISD)   
 * Multiple Instruction Streams, Multiple Data Streams (MIMD)   
-(Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007)
+(Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007 [EDIT])
 
-This is the simplest and, until recently, the most common processor architecture on desktop computer systems. Also known as a uniprocessor system it offers a single instruction stream and a single data stream. Whilst uniprocessor systems were not able to run programs in parallel (i.e., multiple tasks simultaneously), they were able or include concurrency (i.e., multiple logical tasks) through a number of different methods:
+As computing technology has moved increasingly to te MIMD taxonomic classification additional categories have been added:
+
+* Single program, multiple data streams (SPMD)
+* Multiple program, multiple data streams (MPMD)
+
+**Single Instruction Stream, Single Data Streams (SISD)**
+
+This is the simplest and, up until the end of the 20th century, the most common processor architecture on desktop computer systems. Also known as a uniprocessor system it offers a single instruction stream and a single data stream. Whilst uniprocessor systems were not able to run programs in parallel (i.e., multiple tasks simultaneously), they were able or include concurrency (i.e., multiple logical tasks) through a number of different methods:
 
 a) It is possible for a uniprocessor system to run processes concurrently by switching between one and another.
 
@@ -164,9 +173,11 @@ c) Instruction prefetch, where an instruction is requested from main memory befo
 
 d) Pipelines, on the instruction level or the graphics level, can also serve as an example of concurrent activity. An instruction pipeline (e.g., RISC) allows multiple instructions on the same circuitry by dividing the task into stages. A graphics pipeline implements different stages of rendering operations to different arithmetic units.
 
+Image: https://en.wikipedia.org/wiki/File:SISD.svg
+
 **Single Instruction Stream, Multiple Data Streams (SIMD)**
 
-SIMD architecture represents a situation where a single processor performs the same instruction on multiple data streams. This commonly occurs in contemporary multimedia processors, for example MMX instruction set from the 1990s, which lead to Motorolla’s PowerPC Altivec, and more contemporary times AVE (Advanced Vector Extensions) instruction set used in Intel Sandy Bridge processors and AMD's Bulldozer processor. These developments have primarily been orientated towards real-time graphics, using short-vectors. Contemporary supercomputers are invariably MIMD clusters which can implement short-vector SIMD instructions. IBM is still continuing with a general SIMD architecture through their Power Architecture.
+SIMD architecture represents a situation where a single processor performs the same instruction on multiple data streams and are described as a type of "data level parallelism". This commonly occurs in contemporary multimedia processors, for example MMX instruction set from the 1990s, which lead to Motorolla's PowerPC Altivec, and more contemporary times AVE (Advanced Vector Extensions) instruction set used in Intel Sandy Bridge processors and AMD's Bulldozer processor. These developments have primarily been orientated towards real-time graphics, using short-vectors. Contemporary supercomputers are invariably MIMD clusters which can implement short-vector SIMD instructions. IBM is still continuing with a general SIMD architecture through their Power Architecture.
 
 SIMD was also used especially in the 1970s and notably on the various Cray systems. For example the Cray-1 (1976) had eight "vector registers," which held sixty-four 64-bit words each (long vectors) with instructions applied to the registers. Pipeline parallelism was used to implement vector instructions with separate pipelines for different instructions, which themselves could be run in batch and pipelined (vector chaining). As a result the Cray-1 could have a peak performance of 240 MFLOPS  - extraordinary for the day, and even acceptable in the early 2000s.
 
@@ -178,7 +189,7 @@ Multiple Instruction, Single Data (MISD) occurs when different operations are pe
 
 Systolic arrays are another form of MISD. They are different to pipelines because they have a non-linear array structure, they have multidirectional data flow, and each processing element may even have its own local memory . In this situation, a matrix pipe network arrangement of processing units will compute data and store independently of each other. Matrix multiplication is an example of such an array in an algorithmic form, where once a matric is introduced one row at a time from the top of the array, whereas another matrix is introduced one column at a time.
 
-MISD machines are rare; the Cisco PXF processor is an example. They can be fast and scalable, as they do operate in parallel, but they are really difficult to build.
+MISD machines are rare; the Cisco PXF processor is an example. They can be fast and scalable, as they do operate in parallel, but they are really difficult to build. Another well-known examples was the Space Shuttle flight control computer.
 
 **Multiple Instruction Streams, Multiple Data Streams (MIMD)**
 
@@ -196,17 +207,23 @@ In the former case (SPMD), multiple autonomous processors execute the same progr
 
 ## 1.2 Processors, Cores, and Threads
 
-### Uni- and Multi-Processors
+**Uni- and Multi-Processors**
 
 A further distinction needs to be made between processors and cores. A processor is a physical device that accepts data as input and provides results as output. A uniprocessor system has one such device, although the definitions can become ambiguous. In some uniprocessor systems it is possible that there is more than one, but the entities engage in separate functions. For example, a computer system that has one central processing unit may also have a co-processor for mathematic functions and a graphics processor on a separate card. Is that system uniprocessor? Arguably not as the co-processor will be seen as belonging to the same entity as the CPU, and the graphics processor will have different memory, system I/O, and will be dealing with different peripherals. In contrast a multiprocessor system does share memory, system I/O, and peripherals. But then the debate will become murky with the distinction between shared and distributed memory discussed above.
 
-### Uni- and Multi-core
+**Uni- and Multi-core**
 
 In addition to the distinction between uniprocessor and multiprocessor there is also the distinction between unicore and multicore processors.  A unicore processor carries out the usual functions of a CPU, according to the instruction set; data handling instructions (set register values, move data, read and write), arithmetic and logic functions (add, subtract, multiply, divide, bitwise operations for conjunction and disjunction, negate, compare), and control-flow functions (conditionally branch to another address within a program, indirectly branch and return). A multicore processor carries out the same functions, but with independent central processing units (note lower case)  called 'cores'. Manufacturers integrate the multiple cores onto a single integrated circuit die or onto multiple dies in a single chip package.
 
 In terms of theoretical architecture, a uniprocessor system could be multicore, and a multiprocessor system could be unicore. In practise the most common contemporary architecture is multiprocessor and multicore. The number of cores is represented by a prefix. For example, a dual-core processor has two cores (e.g. AMD Phenom II X2, Intel Core Duo), a quad-core processor contains four cores (e.g. AMD Phenom II X4, Intel i3, i5, and i7), a hexa-core processor contains six cores (e.g. AMD Phenom II X6, Intel Core i7 Extreme Edition 980X), an octo-core processor or octa-core processor contains eight cores (e.g. Intel Xeon E7-2820, AMD FX-8350) etc.
 
-### Uni- and Mult-Threading
+**GPUs**
+
+A Graphics Processing Unit (GPU) is a particular type of multicore processor which was originally designed, as the name suggests, the maniplation of images. The architecture of such devices, which heavily involve matrix and vector calculations, makes them particularly suitable for certain non-graphics computations of the "pleasingly parallel" variety, especially of the SIMD/SPMD variety. In these cases the GPU is known as a GPGPU, or general purpose computing on a GPU.
+
+In terms of hardware the main GPUs at this time include the Radeon HD 7000 series and those based on the Maxwell microarchitecture. The NVIDIA GM200 GPU, for example, has some 3072 CUDA cores. This obviously is a lot more than CPU processor cores, however there are two main caveats to keep in mind here. Firstly, the CUDA cores are quite limited in their processor memory compared to CPUs, and secondly their clock speed (at 988 MHz base) is significantly lower. GPUs are an absolutely exceptional tool if one has a lot of small datasets that need processing. 
+
+**Uni- and Mult-Threading**
 
 In addition to the distinctions between processors and cores, whether uni- or multi-, there is also the question of threads and its distinction from a process.  A process provides the resources to execute an instance of a program (such as address space, the code, handles to system objects, a process identifier etc).  An execution thread is the smallest processing unit in an operating system, contained inside a process. Multiple threads can exist within the same process and share the resources allocated to a process. 
 
@@ -220,7 +237,7 @@ One implementation of multithreading is OpenMP (Open Multi-Processing). It is an
 
 There is no doubt that OpenMP is an easier form of parallel programming compared to distributed memory parallel programming or directly programming for shared memory using shared memory function calls. However it is limited to a single system unit (no distributed memory) and is thread-based rather than using message passing.
 	
-### Why Is It A Multicore Future?
+**Why Is It A Multicore Future?**
 
 Ideally, don't we want clusters of multicore multiprocessors with multithreaded instructions? Of course we do; but think of the heat that this generates, think of the potential for race conditions, such as situations where multiple processes or threads are attemping to read or write to the same resources (e.g., deadlocks, data integrity issues, resource conflicts, interleaved execution issues).
 
@@ -228,7 +245,12 @@ One of the reasons that multicore multiprocessor clusters have become popular is
 
 The partial solution to the issue was to pipeline power through additional cores, instead of trying to squeeze more and more transistors onto a single processor. As a result, modern processors are made up of multiple cores and system units typically consist of multiple, and often heterogeneous, processors. However this solution requires that programs know how to access and utilise these additional resources.
 
-New multicore systems are being developed all the time. Using RISC CPUs, Tilera released 64-core processors in 2007, the TILE64, and in 2011, a one hundred core processor, the Gx3100. In 2012 Tilera founder, Dr. Agarwal, is leading a new MIT effort dubbed The Angstrom Project. It is one of four DARPA-funded efforts aimed at building exascale supercomputers, i.e., a system capable of at least one exaFLOP, or a billion billion calculations per second. The goal is to design a chip with 1,000 cores.
+New multicore systems are being developed all the time. Using RISC CPUs, Tilera released 64-core processors in 2007, the TILE64, and in 2011, a one hundred core processor, the Gx100. In 2012 Tilera founder, Dr. Agarwal, was leading a new MIT effort dubbed The Angstrom Project, which was purchased by EZchip superconductor in 2015. It is one of four DARPA-funded efforts aimed at building exascale supercomputers, i.e., a system capable of at least one exaFLOP, or a billion billion calculations per second. The goal is to design a chip with 1,000 cores using a mesh topology.
+
+Certainly, the most exciting development in multicore technology in recent years in GPU technology. Whilst GPUs have been around for a very long time, it is relatively recent that applications have started to be built specifically for this architecture. Sophisticated software often lags behind hardware in this regard. GPUs offer *thousands* of cores on a single processor, but are only suitable for data or vector parallel computation. GPUs also typically have a significantly lower clock speed and processor memory. It is possible to run a hybrid application that uses CPUs and GPUs, and which uses MPI and the data parallelism of GPUs - but there is likely to be all sorts of bottle-necks due to the different speeds of computation.
+
+Another project worth keeping an eye is Mercury, developed by Dr. Paul Bone at the University of Melbourne. Mercury is a functional programming language which aims to achieve automatic parallelisation, that is, the code will attempt to parallelise according to the hardware it is runinng on without any pragmas or additional routines. [EDIT]
+
 
 ## 1.4 Parallel Processing Performance
 
@@ -264,12 +286,48 @@ It seems a little disappointing to discover that, at a certain point, no matter 
 
 However it is not necessarily the case that the ratio of parallel and serial parts of a job and the number of processors generate the same result, as the variation in execution time in the specific serial and parallel implementation of a task can vary. An example can be what is called "embarrassingly parallel", so named because it is a very simple task to split up into parallel tasks as they have little communication between each other. For example, the use of GPUs for projection, where each pixel is rendered independently. Such tasks are often called "pleasingly parallel". To give an example using the R programming language the SNOW package (Simple Network of Workstations) package allows for such parallel computations.
 
-Whilst originally expressed by Gene Amdahl in 1967, it wasn't until over twenty years later in 1988 that an alternative to these limitations was proposed by John L. Gustafson and Edwin H. Barsis. Gustafon noted that Amadahl's Law assumed a computation problem of fixed data set size. Gustafson and Barsis observed that programmers tend to set the size of their computational problems according to the available equipment; therefore as faster and more parallel equipment becomes available, larger problems can be solved. Thus scaled speedup occurs; although Amdahl's law is correct in a fixed sense, it can be circumvented in practise by increasing the scale of the problem. 
+Let us consider the problem using a metaphor in a concrete manner; driving from Melbourne to Sydney. Because this an interesting computational task, the more interesting route is being taken via the coastline, rather than cross-country through Albury-Wodonga, which is quicker. For the sake of argument assume this journey is going to take 16 hours (it's actually somewhat less). Yes, a journey is taken in serial - but the point here is to illustrate the task rate.
 
-If the problem size is allowed to grow with P, then the sequential fraction of the workload would become less and less important. A common metaphor is based on driving (computation), time, and distance (computational task). In Amdhal's Law, if a car had been travelling 40kmp/h and needs to reach a point 80km from the point of origin, no matter how fast the vehicle travels it will can only reach a maximum of a 80km/h average before reaching the 80km point, even if it travelled at infinite speed as the first hour has already passed. With the Gustafon-Barsis Law, it doesn't matter if the first hour has been at a plodding 40 km/h, this can be infinitely increased given enough time and distance. Just make the problem bigger!
+At the half way point of this journey and 8 hours of driving there is a very clever mechanic, just outside Mallacoota, who has developed a dual-core engine which, as a remarkable engineering feat, allows a car to travel twice as fast (with no loss in safety etc). To use the computing metaphor, it completes the task twice a quickly as we also assume that the engine has been designed to split the task into two. The mechanic, clearly a very skilled individual, is able to remove the old single-core engine and replace it with a new dual-core *instantly*. Perhaps they are a wizard rather than a mechanic.
+
+In any case, the second-half of the journey with the new dual-core engine now only takes 4 hours rather than the expected 8, and the total journey takes 12 hours rather than the expected 16. With the development of quad-core and octo-core engines the following journey time is illustrated.
+
+Cores	Mallacoota	Sydney		Total Time
+1	8 hours		+8 hours	16 hours
+2	8 hours		+4 hours	12 hours
+4	8 hours		+2 hours	10 hours
+8	8 hours		+1 hour		9 hours
+..	..		..		..
+Inf 	8 hours		+nil		8 hours
+
+Whilst the total journey time is reduced with the addition of new multicore engines, even an infinite-core engine cannot reduce the travel time to less than the proportion of the journey that is conducted with a single-core engine. 
+
+In very general terms Amdhal's Law states thaat the total maximum improvement to a system is limited by the proportion that has been improved. In computing programming because some of the task is in serial, there is a maxiumum limit to the speedup based on the time that is required for the sequential task - no matter how many processors are thrown at the problem.
+
+The maximum speedup is:
+
+S(N) = 1 / (1-P) + (P/N)
+
+Where P is the proportion of a program that can be made parallel, and (1 - P) is the proportion that cannot be parallelised (and therefore remains serial).
+
+Parallel programming is a complicated affair that requires some serial overhead. Not only are there serial tasks within a program, the very act of making a program parallel involves serial overhead, such as start-up time, synchronisation, data communications, and so forth. Therefore, all parallel programs will be subject to Amdahl's Law and are therefore limited in their total performance improvement, no matter how many cores they run on. The following graphic, from Wikipedia, illustrates these limits.
 
 <img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/amdhal.png" />
 (Image from Daniels220 from Wikipedia, CC BY-SA 3.0)
+
+Whilst originally expressed by Gene Amdahl in 1967, it wasn't until over twenty years later in 1988 that an alternative to these limitations was proposed by John L. Gustafson and Edwin H. Barsis. Gustafon noted that Amadahl's Law assumed a computation problem of fixed data set size, which is not really what happens that often in the real world of computation. Gustafson and Barsis observed that programmers tend to set the size of their computational problems according to the available equipment; therefore as faster and more parallel equipment becomes available, larger problems can be solved. Thus scaled speedup occurs; although Amdahl's law is correct in a fixed sense, it can be circumvented in practise by increasing the scale of the problem. 
+
+If the problem size is allowed to grow with P, then the sequential fraction of the workload would become less and less important. Assuming that the complexity is within the serial overhead (following Minsky's Conjecture), the bigger the dataset, the smaller the proportion of the program that will be serial. Or, to use the car metaphor, why stop at Sydney? You have a multicore car now, just keep going! For their elegant and practical solution they won the 1988 they won the Gordon Bell Prize. Let's review that table again.
+
+Cores	Mallacoota	Sydney		Brisbane	Rockhampton	Total Time
+1	8 hours		+8 hours	+8 hours	+8 hours	32 hours
+2	8 hours		+4 hours	+4 hours	+4 hours	20 hours
+4	8 hours		+2 hours	+2 hours	+2 hours	14 hours
+8	8 hours		+1 hour		+1 hour		+1 hours	11 hours
+..	..		..		..		..
+Inf 	8 hours		+nil		+nil		+nil 		8 hours
+
+As can be noted the overhead becomes proportionally less and less the further the distance travelled. Thus, whilst Amdahl's Law is certainly true in a fixed sense, data problems are often not fixed, and the advantages of parallelisation can be achieved through making use of Gustafon-Barsis Law. It should also be fairly clear how multicore computing, parallel programming, and big data converge into a trajectory for the future of computing. For most problems there is at least some parallelisation that can be conducted - and it's almost always worth doing if one can. The bigger the dataset, the greater the benefits.
 
 # 2.0 Sequential Programming with C and Fortran
 
@@ -1540,7 +1598,6 @@ do-loops
 This brings us to an end of the chapter on OpenMP; rather like the following chapter on OpenMPI only a cursorary exploration of the major capabilities have been provided. However they should be a sufficient overview to start converting sequential code into parallel code immediately and with minimum effort whilst also providing the grounding for future exploration and detail.
 
 # 4.0 Distributed Memory Programming with OpenMPI
-
 
 ## 4.1 Distributed Memory Concepts and the OpenMPI Implementation
 
@@ -3346,4 +3403,4 @@ Introduction to OpenACC, NVidia
 The Graphics Processing Unit (GPU) revolution, Ramu Anandakrishnan, Virginia Polytechnic Institute and State University
 Tutorial on GPU computing: With an introduction to CUDA, Felipe A. Cruz, University of Bristol
 
-
+Flynn, Michael J. (September 1972). "Some Computer Organizations and Their Effectiveness". IEEE Transactions on Computers. C-21 (9): 948–960. 
