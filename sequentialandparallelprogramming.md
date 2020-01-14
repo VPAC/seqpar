@@ -30,7 +30,9 @@ All trademarks are property of their respective owners.
 1.1 Computer System Architectures
 1.2 Processors, Cores, and Threads
 1.3 Multithreaded Applications
-1.4 Parallel Processing Performance
+1.4 Hardware Advanced
+1.5 Parallel Processing Performance
+1.6 Programming Practises
 
 2.0 Sequential Programming with C and Fortran
 2.1 Fortran and C Fundamentals
@@ -237,6 +239,8 @@ One implementation of multithreading is OpenMP (Open Multi-Processing). It is an
 
 There is no doubt that OpenMP is an easier form of parallel programming compared to distributed memory parallel programming or directly programming for shared memory using shared memory function calls. However it is limited to a single system unit (no distributed memory) and is thread-based rather than using message passing.
 	
+A project worth keeping an eye is Mercury, developed by Dr. Paul Bone at the University of Melbourne. Mercury is a functional programming language which aims to achieve automatic and explicit parallelisation, that is, the code will attempt to parallelise according to the hardware it is runinng on without any pragmas or additional routines. Information is gathered from a profile gathered form a sequential execution of a program which informs the compiler how the program can be paralleslised. In doing so, it also protects from situations where an attempt is made to parallelise, but any potential benefits are lost through overheads and dependencies.
+
 **Why Is It A Multicore Future?**
 
 Ideally, don't we want clusters of multicore multiprocessors with multithreaded instructions? Of course we do; but think of the heat that this generates, think of the potential for race conditions, such as situations where multiple processes or threads are attemping to read or write to the same resources (e.g., deadlocks, data integrity issues, resource conflicts, interleaved execution issues).
@@ -245,15 +249,41 @@ One of the reasons that multicore multiprocessor clusters have become popular is
 
 The partial solution to the issue was to pipeline power through additional cores, instead of trying to squeeze more and more transistors onto a single processor. As a result, modern processors are made up of multiple cores and system units typically consist of multiple, and often heterogeneous, processors. However this solution requires that programs know how to access and utilise these additional resources.
 
+## 1.4 Hardware Advances
+
+Very early in computing it was realised that translating instruction and control streams in hardware was significantly more difficult than the datastream memory. Wilkes and Stringer (1953) suggested the idea of microprogramming to the control unit of a processor. This led to Complex Instruction Set Computer (CISC), as adding instructions was relatively easy in microcode compared to hardwiring, and rapid adbances in metal–oxide–silicon (MOS) transistors fuelled competition.
+
+
+Emer and Clark at DEC in early 1980s*
+▪ Found VAX 11/780 average clock cycles per instruction (CPI) = 10!
+John Cocke
+▪ Found 20% of VAX ISA ⇒ 60% of microcode, but only 0.2% of execution time!
+▪
+Patterson after ‘79 DEC sabbatical: repair microcode bugs in microprocessors?**
+▪ What’s magic about ISA interpreter in Writable Control Store? Why not other programs?
+* "A Characterization of Processor Performance in the VAX-11/780," J. Emer and D.Clark, ISCA, 1984.
+
+Use
+RAM for instruction cache of user-visible instructions
+▪ Software concept: Compiler vs. Interpreter
+▪ Contents of fast instruction memory change to what application needs now
+vs. ISA interpreter
+▪ Use
+simple ISA
+▪ Instructions as simple as microinstructions, but not as wide
+▪ Enable pipelined implementations
+▪ Compiled code only used a few CISC instructions anyways
+▪ Chaitin’s register allocation scheme* benefits load-store ISAs
+
+
+
 New multicore systems are being developed all the time. Using RISC CPUs, Tilera released 64-core processors in 2007, the TILE64, and in 2011, a one hundred core processor, the Gx100. In 2012 Tilera founder, Dr. Agarwal, was leading a new MIT effort dubbed The Angstrom Project, which was purchased by EZchip superconductor in 2015. It is one of four DARPA-funded efforts aimed at building exascale supercomputers, i.e., a system capable of at least one exaFLOP, or a billion billion calculations per second. The goal is to design a chip with 1,000 cores using a mesh topology.
 
 Certainly, the most exciting development in multicore technology in recent years in GPU technology. Whilst GPUs have been around for a very long time, it is relatively recent that applications have started to be built specifically for this architecture. Sophisticated software often lags behind hardware in this regard. GPUs offer *thousands* of cores on a single processor, but are only suitable for data or vector parallel computation. GPUs also typically have a significantly lower clock speed and processor memory. It is possible to run a hybrid application that uses CPUs and GPUs, and which uses MPI and the data parallelism of GPUs - but there is likely to be all sorts of bottle-necks due to the different speeds of computation.
 
 Another hardware technology that has recently appeared is the Knight's Landing and the upcoming Knight's Hill Intel's Many Integrated Core microarchitecture from Intel. As implementations of the Xeon Phi, these follow the same general architecture as the x86-64 line whilst sharing some of the characteristics of GPUs, could operate as an independent CPU rather than as an add-on. Knights Landing contains up to 72 cores with four threads per core. 
 
-Another project worth keeping an eye is Mercury, developed by Dr. Paul Bone at the University of Melbourne. Mercury is a functional programming language which aims to achieve automatic and explicit parallelisation, that is, the code will attempt to parallelise according to the hardware it is runinng on without any pragmas or additional routines. Information is gathered from a profile gathered form a sequential execution of a program which informs the compiler how the program can be paralleslised. In doing so, it also protects from situations where an attempt is made to parallelise, but any potential benefits are lost through overheads and dependencies.
-
-## 1.4 Parallel Processing Performance
+## 1.5 Parallel Processing Performance
 
 **Speedup and Locks**
 
@@ -329,6 +359,71 @@ Cores	Mallacoota	Sydney		Brisbane	Rockhampton	Total Time
 Inf 	8 hours		+nil		+nil		+nil 		8 hours
 
 As can be noted the overhead becomes proportionally less and less the further the distance travelled. Thus, whilst Amdahl's Law is certainly true in a fixed sense, data problems are often not fixed, and the advantages of parallelisation can be achieved through making use of Gustafon-Barsis Law. It should also be fairly clear how multicore computing, parallel programming, and big data converge into a trajectory for the future of computing. For most problems there is at least some parallelisation that can be conducted - and it's almost always worth doing if one can. The bigger the dataset, the greater the benefits.
+
+## 1.6 Programming Practises
+
+Before delving into actual programming and debugging, the subject of the subsequent chapters, it is worth seriously considering best programming practises. There are a number of excellent texts already available on this subject and as a result only a summary is required here. In a nutshell, many people who have thought seriously about this subject have come to very similar conclusions.
+
+Mytton's "Why You Need Coding Standards" (2004) provides good justifications on why one should have programming practises, and also documented standards if one is working in a team - and with the exception of people writing short scripts themselves, this should be the case for any programming project. In fact, even *then* some coding standards should be seriously considered. If one is writing scripts to do a particular thing, and that thing is useful, then chances are that other people will want to participate in developing it further. A useful script becomes a project. 
+
+<img src="https://imgs.xkcd.com/comics/code_quality.png" />
+
+<img src="https://imgs.xkcd.com/comics/code_quality_2.png" />
+
+Hence Mytton argues there is a deliberate emphasis on the term "maintainable code", in part asserting that code *should* be maintainable, and in part recognising that often it is not. Of course, this raises the question of what constitutes maintainable code. People tend to initially write in their own conventions, and those conventions may not be accessible to others. The objective should be that someone who is unfamiliar with the code can view it and, because there is clear layout with succinct comments that explain the constructs and workflow, that the newcomer has to spend less time learning individual styles and more time building and using the code.
+
+Mytton's suggestion is a coding standard document, that states how developers must write their code. In a shared project this creates a shared grammatical structure so that the individual developers can understand what each other is doing. I would go a step further, and argue that *individual* coders should develop their own standards document, which enforces that they think about the style choices they have made, they remain consistent to it, and they can more easily convert to a a different standard.
+
+Essentially, the standard should ensure the code is consistent and readable, with clearly defined "paragraphs" for blocks of code with different functions. Control statements should be indented to illustrate what block they apply to. Variables and functions should be named to describe what they are and what they do, respectively. Are the blocks properly commented according to functionality? Are there examples of code, which are quicker to write but affect readability? Does it affect performance? 
+
+Another example is Wilson et al (2014) who have an excellent paper "Best Practices for Scientific Computing" which is certainly worth reading. Here is a summary of their core principles, as the subheadings:
+
+````
+Summary of Best Practices
+
+1. Write programs for people, not computers.
+a. A program should not require its readers to hold more than a handful of facts in memory at once.
+b. Make names consistent, distinctive, and meaningful.
+c. Make code style and formatting consistent.
+
+2. Let the computer do the work.
+a. Make the computer repeat tasks.
+b. Save recent commands in a file for re-use.
+c. Use a build tool to automate workflows.
+
+3. Make incremental changes.
+a. Work in small steps with frequent feedback and course correction.
+b. Use a version control system.
+c. Put everything that has been created manually in version control.
+
+4. Don't repeat yourself (or others).
+a. Every piece of data must have a single authoritative representation in the system.
+b. Modularize code rather than copying and pasting.
+c. Re-use code instead of rewriting it.
+
+5. Plan for mistakes.
+a. Add assertions to programs to check their operation.
+b. Use an off-the-shelf unit testing library.
+c. Turn bugs into test cases.
+d. Use a symbolic debugger.
+
+6. Optimize software only after it works correctly.
+a. Use a profiler to identify bottlenecks.
+b. Write code in the highest-level language possible.
+
+7. Document design and purpose, not mechanics.
+a. Document interfaces and reasons, not implementations.
+b. Refactor code in preference to explaining how it works.
+c. Embed the documentation for a piece of software in that software.
+
+8. Collaborate.
+a. Use pre-merge code reviews.
+b. Use pair programming when bringing someone new up to speed and when tackling particularly tricky problems.
+c. Use an issue tracking tool.
+```
+
+Sometimes these principles could be in conflict. For example, item 4b explicitly says not to copy-and-paste. Yet a quotation like this is a copy-and-paste. Perhaps a reference or a URL could be provided to the authoritive source instead (indeed, it will be found in the reference section). However, there is also the principles embodied in 1a. If this section simply said "go read this paper", most people (and probably including yourself, gentle reader) would have thought to themselves, "I'll do that later" and it would have happened. We humans like to read in serial even when hyperlinks are available. With appetite whet the emphasis is made, please read the paper *now*, carefully, and take notes. Then return to this text.
+
 
 # 2.0 Sequential Programming with C and Fortran
 
@@ -3405,3 +3500,12 @@ The Graphics Processing Unit (GPU) revolution, Ramu Anandakrishnan, Virginia Pol
 Tutorial on GPU computing: With an introduction to CUDA, Felipe A. Cruz, University of Bristol
 
 Flynn, Michael J. (September 1972). "Some Computer Organizations and Their Effectiveness". IEEE Transactions on Computers. C-21 (9): 948–960. 
+
+Mytton, David (2004), "Why You Need Coding Standards", https://www.sitepoint.com/coding-standards/
+
+M. Wilkes, and J. Stringer (1953), "Micro-programming and the design of the control circuits in an electronic digital computer, . Mathematical Proc. of the Cambridge Philosophical Society, Vol. 49
+
+Wilson G, Aruliah DA, Brown CT, Chue Hong NP, Davis M, Guy RT, et al. (2014). "Best Practices for Scientific Computing". PLoS Biol. 12 (1): e1001745. doi:10.1371/journal.pbio.1001745
+https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745
+
+
