@@ -253,6 +253,7 @@ The partial solution to the issue was to pipeline power through additional cores
 
 Very early in computing it was realised that translating instruction and control streams in hardware was significantly more difficult than the datastream memory. Wilkes and Stringer (1953) suggested the idea of microprogramming to the control unit of a processor. This led to Complex Instruction Set Computer (CISC), as adding instructions was relatively easy in microcode compared to hardwiring, and rapid adbances in metal–oxide–silicon (MOS) transistors fuelled competition.
 
+[EDIT]
 
 Emer and Clark at DEC in early 1980s*
 ▪ Found VAX 11/780 average clock cycles per instruction (CPI) = 10!
@@ -376,7 +377,13 @@ Mytton's suggestion is a coding standard document, that states how developers mu
 
 Essentially, the standard should ensure the code is consistent and readable, with clearly defined "paragraphs" for blocks of code with different functions. Control statements should be indented to illustrate what block they apply to. Variables and functions should be named to describe what they are and what they do, respectively. Are the blocks properly commented according to functionality? Are there examples of code, which are quicker to write but affect readability? Does it affect performance? 
 
-Another example is Wilson et al (2014) who have an excellent paper "Best Practices for Scientific Computing" which is certainly worth reading. Here is a summary of their core principles, as the subheadings:
+Another text in this genre worth mentioning is Martin's "Clean Coder: A Code of Conduct for Professional Programmers" (2011). The subtitle is important, as it is central to the story. Being professional means being responsible for one's actions, which means making sure that one's code has been tested to the nth degree, that you know what it does, and you have protections to ensure that it doesn't break anything, and if it does, own up to it. To give an example Tony Hoare, one of the great early authors on developing a formal language for the correctness of computer programs, gave an apology at QCCon in 2009 for inventing the null reference, which he described as:
+
+"... my billion-dollar mistake. It was the invention of the null reference in 1965.... My goal was to ensure that all use of references should be absolutely safe, with checking performed automatically by the compiler. But I couldn't resist the temptation to put in a null reference, simply because it was so easy to implement. This has led to innumerable errors, vulnerabilities, and system crashes, which have probably caused a billion dollars of pain and damage in the last forty years."
+
+Martin argues that a professional should tell the truth, even and especially if that upsets their managers or supervisors. Managers are in the business of managing people, their expectations, and so forth; programmers are in the business of what is true. The two may be in conflict, but the former must prevail. The manager must think of a new strategy to satisfy the customer. The programmer must determine if the request is possible and coherent. On the other hand programmers, when they say 'yes', must really mean it and they will deliver on the commitment - and if they cannot that they'll raise the limitations with the manager, early. The manager, after all, has a job to do as well. Whilst coding, professional programmers should remove all distractions, whilst preparing they should seek to collaborate, and all cases develop with unit tests in mind, modify according to acceptance tests, and mentor others. If it sounds simple enough, ask yourself if you're doing it.
+
+Finally there is Wilson et al (2014) who have an excellent paper "Best Practices for Scientific Computing". Here is a summary of their core principles, as the subheadings:
 
 ````
 Summary of Best Practices
@@ -422,8 +429,18 @@ b. Use pair programming when bringing someone new up to speed and when tackling 
 c. Use an issue tracking tool.
 ```
 
-Sometimes these principles could be in conflict. For example, item 4b explicitly says not to copy-and-paste. Yet a quotation like this is a copy-and-paste. Perhaps a reference or a URL could be provided to the authoritive source instead (indeed, it will be found in the reference section). However, there is also the principles embodied in 1a. If this section simply said "go read this paper", most people (and probably including yourself, gentle reader) would have thought to themselves, "I'll do that later" and it would have happened. We humans like to read in serial even when hyperlinks are available. With appetite whet the emphasis is made, please read the paper *now*, carefully, and take notes. Then return to this text.
+Sometimes these principles could be in conflict. For example, item 4b explicitly says not to copy-and-paste. Yet a quotation like this is a copy-and-paste. Perhaps a reference or a URL could be provided to the authoritive source instead (indeed, it will be found in the reference section). However, there is also the principles embodied in 1a. If this section simply said "go read this paper", most people (and probably including yourself, gentle reader) would have thought to themselves, "I'll do that later" and it wouldn't happen. We humans like to read in serial even when hyperlinks are available. With appetite whet the emphasis is made, please read the paper *now*, carefully, and take notes. Then return to this text.
 
+Once one has a good grasp of the conventions for coding practises then one has to develop good programming. Again, it is only possible to touch upon this in brief and refer the reader to some other excellent sources. Because logical and mathematics remains pretty consistent it is possible to recomemnd a text as old as 1970, well recognised as a classic in the subject specifically E.W.Dijkstra's "Notes on Structured Programming" (1970), the URL of the PDF in this book's references. "Notes" emphasises the need to testing, structured design, enumeration and induction, abstraction, decomposition of problems and composition of programs, conditionals and branching, comparison of programs, the use of number theory in programming, families of related programs, system and programmer performance, and arrangement of layers corresponding to abstraction. If all of this seems familiar, that's because the principles have become commonly accepted in computer science. That's why it's a classic!
+
+Taking a second bite at the cherry, Martin's "Clean Code: A Handbook of Agile Software Craftsmanship" (2009) can be read alongside "Clean Coders" (2011). The opening chapter points  
+
+
+
+
+
+Programming is hard. Parallel programming is very hard. Quantum programming is impossible.
+[EDIT]
 
 # 2.0 Sequential Programming with C and Fortran
 
@@ -3499,7 +3516,14 @@ Introduction to OpenACC, NVidia
 The Graphics Processing Unit (GPU) revolution, Ramu Anandakrishnan, Virginia Polytechnic Institute and State University
 Tutorial on GPU computing: With an introduction to CUDA, Felipe A. Cruz, University of Bristol
 
+
+Dijkstra, E. W. (1970). Notes on structured programming. (2nd ed. ed.) (EUT report. WSK, Dept. of Mathematics
+and Computing Science; Vol. 70-WSK-03), (EWD; Vol. 249). Eindhoven: Technische Hogeschool Eindhoven.
 Flynn, Michael J. (September 1972). "Some Computer Organizations and Their Effectiveness". IEEE Transactions on Computers. C-21 (9): 948–960. 
+
+Martin, Robert C., (2009) Clean Code: A Handbook of Agile Software Craftsmanship, Pearson Education (2009)
+
+Martin, Robert C. (2011): Clean Coder: A Code of Conduct for Professional Programmers, Prentice Hall
 
 Mytton, David (2004), "Why You Need Coding Standards", https://www.sitepoint.com/coding-standards/
 
