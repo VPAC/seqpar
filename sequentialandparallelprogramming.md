@@ -201,11 +201,39 @@ Multiprocessor systems can be differentiated between shared memory and distribut
 
 With distributed memory systems, each processor has its own memory. Finally, another combination is distributed shared memory, where the (physically separate) memories can be addressed as one (logically shared) address space. A variant combined method is to have shared memory within each multiprocessor node, and distributed between them.
 
+**Parallel Operations in SIMD**
+
+There is particular architecture that includes instructions explicitly intended to perform parallel operations across data that is stored in the independent subwords or fields of a register. This is known as "SIMD within a register" or SWAR. Whilst previously existing in assembly code, it was introduced as multimedia extension in 1996 for desktop systems with Intel's MMX Multimedia Instruction Set Extensions. Following MMX there were also SWAR implementations for the Digital Alpha MAX (MultimediA eXtensions), Hewlett-Packard's PA-RISC MAX (Multimedia Acceleration eXtensions), MIPS MDMX (Digital Media eXtension, which came with the charming pronounciation "Mad Max"), and the Sun SPARC V9 VIS (Visual Instruction Set). These instruction set extensions, whilst comparable, are incompatible. 
+
 **Divisions within MIMD**
 
 More recently further subdivisions within that category are considered. Specifically there are the taxons of Single Program Multiple Data streams (SPMD) and Multiple Programs Multiple Data streams (MPMD). These classifications have gained recent popularity given the widespread use of MIMD systems.
 
-In the former case (SPMD), multiple autonomous processors execute the same program on multiple data streams. This differs from SIMD approaches which a single processor executes on multiple data streams. In the latter case (MPMD) the autonomous processors operate with at least two independent programs.
+In the former case (SPMD), multiple autonomous processors execute the same program on multiple data streams. This differs from SIMD approaches which a single processor executes on multiple data streams and as a result each processor executing SPMD code may have a different control flow path through the program. 
+
+In the latter case (MPMD) the autonomous processors operate with at least two independent programs.
+
+**Other classifications**
+
+Another architecture approach was developed by Tse-yun Feng. For Feng, the degree of parallelism was important, based on on the maximum number of bits that could be processed in unit time. The degree of parallelism is how many operations can be executed simultaneously. 
+
+Multiple tests will generate an average degree of parallelism. Feng classified systems into four types according to the bit and word, sequential and parallel. This leads to the following system descriptions:
+
+*Word serial bit serial (WSBS)*:  One bit of one selected word is processed at a time.
+
+*Word serial bit parallel (WSBP)*: One word of n bit is processed at a time (aka Word Slice processing).
+
+*Word parallel bit serial (WPBS)*: One bit from all words are processed at a time (aka Bit Slice processing)
+
+*Word parallel bit parallel (WPBP)*: All bits from all words are processed at unit time. This is maximum parallelism. 
+
+A further development occured in 1977 by Wolfgang Handler which proposed a schema known as the Erlangen Classification System, based on system units and pipelining. A computer is described by the number of processor control units (K), the number of arithmetic logic units or processing elements under the control of one PCU (D), the word length of an ALU or PE (W), the number of PCUs that can be pipelined (K'), the number of ALUs that can be pipelined (D') and the number of pipelined stages on all ALUs or in a single PE. (W').
+
+Hence the parallelism is expressed using a triplet containing the six values. 
+
+ComputerType = (k [* k'], d [* d'], w [* w'])
+
+There are also connection operators to represent inhomogeneous additional units (+), operating modes (v) and macropipelining (x).
 
 ## 1.2 Processors, Cores, and Threads
 
@@ -276,7 +304,7 @@ simple ISA
 ▪ Compiled code only used a few CISC instructions anyways
 ▪ Chaitin’s register allocation scheme* benefits load-store ISAs
 
-
+[EDIT]
 
 New multicore systems are being developed all the time. Using RISC CPUs, Tilera released 64-core processors in 2007, the TILE64, and in 2011, a one hundred core processor, the Gx100. In 2012 Tilera founder, Dr. Agarwal, was leading a new MIT effort dubbed The Angstrom Project, which was purchased by EZchip superconductor in 2015. It is one of four DARPA-funded efforts aimed at building exascale supercomputers, i.e., a system capable of at least one exaFLOP, or a billion billion calculations per second. The goal is to design a chip with 1,000 cores using a mesh topology.
 
@@ -285,6 +313,16 @@ Certainly, the most exciting development in multicore technology in recent years
 Another hardware technology that has recently appeared is the Knight's Landing and the upcoming Knight's Hill Intel's Many Integrated Core microarchitecture from Intel. As implementations of the Xeon Phi, these follow the same general architecture as the x86-64 line whilst sharing some of the characteristics of GPUs, could operate as an independent CPU rather than as an add-on. Knights Landing contains up to 72 cores with four threads per core. 
 
 ## 1.5 Parallel Processing Performance
+
+**The Problem**
+
+The use of multiple processos can improve performance if, and only if, the application or the dataset are capable of being run in parallel, and in reality this means that only *part* of the application or dataset. This means that one has to identify the portions that can execute simultaneously, which may mean adding parallel extensions to existing code or starting from scratch (the former is usually a more convinient path, which is one of the many reasons why free-and-open-source software is preferred). Because there are numerous limiting factors in this process it is quite possible that for certain tasks that parallelisation can result in lower-than-hoped-for performance and, in some cases, even worse performance than a serial application. How could this be the case? The following examples provide some reasons.
+
+**Physical Limits**
+
+The physical architecture (see 1.1) can profoundly affect the parallelisation that is available. A system with a single processor is obviously going to be "very limited" in the parallelisation possible, although there is some concurrency that can occur. A system with multiple-processors and multiple cores can potentially having parallelisation, although this will very much depend on the dataset and application. Ultimately however the underlying empirical reality must be respected and given primary recognition. It is no use writing a parallel application for a non-parallel system.
+
+Least this seem obvious one needs to consider not only the architecture of the processor, but also the bandwidth (maximum amount of data that can be transmitted in a unit of time) and latency (minimum time to transmit one object) of the communications network. Latency also includes the software communication overhead. This communication world can apply within a processor or cores, with the CPU and the main memory, CPU and disk, and between different compute nodes. Parallel processing by mounting a datasets stored interstate on the compute nodes is theoretically possible, but not a very good idea (the author has only been asked this once, but it was quite memorable).
 
 **Speedup and Locks**
 
@@ -433,14 +471,18 @@ Sometimes these principles could be in conflict. For example, item 4b explicitly
 
 Once one has a good grasp of the conventions for coding practises then one has to develop good programming. Again, it is only possible to touch upon this in brief and refer the reader to some other excellent sources. Because logical and mathematics remains pretty consistent it is possible to recomemnd a text as old as 1970, well recognised as a classic in the subject specifically E.W.Dijkstra's "Notes on Structured Programming" (1970), the URL of the PDF in this book's references. "Notes" emphasises the need to testing, structured design, enumeration and induction, abstraction, decomposition of problems and composition of programs, conditionals and branching, comparison of programs, the use of number theory in programming, families of related programs, system and programmer performance, and arrangement of layers corresponding to abstraction. If all of this seems familiar, that's because the principles have become commonly accepted in computer science. That's why it's a classic!
 
-Taking a second bite at the cherry, Martin's "Clean Code: A Handbook of Agile Software Craftsmanship" (2009) can be read alongside "Clean Coders" (2011). The opening chapter points  
 
+[EDIT, Wurth]
 
+Taking a second bite at the cherry, Martin's "Clean Code: A Handbook of Agile Software Craftsmanship" (2009) can be read alongside "Clean Coders" (2011). The opening chapter points to the re-writing or maintenance costs of "owning a mess"; prevention is cheaper. After this it argues for meaningful names - in filenames, variables, functions etc. In addition to be meaningful, they should also be distinct, searchable, and use one word per concept. Martin argues "don't pun", however puns can be meaningful, insightful, and most importantly, memorable. Functions should be small, do one thing, have one level of abstraction, and have no side effects. Comments should include legal provisions, explanation of intent, clarifications, warnings, and to-do comments. The comments on formatting emphasise readability on the vertica; amd horitzontal axes, and the use of "team rules". Management of objects and data structures should be based on the realisation that objects expose data and hide data, whiile data structures expose data but have no behaviour; objects are preferred if one wants to add new data types, and new data types are prefrred if you want new behaviours. In error handling, making use of exceptions rather than return codes, and don't pass or return null. 
 
+Use of boundaries should be part of a program's structure, especially when using third-party code. Unit tests should kept clean, with one concept per test. Classes should be small, organised with encapsulation, and isolated which allows for change. Concurrency allows for a separation between what gets done and when it gets done, and properly designed can improve performance, but must be based around defensive programming to avoid the problems resulting from race conditions. Concurrency is also a the subject of lengthy appendix in the book. In addition there is discussion on refinement of existing code, and plenty of heuristic examples of the principles described. If all of this seems to be a bit fleeting, that's because it is. In two paragraphs, this is only a thousand metre view of a book that is over four hundred pages of glorious detail. Read the book.
 
+Often I have said in various training courses: *"Programming is hard. Parallel programming is very hard. Quantum programming is impossible"*. This is quite serious. Programming is a difficult task that involves an incredible attention to the logical workflow of various activities and then the processes of optimisation to improve clarity, performance etc. This is why Ken Thompson, of the creators of UNIX and C once remarked: "“One of my most productive days was throwing away 1000 lines of code." (in Raymond, E. *The Art of UNIX Programming*). 
 
-Programming is hard. Parallel programming is very hard. Quantum programming is impossible.
-[EDIT]
+Programming is not easy. Deciding to make a serial program run in parallel will make a lot more difficult, not just in identification of the the parts that can be possibly run in parallel, or the addition of new pragmas or routines, but especially in the process of debugging. Think hard about race conditions; and then think about them again.
+
+As for quantum computing, this is not just meant as a throw-away line designed to generate some mirth (although, I readily admit, the humour of the progression has contributed). Certainly quantum computing does exist which, in a sense, means that it is technically incorrect. The question that the statement poses quite seriously is whethere there will ever be a useful quantum computer. Unlike a standard bit which has a "1" or "0" state ("high" and "low"), a quantum computer represents the equivalent, the qubit, as a continuum for both states and both simultaneously. Certainly, that's a challenging idea, but so is quantum mechanics. The problem is that the sheer size of a *useful* quantum computer which can express not just the variables but the logical flow must be improbably large. I might be wrong about this, but I'm sticking to the statement for the time being: *Quantum computing is impossible*.
 
 # 2.0 Sequential Programming with C and Fortran
 
