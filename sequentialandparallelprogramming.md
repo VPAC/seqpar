@@ -471,6 +471,7 @@ Sometimes these principles could be in conflict. For example, item 4b explicitly
 
 Once one has a good grasp of the conventions for coding practises then one has to develop good programming. Again, it is only possible to touch upon this in brief and refer the reader to some other excellent sources. Because logical and mathematics remains pretty consistent it is possible to recomemnd a text as old as 1970, well recognised as a classic in the subject specifically E.W.Dijkstra's "Notes on Structured Programming" (1970), the URL of the PDF in this book's references. "Notes" emphasises the need to testing, structured design, enumeration and induction, abstraction, decomposition of problems and composition of programs, conditionals and branching, comparison of programs, the use of number theory in programming, families of related programs, system and programmer performance, and arrangement of layers corresponding to abstraction. If all of this seems familiar, that's because the principles have become commonly accepted in computer science. That's why it's a classic!
 
+Another example of a classic is "The Elements of Programming Style" (Kernighan, Plauger, 1978). The name is deliberatly designed to invoke a reference to the more famous "The Elements of Style" by Strunk and White for writers, and makes the observation that sometimes the rules are broken by the best programmers, but when they do there is a greater benefit in breaking the rule rather than keeping it. In most cases however, keeping the style rule is preferred. What are their style rules? Clarity in coding is better than cleverness. Code re-use through libraries and common functions is essential. Avoid too many temporary variables. Select unique and meaningful variable names and ensure variables are initialised before use. Break down big problems into smaller pieces, structure code with procedures and functions that do one thing well, and avoid goto statements. Re-writing bad code is preferential to patching. Use recursive procedures for recursively-defined data structures; it doesn't save time or storage, it is for clarity. Test for plausibility and validity and check the validity of inputs in the code, using EOF markers. Make use of debugging compilers, check boundary conditions, look out for off-by-one errors, and don't confuse integers and reals. Perfomance is secondary to functional. Comments should be judicious, should agree with the code, and the code should be formatted for readability.  
 
 [EDIT, Wurth]
 
@@ -3563,7 +3564,10 @@ Dijkstra, E. W. (1970). Notes on structured programming. (2nd ed. ed.) (EUT repo
 and Computing Science; Vol. 70-WSK-03), (EWD; Vol. 249). Eindhoven: Technische Hogeschool Eindhoven.
 Flynn, Michael J. (September 1972). "Some Computer Organizations and Their Effectiveness". IEEE Transactions on Computers. C-21 (9): 948–960. 
 
-Martin, Robert C., (2009) Clean Code: A Handbook of Agile Software Craftsmanship, Pearson Education (2009)
+
+Kernighan, B., Plauger, P.J., (1978), "The Elements of Programming Style" (2nd edition), McGraw-Hill FP 1976
+
+Martin, Robert C., (2009) Clean Code: A Handbook of Agile Software Craftsmanship, Pearson Education
 
 Martin, Robert C. (2011): Clean Coder: A Code of Conduct for Professional Programmers, Prentice Hall
 
