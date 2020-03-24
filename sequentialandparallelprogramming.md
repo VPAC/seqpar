@@ -1,4 +1,4 @@
-#Sequential and Parallel Programming with C and Fortran
+# Sequential and Parallel Programming with C and Fortran
 
 <img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/hpccover.png" />
 
