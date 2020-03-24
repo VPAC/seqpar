@@ -158,7 +158,7 @@ From this complex is four basic possibilities:
 * Multiple Instruction Streams, Multiple Data Streams (MIMD)   
 (Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007 [EDIT])
 
-As computing technology has moved increasingly to te MIMD taxonomic classification additional categories have been added:
+As computing technology has moved increasingly to the MIMD taxonomic classification additional categories have been added:
 
 * Single program, multiple data streams (SPMD)
 * Multiple program, multiple data streams (MPMD)
