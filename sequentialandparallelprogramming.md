@@ -141,7 +141,6 @@ This book is part of a series designed to assist researchers, systems administra
 
 Lev Lafayette, Victorian Partnership for Advanced Computing, Melbourne, 2015
 
-
 # 1.0 Current Trends in Computer Systems
 
 ## 1.1 Computer System Architectures 
@@ -154,13 +153,19 @@ From this complex is four basic possibilities:
 
 * Single Instruction Stream, Single Data Stream (SISD)   
 
-
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/sisd.png" />
 
 * Single Instruction Stream, Multiple Data Streams (SIMD)    
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/simd.png" />
+
 * Multiple Instruction Streams, Single Data Stream (MISD)   
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/misd.png" />
+
 * Multiple Instruction Streams, Multiple Data Streams (MIMD)   
 
-
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/mimd.png" />
 
 As computing technology has moved increasingly to the MIMD taxonomic classification additional categories have been added:
 
@@ -169,7 +174,7 @@ As computing technology has moved increasingly to the MIMD taxonomic classificat
 
 **Single Instruction Stream, Single Data Streams (SISD)**
 
-This is the simplest and, up until the end of the 20th century, the most common processor architecture on desktop computer systems. Also known as a uniprocessor system it offers a single instruction stream and a single data stream. Whilst uniprocessor systems were not able to run programs in parallel (i.e., multiple tasks simultaneously), they were able or include concurrency (i.e., multiple logical tasks) through a number of different methods:
+This is the simplest and, up until the end of the 20th century, the most common processor architecture on desktop computer systems, and if often referred to as a traditional von Neumman architecture. Also known as a uniprocessor system it offers a single instruction stream and a single data stream. Whilst uniprocessor systems were not able to run programs in parallel (i.e., multiple tasks simultaneously), they were able or include concurrency (i.e., multiple logical tasks) through a number of different methods:
 
 a) It is possible for a uniprocessor system to run processes concurrently by switching between one and another.
 
@@ -283,34 +288,12 @@ The partial solution to the issue was to pipeline power through additional cores
 
 ## 1.4 Hardware Advances
 
-Very early in computing it was realised that translating instruction and control streams in hardware was significantly more difficult than the datastream memory. Wilkes and Stringer (1953) suggested the idea of microprogramming to the control unit of a processor. This led to Complex Instruction Set Computer (CISC), as adding instructions was relatively easy in microcode compared to hardwiring, and rapid adbances in metal–oxide–silicon (MOS) transistors fuelled competition.
+Very early in computing it was realised that translating instruction and control streams in hardware was significantly more difficult than the datastream memory. Even in the early days of processor designs there was a software and hardware division between the datapath, where numbers were stored and arithmetic was carried out, and control, which sequenced the operations on the datapath. Following von Neumann's (1947) separation of arithmetic logic and control in architecture, Wilkes developed the concept of microprogramming from the realisation that the central processing unit of a computer could be controlled by a miniature, highly specialised computer programs in high-speed ROM. This led to Complex Instruction Set Computer (CISC), as adding instructions was relatively easy in microcode compared to hardwiring, and rapid advances in metal–oxide–silicon (MOS) transistors fuelled competition. 
 
+Microcode progress was particularly rapid in the 1970s, following the advances in MOS transistors and occured in parallel to the developments in minicomputers and mainframe instruction set architecture, which led to a highly competitive environment in processors and assembly language programming. A very significant contribution was the the Intel 4004, the first single-chip microprocessor, released in 1971. Early microprocessor integrated circuits contained only the processor development led to chips containing more of internal electronic parts of a computer, including the CPU, ROM, on-chip RAM, and I/O. The VAX line of computers developed by Digital Equipment Corporation (DEC) especially with processors like the MicroVAX II's 78032 which was the first microprocessor with an on-board memory management unit. It was the microprocessor that allowed for the development of microcomputers, which were affordable to small business and individuals, ushering 
+in a personal computer revolution in the 1980s and 1990s.
 
-
-[EDIT]
-
-Emer and Clark at DEC in early 1980s*
-▪ Found VAX 11/780 average clock cycles per instruction (CPI) = 10!
-John Cocke
-▪ Found 20% of VAX ISA ⇒ 60% of microcode, but only 0.2% of execution time!
-▪
-Patterson after ‘79 DEC sabbatical: repair microcode bugs in microprocessors?**
-▪ What’s magic about ISA interpreter in Writable Control Store? Why not other programs?
-* "A Characterization of Processor Performance in the VAX-11/780," J. Emer and D.Clark, ISCA, 1984.
-
-Use
-RAM for instruction cache of user-visible instructions
-▪ Software concept: Compiler vs. Interpreter
-▪ Contents of fast instruction memory change to what application needs now
-vs. ISA interpreter
-▪ Use
-simple ISA
-▪ Instructions as simple as microinstructions, but not as wide
-▪ Enable pipelined implementations
-▪ Compiled code only used a few CISC instructions anyways
-▪ Chaitin’s register allocation scheme* benefits load-store ISAs
-
-[EDIT]
+In the first decade of the 21st century multi-core CPUs became commercially available, spurred by research into multi-core processors and parallel computing. In 2009 Intel released the Single-Chip Cloud Computing processor as an example, with 48 distinct P54C Pentium physical cores connected with a 4×6 2D-mesh on a single chip that communicated through architecture similar to that of a cloud computer data center, hence the name. Another significant contribution was the development of affordable Content-Addressable Memory; this was a form of memory that acts as an associative array, comparing the input search data against a table, and returning the address of the matching data. This helped significantly in the performance of networking devices.
 
 New multicore systems are being developed all the time. Using RISC CPUs, Tilera released 64-core processors in 2007, the TILE64, and in 2011, a one hundred core processor, the Gx100. In 2012 Tilera founder, Dr. Agarwal, was leading a new MIT effort dubbed The Angstrom Project, which was purchased by EZchip superconductor in 2015. It is one of four DARPA-funded efforts aimed at building exascale supercomputers, i.e., a system capable of at least one exaFLOP, or a billion billion calculations per second. The goal is to design a chip with 1,000 cores using a mesh topology.
 
@@ -350,9 +333,15 @@ A similar example is a livelock; the states of the processes involved in the liv
 
 Locks are currrently manually inserted in typically programming languages; without locks programs can be put in an inconsistent state. They are usually included as a way of guarding critical sections. Multiple locks in different places and orders can lead to deadlocks. Manual lock inserts is error-prone, tedious and difficult to maintain. Does the programmer know what parts of a program will benefit from parallelisation? To ensure that parallel execution is safe, a task’s effects must not interfere with the execution of another task. 
 
-**Optimisation: Do We Really Want It?"**
+**Optimisation: Do We Really Want It?**
 
-[EDIT]
+Knuth once famously wrote, "The real problem is that programmers have spent far too much time worrying about efficiency in the wrong places and at the wrong times; premature optimization is the root of all evil (or at least most of it) in programming." (Knuth, 1974) The words need to be considered in their totality. Knuth is not suggesting that we do not want to optimise our programs, but rather that efficiency gains should be sought at an appropriate time and place. The preceding text has illustrated the significant problems that can arise in attempts to make a program "go faster" when clarity would have been more important. Develop a clear program first and then seek to improve the efficiency of the code.
+
+With a working program in place, consideration should be given to whether optimisation will add anything to the program, and a great deal of that comes down whether the optimisation is even necessary. A short script that is only going to be used a few times does not justify hours of additional programmer effort. One that is used many times a day with hefty data flows does. A very handy table was provided by Randall Munroe to illustrate the difference.
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/is_it_worth_the_time.png" />
+
+When optimising a program, whether with serial or parallel improvements it is generally much better to think in a top-down structure. Rather than debating with one's self whether an particular datatype is the best choice for efficiency, choose the safest first. Then look for big potential gains in optimisation; data flow structure, both within and oustide the program is a good one. As is the overall architecture (which will certainly affect data flow). Drilling down, looking at which datastructures provide the better performance or reduce overhead, ans specific algorithm choices. Finally, at the very end profiling specific parts of the code to identify potential areas of gain.
 
 **Amdahl's Law and the Gustafson-Barsis Law**
 
@@ -485,7 +474,7 @@ Once one has a good grasp of the conventions for coding practises then one has t
 
 Another example of a classic is "The Elements of Programming Style" (Kernighan, Plauger, 1978). The name is deliberatly designed to invoke a reference to the more famous "The Elements of Style" by Strunk and White for writers, and makes the observation that sometimes the rules are broken by the best programmers, but when they do there is a greater benefit in breaking the rule rather than keeping it. In most cases however, keeping the style rule is preferred. What are their style rules? Clarity in coding is better than cleverness. Code re-use through libraries and common functions is essential. Avoid too many temporary variables. Select unique and meaningful variable names and ensure variables are initialised before use. Break down big problems into smaller pieces, structure code with procedures and functions that do one thing well, and avoid goto statements. Re-writing bad code is preferential to patching. Use recursive procedures for recursively-defined data structures; it doesn't save time or storage, it is for clarity. Test for plausibility and validity and check the validity of inputs in the code, using EOF markers. Make use of debugging compilers, check boundary conditions, look out for off-by-one errors, and don't confuse integers and reals. Perfomance is secondary to functional. Comments should be judicious, should agree with the code, and the code should be formatted for readability.  
 
-[EDIT, Wurth]
+There is also Niklas Wurth's "Algorithms and Data Structures" (Wurth, 1985), which does as it says on tin, outling the particular advantages and disadvantages of each in each context, and understandably makes extensive use of the Pascal and Modula-2 programming languages, depending on edition. Despite the order of the title, Wurth is insisten that data preceeds algorithms. Thus one initially finds a comparison between standard primitive types (real, boolean, char, set), the structure and representation of arrays and records, files, searching through linear approaches, binary approaches, and tables, sorting arrays and sequences, recursion, dynamic information such as recursive data types, and pointers, and hashing functions. Wurth argued that "many programmming errors can be prevented by making programmers aware of the methods and techniques which they hitherto applied intuitively and often unconsciously", and by implication, many errors are made when they are not consciously aware of the methods and techniques. 
 
 Taking a second bite at the cherry, Martin's "Clean Code: A Handbook of Agile Software Craftsmanship" (2009) can be read alongside "Clean Coders" (2011). The opening chapter points to the re-writing or maintenance costs of "owning a mess"; prevention is cheaper. After this it argues for meaningful names - in filenames, variables, functions etc. In addition to be meaningful, they should also be distinct, searchable, and use one word per concept. Martin argues "don't pun", however puns can be meaningful, insightful, and most importantly, memorable. Functions should be small, do one thing, have one level of abstraction, and have no side effects. Comments should include legal provisions, explanation of intent, clarifications, warnings, and to-do comments. The comments on formatting emphasise readability on the vertica; amd horitzontal axes, and the use of "team rules". Management of objects and data structures should be based on the realisation that objects expose data and hide data, whiile data structures expose data but have no behaviour; objects are preferred if one wants to add new data types, and new data types are prefrred if you want new behaviours. In error handling, making use of exceptions rather than return codes, and don't pass or return null. 
 
@@ -3571,13 +3560,14 @@ Introduction to OpenACC, NVidia
 The Graphics Processing Unit (GPU) revolution, Ramu Anandakrishnan, Virginia Polytechnic Institute and State University
 Tutorial on GPU computing: With an introduction to CUDA, Felipe A. Cruz, University of Bristol
 
-
 Dijkstra, E. W. (1970). Notes on structured programming. (2nd ed. ed.) (EUT report. WSK, Dept. of Mathematics
 and Computing Science; Vol. 70-WSK-03), (EWD; Vol. 249). Eindhoven: Technische Hogeschool Eindhoven.
+
 Flynn, Michael J. (September 1972). "Some Computer Organizations and Their Effectiveness". IEEE Transactions on Computers. C-21 (9): 948–960. 
 
-
 Kernighan, B., Plauger, P.J., (1978), "The Elements of Programming Style" (2nd edition), McGraw-Hill FP 1976
+
+Knuth, D., "Structured Programming with Goto Statements". Computing Surveys 6:4 (December 1974), pp. 261–301
 
 Martin, Robert C., (2009) Clean Code: A Handbook of Agile Software Craftsmanship, Pearson Education
 
@@ -3585,7 +3575,7 @@ Martin, Robert C. (2011): Clean Coder: A Code of Conduct for Professional Progra
 
 Mytton, David (2004), "Why You Need Coding Standards", https://www.sitepoint.com/coding-standards/
 
-M. Wilkes, and J. Stringer (1953), "Micro-programming and the design of the control circuits in an electronic digital computer, . Mathematical Proc. of the Cambridge Philosophical Society, Vol. 49
+Wilkes, W., Stringer, J. (1953), "Micro-programming and the design of the control circuits in an electronic digital computer" Mathematical Proc. of the Cambridge Philosophical Society, Vol. 49, 1953.
 
 Wilson G, Aruliah DA, Brown CT, Chue Hong NP, Davis M, Guy RT, et al. (2014). "Best Practices for Scientific Computing". PLoS Biol. 12 (1): e1001745. doi:10.1371/journal.pbio.1001745
 https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745
