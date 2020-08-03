@@ -31,7 +31,7 @@ All trademarks are property of their respective owners.
 1.2 Processors, Cores, and Threads
 1.3 Multithreaded Applications
 1.4 Hardware Advanced
-1.5 Parallel Processing Performance
+1.5 Parallel Processing Performance and Optimisation
 1.6 Programming Practises
 
 2.0 Sequential Programming with C and Fortran
@@ -153,10 +153,14 @@ It is possible to illustrate the degree and development of parallelisation by us
 From this complex is four basic possibilities:
 
 * Single Instruction Stream, Single Data Stream (SISD)   
+
+
+
 * Single Instruction Stream, Multiple Data Streams (SIMD)    
 * Multiple Instruction Streams, Single Data Stream (MISD)   
 * Multiple Instruction Streams, Multiple Data Streams (MIMD)   
-(Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007 [EDIT])
+
+
 
 As computing technology has moved increasingly to the MIMD taxonomic classification additional categories have been added:
 
@@ -281,6 +285,8 @@ The partial solution to the issue was to pipeline power through additional cores
 
 Very early in computing it was realised that translating instruction and control streams in hardware was significantly more difficult than the datastream memory. Wilkes and Stringer (1953) suggested the idea of microprogramming to the control unit of a processor. This led to Complex Instruction Set Computer (CISC), as adding instructions was relatively easy in microcode compared to hardwiring, and rapid adbances in metal–oxide–silicon (MOS) transistors fuelled competition.
 
+
+
 [EDIT]
 
 Emer and Clark at DEC in early 1980s*
@@ -312,7 +318,7 @@ Certainly, the most exciting development in multicore technology in recent years
 
 Another hardware technology that has recently appeared is the Knight's Landing and the upcoming Knight's Hill Intel's Many Integrated Core microarchitecture from Intel. As implementations of the Xeon Phi, these follow the same general architecture as the x86-64 line whilst sharing some of the characteristics of GPUs, could operate as an independent CPU rather than as an add-on. Knights Landing contains up to 72 cores with four threads per core. 
 
-## 1.5 Parallel Processing Performance
+## 1.5 Parallel Processing Performance and Optimisation
 
 **The Problem**
 
@@ -336,11 +342,17 @@ Linear, or ideal, speedup is when S(p) = p. For example, double the processors r
 
 However parallel programming is hard . More complexity = more bugs. Correctness in parallelisation usually requires synchronisation, of locking is one common implementation. Synchronisation and atomic operations causes loss of performance, communication latency as they effectively make a portion of the program serial.  A probable issue in parallel computing is deadlocks, where two or more competing actions are each waiting for the other to finish, and thus neither ever does. An apocraphyl story of a Kansas railroad statue radically illustrates the problem of a deadlock:
 
+<blockquote>
 "When two trains approach each other at a crossing, both shall come to a full stop and neither shall start up again until the other has gone."
+</blockquote>
 
 A similar example is a livelock; the states of the processes involved in the livelock constantly change with regard to one another, none progressing. A real-world analogy would be two polite people trying to pass each other in a narrow corridor; on noticing that an impending resource conflict will occur (collision sense carrier detect, if you like), they both simultaneously move out of the way – and then back again with new collision potential. Both use up resources, are active, but progress no futher.
 
 Locks are currrently manually inserted in typically programming languages; without locks programs can be put in an inconsistent state. They are usually included as a way of guarding critical sections. Multiple locks in different places and orders can lead to deadlocks. Manual lock inserts is error-prone, tedious and difficult to maintain. Does the programmer know what parts of a program will benefit from parallelisation? To ensure that parallel execution is safe, a task’s effects must not interfere with the execution of another task. 
+
+**Optimisation: Do We Really Want It?"**
+
+[EDIT]
 
 **Amdahl's Law and the Gustafson-Barsis Law**
 
