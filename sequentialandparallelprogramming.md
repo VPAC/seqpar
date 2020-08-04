@@ -89,7 +89,7 @@ Universities were less conservative about parallel programming. After the ILLIAC
 
 Smaller companies became infected with the vision of the academics regarding parallel processing. They included FPS, Denelcor, Alliant, Thinking Machines, and nCUBE.  My own experiences at FPS and nCUBE led to a formulation of the counter-argument to Amdahl’s law that bears my name, but is really nothing more than the common-sense observation that problem sizes increase to match the computing power available, so the serial bottleneck actually shrinks instead of staying constant. That simple observation countered, at last, those who had been using Amdahl’s law to defend as scientific what really was an emotion-driven trepidation regarding parallel programming. In a very short time, IBM, Digital Equipment, Cray, and other giants in the computing industry announced plans for parallel computing products as contrasted with research projects. It was no longer the province of risky startup ventures; by 1990, parallel computing had become mainstream.
 
-We are now in the “late adopters” stage of the technology adoption cycle laid out by Geoffrey A. Moore in his classic, Crossing the Chasm. The dust has settled on the field of parallel programming to the point that we now have community standards for parallel programming environments. Many independent software vendors ship software designed for massively parallel computer clusters in data centers. Universities routinely teach parallel programming as part of an undergraduate computer science curriculum. In a way, the war is over, and parallel programming won. But now comes Reconstruction, and that stage of the war is going very slowly. That is why this book is timely.
+We are now in the "late adopters" stage of the technology adoption cycle laid out by Geoffrey A. Moore in his classic, Crossing the Chasm. The dust has settled on the field of parallel programming to the point that we now have community standards for parallel programming environments. Many independent software vendors ship software designed for massively parallel computer clusters in data centers. Universities routinely teach parallel programming as part of an undergraduate computer science curriculum. In a way, the war is over, and parallel programming won. But now comes Reconstruction, and that stage of the war is going very slowly. That is why this book is timely.
 
 A technology director for the National Security Agency informed me that only about five percent of their army of programmers knows how to program in parallel. One reason that agency went after the Unified Parallel C model was that it seemed to raise, rather easily, the fraction of parallel-literate programmers to fifteen percent. A little effort went a long way, tripling their human resources for truly high-performance computing tasks.
 
@@ -184,9 +184,9 @@ c) Instruction prefetch, where an instruction is requested from main memory befo
 
 d) Pipelines, on the instruction level or the graphics level, can also serve as an example of concurrent activity. An instruction pipeline (e.g., RISC) allows multiple instructions on the same circuitry by dividing the task into stages. A graphics pipeline implements different stages of rendering operations to different arithmetic units.
 
-Image: https://en.wikipedia.org/wiki/File:SISD.svg
-
 **Single Instruction Stream, Multiple Data Streams (SIMD)**
+
+(Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007)
 
 SIMD architecture represents a situation where a single processor performs the same instruction on multiple data streams and are described as a type of "data level parallelism". This commonly occurs in contemporary multimedia processors, for example MMX instruction set from the 1990s, which lead to Motorolla's PowerPC Altivec, and more contemporary times AVE (Advanced Vector Extensions) instruction set used in Intel Sandy Bridge processors and AMD's Bulldozer processor. These developments have primarily been orientated towards real-time graphics, using short-vectors. Contemporary supercomputers are invariably MIMD clusters which can implement short-vector SIMD instructions. IBM is still continuing with a general SIMD architecture through their Power Architecture.
 
@@ -523,6 +523,7 @@ In Fortran
 		print *, "Hello world!"   
 	end program hello   
 ```
+
 In C
 
 ```
@@ -541,13 +542,10 @@ Both can be compiled respectively as follows, with the source file (.c or .f) cr
 
 Which can be run by invoked ./hellof or ./helloc as appropriate from the executable directory.
 
-The basic compilation command runs the against a text files with the correct suffix (i.e., .c, .f90). In this situation the source files are assembled but not linked. Assuming that compilation is successful however, the compiled version is left in a file called a.out 
+The basic compilation command runs the against a text files with the correct suffix (i.e., .c, .f90). In this situation the source files are assembled but not linked. Assuming that compilation is successful however, the compiled version is left in a file called a.out However it usually far more convenient to use a -o and filename in the compilation to specify an output executable binary. The compiler translates source to assembly code, and the assembler creates object code (represented with the .o suffix). The link editor then combines and references library functions in other source files, creating an executable.
 
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/compilation.png" />
 (image from David Marshall, Professor of Computer Vision, University of Cardiff, used with permission.)
-
-However it usually far more convenient to use a -o and filename in the compilation to specify an output executable binary. 
-
-The compiler translates source to assembly code, and the assembler creates object code (represented with the .o suffix). The link editor then combines and references library functions in other source files, creating an executable.
 
 The two examples that follow illustrate the basic structure in Fortran and C languages. The use of the 'implicit none' in the Fortran example forces the programmer to declare all variables, which is certainly a good practice and should be regarded as compulsory. (The requirement dates back to historic versions of FORTRAN where variable names starting with i, j, k, l, m, or n, were integers and others were reals). The #include <stdio.h> is a preprocessor directive and tells the C compiler to find the standard input-output header called and include it to this program. This is followed by the main function which takes no parameters (and protects itself with the `void` type), with the printf function within it, a statement which is terminated by a semicolon. The return 0 in the C main function indicates to the operating system that the program has completed successfully. 
 
@@ -584,11 +582,29 @@ Arguments to subprograms are called by value or reference in C and Fortran. In F
 	} 
 ```
 
+**Configure, Make & Make Install**
+
+With a large program that has many source and header files, in all likelihood these files depend on each other in complex ways. When one file is changed all dependent files need to be recompiled as well. This can become tedious and error-prone. A solution for this problem was the development of autoconf which is commonly used to configure scripts for building, installing and packaging software systems where a Bourne shell, or derivative, is available. There are typically three main components to the autoconf process from the user's perspective (software developers have a lot more to worry about!)
+
+The configure script runs a series of tests on the system and generates a makefile from templates. The make script follows construction commands following the dependency line. Each line is a simple target, prerequisite list, and construction commands. When looking at a makefile work from the bottom up to determine header files, then the source files, then the object files an finally the executable. Often one of those construction commands is make install, which, as the name indicates, installs the executable.
+
+For simpler programs, the make file is likewise simpler. As an example, from the helloworld C program compiled earlier (the Fortran version should be obvious), all that would be needed would be a script like the following:
+
+```
+all: helloworld 
+
+helloworld: mpi-helloworld.c 
+        gcc hello.c -o helloc
+
+clean: 
+        rm -f helloworld *.o 
+```
+
 ## 2.3 Variables and Constants
 
 A strength of a programming language is its capacity to employ symbolic identifiers which references storage locations that holds a value; the compiler will replace the symbolic identifier with the actual location of the data. These values can be variable or constant and have a data type. The typical datatypes used in programming languages, including C and Fortran, include integers, floating-point numbers, logicals, characters and strings, with certain elaborations which will be explained soon.
 
-The basic principle is that variables have a great deal of flexibility, whereas constants can provide form of self-documenting code, and provide checks that constancy assumptions are not violated. They also provide a means by which literals (e.g., a number or string) can be easily referred to and updated if necessary. In both cases of these value assignments, the symbolic identifier should be both meaningful and unique, avoiding confusion between other identifiers in the code. Longer and more explicit names are preferable to shorter obscure identifiers which can be ambiguous even within the same area of inquiry e.g., does an identifier named APC 'activated protein C', 'adenomatous polyposis coli', or 'argon plasma coagulation'? (From: "Abbreviation and Acronym Disambiguation in Clinical Discourse", AMIA Annual Symposium Proceedings. 2005; 2005: 5899-593). One method to assist in this is to stringently avoid having too many temporary value identifiers, typically applied to variables. 
+The basic principle is that variables have a great deal of flexibility, whereas constants can provide form of self-documenting code, and provide checks that constancy assumptions are not violated. They also provide a means by which literals (e.g., a number or string) can be easily referred to and updated if necessary. In both cases of these value assignments, the symbolic identifier should be both meaningful and unique, avoiding confusion between other identifiers in the code. Longer and more explicit names are preferable to shorter obscure identifiers which can be ambiguous even within the same area of inquiry e.g., does an identifier named APC 'activated protein C', 'adenomatous polyposis coli', or 'argon plasma coagulation'? (Examples from "Abbreviation and Acronym Disambiguation in Clinical Discourse", AMIA Annual Symposium Proceedings. 2005; 2005: 5899-593). One method to assist in this is to stringently avoid having too many temporary value identifiers, typically applied to variables. 
 
 As with any programming languages there a limits to what characters can be used as symbolic identifiers. In general it is easier for all concerned to use only the alphanumeric range and underscores, and to start identifiers with letters. In C, identifiers are case sensitive (e.g., `example` and `EXAMPLE` are different), whereas in Fortran they are case insensitive (e.g., `example` and `EXAMPLE` are the same), except for string literals. The use of reserved words, which have a special meaning the context of the language in question, is forbidden; Fortran has around seventy of these and C about half that number.
 
@@ -598,6 +614,7 @@ In all cases the value should be assigned prior to use, i.e., scope should not b
 
 The previous 'Hello World' program can thus be expressed in Fortran and C with symbolic identifier values as follows: 
 
+The Fortran version:
 ```
 	program hello2 
 		implicit none 
@@ -605,7 +622,10 @@ The previous 'Hello World' program can thus be expressed in Fortran and C with s
 		greetings = "Hello World!" 
 		print *, greetings 
 	end program hello2 
+```
 
+The C version:
+```
 	#include <stdio.h> 
 	int main(void) 
 	{ 
@@ -617,13 +637,17 @@ The previous 'Hello World' program can thus be expressed in Fortran and C with s
 
 Or, as an alternative using named constants.
 
+The Fortran vesion:
 ```
 	program hello3 
 		implicit none 
 		character(len=16), parameter :: greetings = "Hello World!" 
 		print *, greetings 
 	end program hello3
+```
 
+The C version:
+```
 	#include <stdio.h> 
 	int main(void) 
 	{ 
@@ -633,20 +657,14 @@ Or, as an alternative using named constants.
 	}
 ```
 
-As the previous example – one last time - both can be compiled, with the source file (.c or .f) creating an executable binary:
+As the previous example – one last time - both can be compiled, with the source file (.c or .f) creating an executable binary and the resulting executable can be run by invoking `./hellof2` or `./helloc2` as appropriate from the executable directory.
 
 `gfortran hello2.f90 -o hellof2`
-`gcc hello2.c -o helloc2```
+`gcc hello2.c -o helloc2`
 
 `gfortran hello3.f90 -o hellof3`
 `gcc hello3.c -o helloc3`
 
-The resulting executable can be run by invoking `./hellof2` or `./helloc2` as appropriate from the executable directory.
-
-A pointer is a special type of variable. Whereas other variables are assigned to a data type, a pointer is assigned to the memory address of another variable. In Fortran, a pointer also contains other information about a variable, including type, rank, and extents, as well as the memory location. Like any other variable, a pointer has to be declared. Strictly speaking, the data type of the value of all pointers, whether integer, float, character, or otherwise, is the same, a long hexadecimal number that represents a memory address. It is good practice to assign a NULL value to a pointer variable if the address is not initially known. The general format in C and Fortran is as follows:
-
-`type *variable_name;`
-`integer, pointer :: p1`
 
 ## 2.4 Data Types and Operations
 
@@ -743,6 +761,7 @@ int main (void)
 
 Programming languages like C and Fortran can provide operations on variables and constants with results depending on the data type. The common operations to both languages which are discussed here are arithmetic, logical, and relational. C also has some assignment operations which will be described here in context, along with bitwise operations (logical expressions applied on the bit-by-bit level), and ternary operations, pointer assignments, and others, which will be mentioned only in passing. The following tables illustrate the different operations allowed in the two languages. Note that in Fortran there is two types of relational operations. If an expression appears to be overly complex, consider using propositional logic for transformation rules to make the statements clearer.
 
+
 ### Arithmetic Operators
 
 C Operator Fortran Operator Description
@@ -778,6 +797,22 @@ C Operator Fortran Operator  Description
 .eqv.  If an first and second operands are of equivalent values, the condition is true.
 .neqv. If an first and second operands are not of equivalent values, the condition is true.
 
+**Pointers**
+
+A pointer is a special type of variable. Whereas other variables are assigned to a data type, a pointer is assigned to the memory address of another variable. In Fortran, a pointer also contains other information about a variable, including type, rank, and extents, as well as the memory location. Like any other variable, a pointer has to be declared. Strictly speaking, the data type of the value of all pointers, whether integer, float, character, or otherwise, is the same, a long hexadecimal number that represents a memory address. It is good practice to assign a NULL value to a pointer variable if the address is not initially known. The general format in C and Fortran is as follows:
+
+`type *variable_name;`
+`integer, pointer :: p1`
+
+In Fortran a pointer can point to either an area of dynamically allocated memory or data object of the same datatype as the pointer, with the target object. The allocate statement allocates space for a pointer object. Good practise says that one should empty the storage space with the deallocate statement when finished. In contrast, a target is another normal variable and with space set aside for it. The target variable must be declared with the target attribute. A pointer variable is associate with a target with the association operator (=>).
+
+Pointers in Fortran can be (a) undefined, (b) associated, or (c) disassciated. The nullify statement disassociates a pointer from a target, but does not empty the target as there could be more than one pointer to the same target; emptying the pointer will also dissociated the the pointer from the target.
+
+[EDIT: Pointers in C]
+
+After all this it must be mentioned that, in general, pointers probably should be avoided for many programs. They do provide better performance and can be used for enhanced functionality, this is true, however in most cases normal variables can provide better clarity. As an example of functionality in C there is no for complex datatypes such as a string, thus one has use pointers to variables of type char. Pointers allow one to refer to the same space in memory from multiple locations, which means that the memory can be updated in one location and the change will be seen by all other locations. 
+
+
 ## 2.5 Loops and Branches
 
 A statement or block of statements may be executed several times as a loop in both C and Fortran. The general rule is that a loop tests against a condition and, if the condition is true, executes a code block. If it is not true, it programs continues to the next statement. There are however some variations on this.
@@ -791,7 +826,6 @@ for ( countera = 1; countera < 11; countera = countera + 1 )
 	{
 	printf("%s\n", greetings); 
    	}
-
 ```
 
 ```
