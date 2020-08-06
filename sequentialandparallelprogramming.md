@@ -604,13 +604,31 @@ clean:
 
 A strength of a programming language is its capacity to employ symbolic identifiers which references storage locations that holds a value; the compiler will replace the symbolic identifier with the actual location of the data. These values can be variable or constant and have a data type. The typical datatypes used in programming languages, including C and Fortran, include integers, floating-point numbers, logicals, characters and strings, with certain elaborations which will be explained soon.
 
-The basic principle is that variables have a great deal of flexibility, whereas constants can provide form of self-documenting code, and provide checks that constancy assumptions are not violated. They also provide a means by which literals (e.g., a number or string) can be easily referred to and updated if necessary. In both cases of these value assignments, the symbolic identifier should be both meaningful and unique, avoiding confusion between other identifiers in the code. Longer and more explicit names are preferable to shorter obscure identifiers which can be ambiguous even within the same area of inquiry e.g., does an identifier named APC 'activated protein C', 'adenomatous polyposis coli', or 'argon plasma coagulation'? (Examples from "Abbreviation and Acronym Disambiguation in Clinical Discourse", AMIA Annual Symposium Proceedings. 2005; 2005: 5899-593). One method to assist in this is to stringently avoid having too many temporary value identifiers, typically applied to variables. 
+The basic principle is that variables have a great deal of flexibility, whereas constants can provide form of self-documenting code, and provide checks that constancy assumptions are not violated. They also provide a means by which literals (e.g., a number or string) can be easily referred to and updated if necessary. In both cases of these value assignments, the symbolic identifier should be both meaningful and unique, avoiding confusion between other identifiers in the code. Earlier version of Fortran (up to Fortran77) were not very friendly in this regard and, unfortunately, bad habits continue even through this comptemporary time. Very old FORTRAN (FORTRAN IV, aka FORTRAN66) used what was called the I-N rule; undeclared variables were assumed by the compiler to be typed REAL, unless they started with I-N in which case they were assumed to be INtegers. In Fortran77 variable names were limited to six characters from alphanumerics, with the first character a letter. It did not distinguish between upper and lower case; and assumed the former.
 
-As with any programming languages there a limits to what characters can be used as symbolic identifiers. In general it is easier for all concerned to use only the alphanumeric range and underscores, and to start identifiers with letters. In C, identifiers are case sensitive (e.g., `example` and `EXAMPLE` are different), whereas in Fortran they are case insensitive (e.g., `example` and `EXAMPLE` are the same), except for string literals. The use of reserved words, which have a special meaning the context of the language in question, is forbidden; Fortran has around seventy of these and C about half that number.
+In more contemporary times longer and more explicit names are preferable to shorter obscure identifiers which can be ambiguous even within the same area of inquiry e.g., does an identifier named APC 'activated protein C', 'adenomatous polyposis coli', or 'argon plasma coagulation'? (Examples from "Abbreviation and Acronym Disambiguation in Clinical Discourse", AMIA Annual Symposium Proceedings. 2005; 2005: 5899-593). One method to assist in this is to stringently avoid having too many temporary value identifiers, typically applied to variables. 
+
+As with any programming languages there a limits to what characters can be used as symbolic identifiers. In general it is easier for all concerned to use only the alphanumeric range and underscores, and to start identifiers with letters. In C, identifiers are case sensitive (e.g., `example` and `EXAMPLE` are different), whereas in Fortran they are case insensitive (e.g., `example` and `EXAMPLE` are the same), except for string literals. Variable names in the C programming language can only have alphanumerics (uppercase and lowercase) and underscores. The first letter must be a letter or underscore. This is no limit on the length of the variable name. In Fortran90, the same applies except a variable name can be no longer than 31 characters.
+
+The use of reserved words, which have a special meaning the context of the language in question, is forbidden in C. The following names are reserved by the C language; they cannot be used as variable names.
+
+auto	else	long	switch
+break	enum	register	typedef
+case	extern	return	union
+char	float	short	unsigned
+const	for	signed	void
+continue	goto	sizeof	volatile
+default	if	static	while
+do	int	struct	_Packed
+double	 
+
+Unlike most programming languages, Fortran90 does not have reserved words. One could use on of the keywords as variables, which would be very confusing, but syntactically correct. Variables could use identifiers such as Program, End, If, Do, etc. Fortran90 compilers are designed to recognise keywords from variable names from their position in a statement.
 
 Attentiveness to value scope is extremely important as it defines where it may be used and in run-time the extent that it has a meaningful value; this is most typically defined as either globally (indefinite scope) or within a subprogram. As mentioned uniqueness in identifiers is an essential practice; a program will result in error if there are multiple identifiers with the same name in the same scope. This requires some knowledge of the identifiers used in header files that are used by a program as well as those that are used within a program.
 
 In all cases the value should be assigned prior to use, i.e., scope should not begin prior to extent, otherwise the unitialised value may have an undefined value. A variable whose extent outlasts its state can result in a memory leak, resulting in the program to eventually cause errors or cease functioning. Contemporary Fortran implementations will manage values within the scope of the entity; in C memory management is typically manual, using the standard library functions malloc() and free(), to allocate and free memory blocks respectively.
+
+Variable declarations assures the compiler that there exists a variable of a specified type and name. Variable declarations can also be used when one has multiple files; a variable can be defined in any one the files which will be made available when the program is linked. The keyword `extern` can be used to declare a variable at any place. This convention is used in both C and Fortran.
 
 The previous 'Hello World' program can thus be expressed in Fortran and C with symbolic identifier values as follows: 
 
@@ -664,7 +682,6 @@ As the previous example – one last time - both can be compiled, with the sourc
 
 `gfortran hello3.f90 -o hellof3`
 `gcc hello3.c -o helloc3`
-
 
 ## 2.4 Data Types and Operations
 
@@ -808,10 +825,18 @@ In Fortran a pointer can point to either an area of dynamically allocated memory
 
 Pointers in Fortran can be (a) undefined, (b) associated, or (c) disassciated. The nullify statement disassociates a pointer from a target, but does not empty the target as there could be more than one pointer to the same target; emptying the pointer will also dissociated the the pointer from the target.
 
-[EDIT: Pointers in C]
+In C, similar principles are applied. Like Fortran, a pointer variable has the address of another variable, i.e., the direct address of the memory location. As a variable, pointers have to declared before use, in the general form noted above; the pointer has a type, and the pointer variable is prefixed by the asterisk *, so:  
+
+char   *ch     /* pointer to a character */
+int    *ip;    /* pointer to an integer */
+double *dp;    /* pointer to a double */
+float  *fp;    /* pointer to a float */
+
+If a pointer has a value of NULL (`int  *ptr = NULL;`), it means that the pointer is not intended to point to an accessible memory location. 
+
+[EDIT: Code examples in C and Fortran]
 
 After all this it must be mentioned that, in general, pointers probably should be avoided for many programs. They do provide better performance and can be used for enhanced functionality, this is true, however in most cases normal variables can provide better clarity. As an example of functionality in C there is no for complex datatypes such as a string, thus one has use pointers to variables of type char. Pointers allow one to refer to the same space in memory from multiple locations, which means that the memory can be updated in one location and the change will be seen by all other locations. 
-
 
 ## 2.5 Loops and Branches
 
@@ -848,7 +873,7 @@ while( counterb < 11 )
 	}
 ```
 
-In contrast the do-while loop, common to C and Fortran, will also repeat a statement or code block a given condition is true. In C however, unlike the do loop, it tests the condition at the end of the loop body. Importantly this means that it will always carry out the conditional statement or code block at least once. In Fortran however the initial condition is tested the block is carried out while the condition is true.The following code snippets illustrate examples:
+In contrast the do-while loop, common to C and Fortran, a while will also repeat a statement or code block a given condition is true. In C however, unlike the do loop, it tests the condition at the end of the loop body. Importantly this means that it will always carry out the conditional statement or code block at least once. In Fortran however the initial condition is tested the block is carried out while the condition is true.The following code snippets illustrate examples:
 
 ```
 int counterc = 99;
@@ -865,6 +890,9 @@ counterc = 99
 	print *, greetings   
    end do 
 ```
+
+
+
 
 As should be expected, more complex loops can be created by nesting any variety of loops within loops. C has a `break` statement and Fortran a `exit` statement, both of which will terminate a loop and exit, transferring execution to the statement following the loop. The `continue` statement in C or the `cycle` statement in Fortran will cause the loop to skip the rest of the code block and return to the conditional statement for the next iteration. 
 
@@ -1158,6 +1186,7 @@ When seeking to parallelise code, a programmer needs to review existing sequenti
 
 A fork-join approach can be used in multithreading. This is the method used by OpenMP and also with POSIX threads (pthreads). The basic idea is that a program's execution branches off in parallel threads at specified points in the program and joins and merges at a subsequent specified point, returning to serial execution. In the OpenMP implementation, a master thread contains the instructions that are to be executed in parallel and executes additional worker threads that divide the task among them. The 'specified point' for forking is marked with a preprocessor directive and each thread has an individual identity attached to it. After the execution of the parallel, the threads join back into the master thread.
 
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/chapter04/distmemory.png" />
 (image from Wikipedia, user: Qwetyus)
 
 OpenMP is an application programming interface, an elaboration of existing programming languages (specifically C and Fortran). The standards are governed by The OpenMP Architecture Review Board (ARB) which was formed in 1997 as a non-profit organisation from DEC, IBM, and Intel, and motivated by a common need to standardise coding for symmetric multiprocessing systems (SMPs). From the 1980s onwards SMP vendors had been developing special and different notation to distribute tasks between individual SMP processors and to provide a framework for access order. As if often the case in such situations, there are many good ideas from the diverse range of sources, but little portability and standardisation.
