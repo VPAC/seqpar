@@ -1209,11 +1209,16 @@ In OpenMP directives are deliberately designed to appear as comments unless the 
 
 OpenMP compiler directives must begin with a sentinel (Fortran) or pragma (C). All compiler directives have the basic form of:
 
-sentinel/pragma directive-name clauses
+`sentinel/pragma directive-name clauses`
 
-In C and Fortran respectively, the following is basic sentinel for thread creation. When invoked it will create additional threads that are forked from the master tread within the construct. 
+In C and Fortran respectively, the following is basic sentinel or pragma for thread creation. When invoked it will create additional threads that are forked from the master tread within the construct. Throughout this book modern freeform Fortran will be used in preference to the more archaic fixed form. However, OpenMP does support sentinel statements in different expressions, just as it does with comments. For Fortran the following can be used:
 
-Throughout this book modern freeform Fortran will be used in preference to the more archaic fixed form.
+```
+C$OMP construct [clause]
+!$OMP construct [clause]
+*$OMP construct [clause]
+```
+
 
 ```
 #pragma omp parallel default(shared) private(variables)
@@ -1353,8 +1358,7 @@ Inner: max_act_lev=       8 , num_thds=           3 , max_thds=           4
 Outer: max_act_lev=       8 , num_thds=           2 , max_thds=           3
 ```
 
-3.3 Core Constructs 
--------------------
+## 3.3 Core Constructs 
 	
 As seen the parallel construct is absolutely fundamental to OpenMPI as it initiates a parallel execution region. The thread that encounters construct becomes the master thread of the new team, with a thread number of zero. All other threads have their own unique identity. All threads in the new team, including the master thread, execute the parallel region. At the end of a parallel region, only the master thread of the team continues execution. The number of threads will be determined by the value of the `if` or `num_threads`, if any, in the directive. Otherwise it will be determined by the current parallel context.
 
@@ -1815,7 +1819,52 @@ do-loops
 !$omp end distribute parallel do simd
 ```
 
+## 3.6 Combination and Summary
+
+A combined example of many of the clauses to date can be found in the resource file, `Dijkstra.c`, which implements the Dijkstra's algorithm
+for finding the shortest paths between nodes in a graph (e.g., a network). The program itself is from Professor Norm Matloff University of California, Davis (original code did not have this attribution). Note the use of parallel, single, barrier, and critical clauses in the program. The "parallel" clause establishes a directive to have each thread act on the block. The "single" clause ensures that only one thread executes the block. The "barrier" clause performs a barrier operation. Whilst normally implicit, barriers can be overriden with the "nowaitr" clause. The "critical" clause ensures a section has lock/unlock operations.
+
+As a summary is of concepts and clauses, derived from a very similar document from the Lawrence Livermore Natinal Laboratories.
+
+Code in Fortran, C, or C++ can be assigned constructs (e.g., directives) to blocks of code in OpenMP which, when compiled with the appropriate flages, produced a multi-threaded application. If compiled without the flags it produces a single-threaded application and the directives are interpreted as comments. A parallel region will be executed by multiple threads, the directive plus clauses determine the behaviour. When a thread encounters a parallel directive, it creates a team of threads and becomes the master of the team and is assigned thread number 0 from the team. From the beginning of the parallel region each thread executes the code simultaneously. An implied barrier at the end of the region ensures that all threads complete before the code continues. The master thread constinues execution beyond this point. If any thread terminates within a parallel region, all threads in the team will terminate.
+
+Fortran Version
+
+```
+!$OMP PARALLEL [clause ...] 
+               IF (scalar_logical_expression) 
+               PRIVATE (list) 
+               SHARED (list) 
+               DEFAULT (PRIVATE | FIRSTPRIVATE | SHARED | NONE) 
+               FIRSTPRIVATE (list) 
+               REDUCTION (operator: list) 
+               COPYIN (list) 
+               NUM_THREADS (scalar-integer-expression)
+
+   block
+!$OMP END PARALLEL
+```
+
+
+C/C++ Version
+
+```
+#pragma omp parallel [clause ...]  newline 
+                     if (scalar_expression) 
+                     private (list) 
+                     shared (list) 
+                     default (shared | none) 
+                     firstprivate (list) 
+                     reduction (operator: list) 
+                     copyin (list) 
+                     num_threads (integer-expression)
+
+ 
+   structured_block
+```
+
 This brings us to an end of the chapter on OpenMP; rather like the following chapter on OpenMPI only a cursorary exploration of the major capabilities have been provided. However they should be a sufficient overview to start converting sequential code into parallel code immediately and with minimum effort whilst also providing the grounding for future exploration and detail.
+
 
 # 4.0 Distributed Memory Programming with OpenMPI
 

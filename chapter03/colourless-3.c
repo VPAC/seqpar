@@ -15,7 +15,8 @@ int main (void)
      {  printf("green ");      }
     #pragma omp task
      {	printf("ideas ");      }
-	printf("sleep furiously ");
+    #pragma omp task
+     {  printf("sleep furiously "); }
    }
    }
  printf("\n");

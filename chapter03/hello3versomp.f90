@@ -5,27 +5,27 @@ program hello
 	character(len=16) :: greetingsen
 	character(len=16) :: greetingsde
 	character(len=16) :: greetingsfr 
-	integer :: a
-	greetingsen = "Hello World!" 
-	greetingsde = "Hallo Welt!"
-	greetingsfr = "Bonjour le monde!"	
+	integer :: a, b, c
+	greetingsen = "Hello World! " 
+	greetingsde = "Hallo Welt! "
+	greetingsfr = "Bonjour le monde! "	
 
 	!$omp parallel 
 	!$omp sections
 
 	!$omp section
-	do a = 1, 100
-	print *, greetingsen   
+	do a = 1, 10
+	print *, greetingsen, "From thread: ", OMP_GET_THREAD_NUM()  
 	end do
 
 	!$omp section
-	do a = 1, 100
-	print *, greetingsde
+	do b = 1, 10
+	print *, greetingsde, "Aus dem Faden: ", OMP_GET_THREAD_NUM()
 	end do
 
 	!$omp section
-	do a = 1, 100
-	print *, greetingsfr  
+	do c = 1, 10
+	print *, greetingsfr, "De fil: ", OMP_GET_THREAD_NUM()
 	end do
 
 	!$omp end sections 
