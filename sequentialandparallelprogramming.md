@@ -1411,9 +1411,22 @@ user	0m0.145s
 sys	0m1.097s
 ```
 
-`cp hello1mill.f90 hello1millomp.f90`
+One can save a few keystrokes on basic loops structures by combining the `parallel` region with the `for` region. It makes the code easier as well. Compare hello1millomp.c and hello1amillomp.c
 
-Make minimal requisite modifications to the OMP version of the file.
+```
+diff hello1millomp.c hello1amillomp.c 
+7c7,9
+<    #pragma omp parallel for
+---
+>    #pragma omp parallel
+>    {
+>    #pragma omp for	
+11a14
+>    }
+```
+
+Make a copy of the fortran version; `cp hello1mill.f90 hello1millomp.f90` and make minimal requisite modifications to the OMP version of the file.
+
 
 ```
 diff hello1mill.f90 hello1millomp.f90 
