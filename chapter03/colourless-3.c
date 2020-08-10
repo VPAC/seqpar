@@ -6,7 +6,7 @@ int main (void)
 {
 #pragma omp parallel
  { 
-  #pragma omp single
+  #pragma nowait
    {
     printf("Noam Chomsky said ");
     #pragma omp task

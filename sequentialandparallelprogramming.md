@@ -1195,6 +1195,8 @@ The first API for OpenMP was developed for Fortran in 19917, and for C/C++ in 19
 
 As an organisation, the OpenMP Architecture Review Board, currently consists of thirteen permanent and thirteen auxillery members. The permanent members are vendors with a long-standing interest in creating OpenMP products and include corporations such as AMD, Cray, HP, Intel, IBM, and Red Hat. The auxiliary members are typically those with an interest in the standard but that do not create or sell OpenMP products. They are often research groups and higher edcuation bodies, and include Argonne National Laboratory, Lawrence Livermore National Laboratory, the Edinburgh Parallel Computing Centre, and NASA. The OpenMP Board of Directors conducts the corporate governance, whilst the Officers run the organisation. In addition there are Language, Tools, and Marketing committees, an annual conference (The International Workshop on OpenMP, IWOMP), and the Community of OpenMP Users (cOMPunity), consisting of OpenMP students, researchers, and developers. 
 
+Special mention here is also made for the Lawrence Livermore National Laboratory where a great deal of the example code is derived.
+
 The URLs for the respective bodies are as follows:
 
 http://openmp.org
@@ -1224,7 +1226,7 @@ C$OMP construct [clause]
 #pragma omp parallel default(shared) private(variables)
 !$omp parallel default(shared) private(variables)
 
-The following is the standard `hello world` program in  C/C++ and Fortran.
+The following is the standard `hello world` program in  C/C++ and Fortran, included in the chapter resources as hello.c and hello.f90
 
 #include <stdio.h>
 
@@ -1244,27 +1246,28 @@ int main(void)
        end program helloomp
 ```
 
-When compiled, the respective programs will print `hello world` equal to the number of cores on the shared-memory system. As mentioned compilation explicitly requires options that inform the compiler to be attentive to compiler directives that would otherwise be interpreted as comments. For example:
+When compiled, the respective programs will print `hello world` equal to the number of cores on the shared-memory system. As mentioned compilation explicitly requires options that inform the compiler to be attentive to compiler directives that would otherwise be interpreted as comments. For example, compile the software first without the OMP flags and then with:
 
-`gcc -fopenmp helloomp.c -o helloompc`
+`gcc -fopenmp helloomp1.c -o helloompc`
 `./helloompc`
 
-`gfortran -fopenmp helloomp.f90 -o helloompf`
+`gfortran -fopenmp helloomp1.f90 -o helloompf`
 `./helloompf`
 
 For Portland and Intel compilers use:
 
-`pgcc -mp helloomp.c -o helloompc`
-`./helloompc`
-`icpc -openmp helloomp.c -o helloompc`
+`pgcc -mp helloomp1.c -o helloompc`
 `./helloompc`
 
-`pgf90 -mp helloomp.f90 -o helloompf`
+`icpc -openmp helloomp1.c -o helloompc`
+`./helloompc`
+
+`pgf90 -mp helloomp1.f90 -o helloompf`
 `./helloompf`
-`ifort -openmp helloomp.f90 -o helloompf`
+`ifort -openmp helloomp1.f90 -o helloompf`
 `./helloompf`
 
-The number of threads can be varied as an environment variable. This is both more adaptable and provides some protection against race conditions. To give an example using bash as the shell:
+The number of threads can be varied as an environment variable. This is both more adaptable and may provide some protection against race conditions, although it is not a great strategy in itself for protection. Note that it is most efficient to you use a number of threads equal to the number of cores available, although this will depend on the resources that the thread requires. To give an example with the bash shell:
 
 ```
 export OMP_NUM_THREADS=16
@@ -1272,40 +1275,93 @@ export OMP_NUM_THREADS=16
 ./helloompf
 ```
 
-A more elaborate version will specify the appropriate include file and the runtime library to specify the number of threads and thread ID. Note that the parallel section will override the export value given previously. If no num_threads is specified, it will use the full sixteen that were exported.  
+A more elaborate version will specify the appropriate include file and the runtime library to specify the number of threads and thread ID.  Note that the parallel section will override the export value given previously. If no num_threads is specified, it will use the full sixteen that were exported.  
 
 The programs also use a private variable to each thread.  By default a variable is shared among threads. The private (variable) option in the directive it ensures that the variable is private to the thread that is using it. 
 
+Note that this examples (`helloomp1.c`, `helloomp2.f90`) explicitly illustrates how OpenMP and multi-threaded applications could cause a race condition; the treadIDs will probably not be in order. These two programs are presented in full in order here in order for the reader to work through the logic, line-by-line.
+
 ```
 #include <stdio.h>
-#include  "omp.h"
-int main(void)
-{
-	int id;
-	#pragma omp parallel num_threads(4) private(id)
-	{
-	int id = omp_get_thread_num();
-	printf("Hello world %d\n", id);
-	}
-return 0;
-}
+#include <omp.h>
 
-program hello2omp
-	include "omp_lib.h"
-	implicit none
-	integer :: id	
-     !$omp parallel num_threads(4) private(id)
-		id = omp_get_thread_num() 
-		print *, "Hello world", id 
-	!$omp end parallel
-end program hello2omp
+ main(int argc, char *argv[]) {
+
+ int nthreads, threadid;
+
+ /* Fork a team of threads with each thread having a private tid variable */
+ #pragma omp parallel private(threadid)
+   {
+
+   /* Obtain and print thread id */
+   threadid = omp_get_thread_num();
+   printf("Hello World from thread = %d\n", threadid);
+
+   /* Only master thread does this */
+   if (threadid == 0) 
+     {
+     nthreads = omp_get_num_threads();
+     printf("Number of threads = %d\n", nthreads);
+     }
+
+   }  /* All threads join master thread and terminate */
+
+ }
 ```
+
+
+```
+        PROGRAM HELLO
+
+        INTEGER NTHREADS, THREADID, OMP_GET_NUM_THREADS, OMP_GET_THREAD_NUM
+
+ !     Fork a team of threads with each thread having a private TID variable
+ !$OMP PARALLEL PRIVATE(THREADID)
+
+ !     Obtain and print thread id
+       THREADID = OMP_GET_THREAD_NUM()
+       PRINT *, 'Hello World from thread = ', THREADID
+
+ !     Only master thread does this
+       IF (THREADID .EQ. 0) THEN
+         NTHREADS = OMP_GET_NUM_THREADS()
+         PRINT *, 'Number of threads = ', NTHREADS
+       END IF
+
+ !     All threads join master thread and disband
+ !$OMP END PARALLEL
+
+        END
+```
+
+The way that a construct manages the threads allocated to it can vary, these are "work-sharing constructs". There are three basic types that exist with the parallel region. The first, a "DO/for" construct shares iterations of a loop over members of the team, so rather than a single threaded application where each section of the loop occurs in serial, the number of iterations that must occur is divided among the threads that carry it out in parallel. In contrast with a "sections" construct the work is separated into separate sections, which may be quite different in each thread, distinct from the "DO/for" construct. Finally, there is there "single" construct which takes a part of code in a parallel region and allocates a single thread to it to run in serial; the other threads in the team take no action.
+
+Work-sharing constructs do not launch new threads
+There is no implied barrier upon entry to a work-sharing construct, however there is an implied barrier at the end of a work sharing construct.
+A work-sharing construct must be enclosed dynamically within a parallel region in order for the directive to execute in parallel.
+Work-sharing constructs must be encountered by all members of a team or none at all
+Successive work-sharing constructs must be encountered in the same order by all members of a team
+
+
+
+The following images, from the Lawrence Livermore National Laboratory, help explain these constructs.
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+
+
+
+
+
 
 The next version of the program illustrates how the same variable name can have different values within the parallel section and outside it.
 
-```	
 
-```
+
+
+
+
 ```
 program SharedHello
 implicit none
@@ -1453,7 +1509,7 @@ user	0m0.318s
 sys	0m1.181s	
 ```
 
-A further variation is the SIMD loop, which enables multiple iterations concurrently by means of SIMD instructions, a particularly efficient method for multiple data tasks. 
+A further variation is the SIMD loop, which enables multiple iterations concurrently by means of SIMD instructions, a particularly efficient method for multiple data tasks on newer CPUs.
 
 `cp hello1mill.c hello1millsimd.c`
 
@@ -1647,7 +1703,7 @@ Colourless green ideas sleep furiously Colourless green ideas sleep furiously Co
 
 With the `single` construct, these multiple threads can be forced into using just one (colourless-2.c and colourless-2.f90). Variations (not elaborated here) is the `master` construct, which specifies a structured block that that can only be executed by the master thread, and the `critical` construct also operates on a single thread but typically with an expression clause.
 
-Within the single thread, individual tasks can be specified (colourless-3.c and colourless-3.f90). The tasks will complete in any order and at a task execution point, as the code snippets and results show. If a `taskwait` construct was included at the end of the tasks the tasks would execute first.
+Within the single thread, individual tasks can be specified (colourless-3.c and colourless-3.f90). The construct ensures that the associated structured block is executed by only one of the threads in the team (not necessarily the master thread). The other threads in the team, which do not execute the block, wait at an implicit barrier at the end of the single construct unless a nowait clause is specified.
 
 ```
  #pragma omp parallel
@@ -1661,15 +1717,14 @@ Within the single thread, individual tasks can be specified (colourless-3.c and 
      {  printf("green ");      }
     #pragma omp task
      {	printf("ideas ");      }
-	printf("sleep furiously ");
-   }
+    #pragma omp task
+     {	printf("sleep");       }
+    #pragma omp task
+     {	printf("furiously");   }
    }
 ```
 
 ```
-./colourless3c 
-Noam Chomsky said Colourless sleep furiously ideas green
-
 	!$omp parallel
 	 !$omp single
 	  print *, "Noam Chomsky said "
@@ -1682,17 +1737,14 @@ Noam Chomsky said Colourless sleep furiously ideas green
 	  !omp task
 	  print *, "ideas "  
           !omp end task
-	  print *, "sleep furiously "
+	  !omp task
+	  print *, "sleep "
+          !omp end task
+	  !omp task
+	  print *, "furiously "
+          !omp end task
 	 !$omp end single
 	!$omp end parallel
-```
-```
-./colourless3f [EDIT Doesn't work as expected]
- Noam Chomsky said
- Colourless 
- green 
- ideas 
- sleep furiously 
 ```
 
 A combination of tasks and loops is also possible with the `taskloop` construct. With this construct one or more associated loops will be executed in parallel using tasks. It can be further expanded to carry out these taskloops with SIMD instructions. Its generic form follows:

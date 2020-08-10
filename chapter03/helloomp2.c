@@ -1,11 +1,12 @@
- #include <omp.h>
+#include <stdio.h>
+#include <omp.h>
 
  main(int argc, char *argv[]) {
 
  int nthreads, threadid;
 
  /* Fork a team of threads with each thread having a private tid variable */
- #pragma omp parallel private(tid)
+ #pragma omp parallel private(threadid)
    {
 
    /* Obtain and print thread id */
@@ -13,7 +14,7 @@
    printf("Hello World from thread = %d\n", threadid);
 
    /* Only master thread does this */
-   if (tid == 0) 
+   if (threadid == 0) 
      {
      nthreads = omp_get_num_threads();
      printf("Number of threads = %d\n", nthreads);
