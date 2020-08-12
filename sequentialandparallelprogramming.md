@@ -46,7 +46,7 @@ All trademarks are property of their respective owners.
 3.0 OpenMP Parallel Programming
 3.1 Shared Memory Concepts
 3.2 Directives and Internal Control Variables
-3.3 Core Constructs
+3.3 Work Sharing and Task Constructs
 3.4 Tasks and Synchronisation
 3.5 Targets and Teams
 
@@ -1221,7 +1221,6 @@ C$OMP construct [clause]
 *$OMP construct [clause]
 ```
 
-
 ```
 #pragma omp parallel default(shared) private(variables)
 !$omp parallel default(shared) private(variables)
@@ -1334,33 +1333,9 @@ Note that this examples (`helloomp1.c`, `helloomp2.f90`) explicitly illustrates 
         END
 ```
 
-The way that a construct manages the threads allocated to it can vary, these are "work-sharing constructs". There are three basic types that exist with the parallel region. The first, a "DO/for" construct shares iterations of a loop over members of the team, so rather than a single threaded application where each section of the loop occurs in serial, the number of iterations that must occur is divided among the threads that carry it out in parallel. In contrast with a "sections" construct the work is separated into separate sections, which may be quite different in each thread, distinct from the "DO/for" construct. Finally, there is there "single" construct which takes a part of code in a parallel region and allocates a single thread to it to run in serial; the other threads in the team take no action.
-
-Work-sharing constructs do not launch new threads
-There is no implied barrier upon entry to a work-sharing construct, however there is an implied barrier at the end of a work sharing construct.
-A work-sharing construct must be enclosed dynamically within a parallel region in order for the directive to execute in parallel.
-Work-sharing constructs must be encountered by all members of a team or none at all
-Successive work-sharing constructs must be encountered in the same order by all members of a team
-
-
-
-The following images, from the Lawrence Livermore National Laboratory, help explain these constructs.
-
-<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
-<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
-<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
-
-
-
-
-
+It is necessary to be attentive to the scope of directives. There are a number of scoping rules on how directives bind and nest with each other and getting these wrong will result in program error. A _static_ extent is enclosed in the structured block following the directive and does not apply across multiple routines, for example a do/for directive that occurs within a parallel region. An _orphaned_ directive has directives (properly structured) but without a enclosing parallel. The extent of static and orphaned directived constitutes a _dynamic_ extent. 
 
 The next version of the program illustrates how the same variable name can have different values within the parallel section and outside it.
-
-
-
-
-
 
 ```
 program SharedHello
@@ -1379,22 +1354,38 @@ implicit none
 end program SharedHello
 ```
 
+```
+program SharedHello
+implicit none
+        character(len=16) :: greetings 
+        greetings = "Hello World!" 
+        print *, "Before parallel section: ", greetings 
+
+        !$omp parallel num_threads(4) private(greetings)
+        greetings = "Saluton mondo!"
+        print *, "Inside parallel section: ", greetings
+        !$omp end parallel
+
+        print *, "After parallel section:  ", greetings
+
+end program SharedHello
+```
+
 All implementation of OpenMP must act with the assumption of internal control variables (ICVs) that control the behaviour of the program. These variables hold information such as the number of threads, the maximum size of the thread team, the number of processors, etc. There are default values given by specific implementations and they can also be manipulated during runtime.
 
 Whilst there are many ICVs (beyond the scope of this book) the following gives a description of a few major ones, their initial value, the functions for how to retrieve their value, how to modify their value, and the environment variable. Their syntax is consistent in both C and Fortran
 
-dyn-var. Operates within parallel regions. The default value is set to `false` unless the implementation supports dynamic adjustment of the number of threads, in which case it is set by the implementation. It controls whether dynamic adjustment of the number of threads is enabled for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_dynamic()`, and modified with `omp_set_dynamic()`. It uses OMP_DYNAMIC as an environment variable.
+**dyn-var**. Operates within parallel regions. The default value is set to `false` unless the implementation supports dynamic adjustment of the number of threads, in which case it is set by the implementation. It controls whether dynamic adjustment of the number of threads is enabled for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_dynamic()`, and modified with `omp_set_dynamic()`. It uses OMP_DYNAMIC as an environment variable.
 
-nest-var. Operates within parallel regions. The default value is set to `false`. It controls whether nested parallelism is enabled for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_nested()`, and modified with `omp_set_nested()`. It uses OMP_NESTED as an environment variable.	
+**nest-var**. Operates within parallel regions. The default value is set to `false`. It controls whether nested parallelism is enabled for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_nested()`, and modified with `omp_set_nested()`. It uses OMP_NESTED as an environment variable.	
 
-nthreads-var. Operates within parallel regions. The default value is set according to the specific implementation. It controls the number of threads requested for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_max_threads()`, and modified with `omp_set_num_threads()`. It uses OMP_NUM_THREADS as an environment variable.
+**nthreads-var**. Operates within parallel regions. The default value is set according to the specific implementation. It controls the number of threads requested for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_max_threads()`, and modified with `omp_set_num_threads()`. It uses OMP_NUM_THREADS as an environment variable.
 
-thread-limit-var. It controls the maximum number of threads participating in a contention
+**thread-limit-var**. It controls the maximum number of threads participating in a contention
 group. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_thread_limit()`, and modified with `thread_limit` clause. It uses OMP_THREAD_LIMIT as an environment variable.
 
-max-active-levels-var. It controls the maximum number of nested active parallel regions.
-There is one copy of this ICV per device. The value may be retrived with `omp_get_max_active_levels()` and modified with `omp_set_max_active_levels()`. It uses 
-OMP_MAX_ACTIVE_LEVELS as an environment variable.
+**max-active-levels-var**. It controls the maximum number of nested active parallel regions.
+There is one copy of this ICV per device. The value may be retrived with `omp_get_max_active_levels()` and modified with `omp_set_max_active_levels()`. It uses OMP_MAX_ACTIVE_LEVELS as an environment variable.
  
 The OpenMP Application Programming Interface Examples Version 4.0.2 (March 2015) contains an absolutely superb example of internal control variables and their interactions with runtime library routines which is included in the programs with this book (icv1.f90 and icv.c). Four ICV's - nest-var, mex-active-levels-var, dyn-var, and nthreads-var - are modified by calls their respective library routines (omp_set_nested(), omp_set_max_active_levels(), omp_set_dynamic(), and omp_set_num_threads()). Apart the previously described parallel directives, the program also makes use of the single directive, that specifies that the enclosed code is only to be executed by one thread in the team, and the barrier directive, which synchronises all threads in the team. It is recommended that one experiment with the program by changing the number of threads in the inner and outer parallel regions to gain a fuller understanding of the interactions. The unchanged version can be compiled and executed as follows:
 
@@ -1414,23 +1405,23 @@ Inner: max_act_lev=       8 , num_thds=           3 , max_thds=           4
 Outer: max_act_lev=       8 , num_thds=           2 , max_thds=           3
 ```
 
-## 3.3 Core Constructs 
-	
-As seen the parallel construct is absolutely fundamental to OpenMPI as it initiates a parallel execution region. The thread that encounters construct becomes the master thread of the new team, with a thread number of zero. All other threads have their own unique identity. All threads in the new team, including the master thread, execute the parallel region. At the end of a parallel region, only the master thread of the team continues execution. The number of threads will be determined by the value of the `if` or `num_threads`, if any, in the directive. Otherwise it will be determined by the current parallel context.
+## 3.3 Work Sharing and Task Constructs
 
-One of the most typical applications of OpenMPI is the parallelisation of loops. This will include a worksharing construct, which distributes the execution of the parallel region among the thread team members. A loop region will bind to the innermost enclosing parallel region, and only threads in the binding parallel region will execute the loop iterations. There is an implicit barrier at the end of a loop construct, unless a `nowait` clause has been stated. Loop iteration variables are private by default. 
+One of the most typical applications of OpenMP is the parallelisation of loops. With the "DO/for" work construct, this will include the construct, which distributes the execution of the parallel region among the thread team members. A loop region will bind to the innermost enclosing parallel region, and only threads in the binding parallel region will execute the loop iterations. There is an implicit barrier at the end of a loop construct, unless a `nowait` clause has been stated. Loop iteration variables are private by default. 
 
-In C/C++ and Fortran the following general structures are applied:
+As shown, in C/C++ and Fortran the following general structures are applied:
 ```
 #pragma omp for clauses 
 for-loop
 ```
+
 ```
 !$omp do clauses
 do-loop
 !$omp end do
 ```
-It is always a good idea to start with working serial code and find areas that can be made parallel, and test to see whether the parallel design is more efficient. In the previous chapter, there were two simple loop programs that printed "Hello World" a million times. Expressed in serial form, this would be noticeably slower if the requirement was to iterate over the loop a million thousand times. Thus the program can be recompiled with this higher limit and run with the `time` utility, with additional parallel loops included.
+
+It is always a good idea to start with working serial code and find areas that can be made parallel, and test to see whether the parallel design is more efficient. In the previous chapter, there were two simple loop programs that printed "Hello World". Expressed in serial form, this would be noticeably slower if the requirement was to iterate over the loop a thousand times. Thus the program can be recompiled with this higher limit and run with the `time` utility, with additional parallel loops included.
 
 ```
 gcc hello1mill.c -o hello1millc
@@ -1439,6 +1430,7 @@ real	0m7.375s
 user	0m0.062s
 sys	0m1.360s
 ```
+
 ```
 gfortran hello1mill.f -o hello1millf
 time ./hello1millf
@@ -1482,7 +1474,6 @@ diff hello1millomp.c hello1amillomp.c
 ```
 
 Make a copy of the fortran version; `cp hello1mill.f90 hello1millomp.f90` and make minimal requisite modifications to the OMP version of the file.
-
 
 ```
 diff hello1mill.f90 hello1millomp.f90 
@@ -1545,9 +1536,39 @@ sys	0m1.753s
 
 Note that there is a bug in gcc4.x compilers which means that the Fortran version of this program will not compile. Use gcc5.x compilers.
 
-In addition to the loop worksharing construct, there are also `sections`, `single`, and `workshare` constructs. The `workshare` construct divides the execution of a structured block into separate units, which threads sharing the work and ensuring that each unit is only executed once. It only exists in Fortran and is not elaborated here.
+Two variations on the simd construct which are not elaborated here include the `declare simd` construct and the composite loop simd constructs. In the former, the `declare simd` construct enables the creation of one or more versions that can process multiple arguments using SIMD instructions from a single invocation in a SIMD loop. In the latter case, the the loop construct ensures that iterations of associated loops are distributed across existing threads and that the iterations executed by each thread can also be executed concurrently using SIMD instructions.
 
-The `single` construct was introduced at the end of the last chapter, and specifies that the associated structured block is executed by only one of the threads in the team. It binds to the innermost enclosing parallel region. The method of choosing which thread to execute the structured block is implementation defined, but is not ncessarily the master thread.
+The general syntax of the `declare simd` construct takes the following form in C/C++ and Fortran:
+
+`#pragma omp declare simd [clauses]`
+
+`!$omp declare simd [clauses]`
+
+The general syntax of the SIMD loop constructs take the following forms in C/C++ and Fortran:
+
+```
+#pragma omp for simd [clauses]
+for-loops
+```
+```
+!$omp do simd [clauses]
+do-loops
+!$omp end do simd
+```
+
+As seen the parallel construct is absolutely fundamental to OpenMP as it initiates a parallel execution region. The thread that encounters construct becomes the master thread of the new team, with a thread number of zero. All other threads have their own unique identity. All threads in the new team, including the master thread, execute the parallel region. At the end of a parallel region, only the master thread of the team continues execution. The number of threads will be determined by the value of the `if` or `num_threads`, if any, in the directive. Otherwise it will be determined by the current parallel context.
+
+The way that a construct manages the threads allocated to it can vary, these are the "work-sharing constructs". A work-sharing construct must be enclosed within a parallel region in order for the directive to execute in parallel. Work-sharing constructs do not launch new threads, and whilst there is no implied barrier to entry there is on at the end of the construct. There are three basic types that exist with the parallel region. The first, a "DO/for" construct shares iterations of a loop over members of the team, so rather than a single threaded application where each section of the loop occurs in serial, the number of iterations that must occur is divided among the threads that carry it out in parallel. In contrast with a "sections" construct the work is separated into separate sections, which may be quite different in each thread, distinct from the "DO/for" construct. Finally, there is there "single" construct which takes a part of code in a parallel region and allocates a single thread to it to run in serial; the other threads in the team take no action.
+
+The following images, from the Lawrence Livermore National Laboratory, help explain these constructs.
+
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+
+With the _do/for_ directives, a initiated parallel region specifies the iterations of the loops that follows the directive. Without the parallel region it will execute in serial! Note that the DO loop cannot be a DO WHILE loop, and the loop interation must be an integer. The loop can not branch out of the loop (e.g., with goto). An example DO/for example is provided in the chapter's resources in this book's respository, `dofor.c` and `dofor.f90`.
+
+With the _sections_ work-sharing construction enclosed sections of code are divided among the threads in the team. Section directives are nested within the sections directive (no orphaned sections) and each section is executed by a thread with different sections typically executed by different threads, although it is possible for a thread to execute more than one section if it is quick enough. There is an implied barrier at the end of a sections, unless a nowait clause is used. An example is provided in the resources of this book's repository as `sections1.c` and `sections1.f90`, and `sections2.c` and `sections2.f90`
 
 The `sections` construct contains a collection of structured blocks that are distributed among the threads in the team. The general syntax is as follows:
 
@@ -1571,7 +1592,7 @@ structured-block
 !$omp end sections
 ```
 
-As an example - elaborating even further on the apparently very adaptable `hello world` program - the following makes use of loop and section work constructs to provide `hello world` a hundred times in three languages.
+As an example, the following makes use of loop and section work constructs to provide the threadID specified specified in three languages (`hello3versomp.c`, `hello3versomp.f90`).
 
 ```
 #include <stdio.h> 
@@ -1581,90 +1602,130 @@ int main(void)
    char greetingsen[] = "Hello world!"; 
    char greetingsde[] = "Hallo Welt!";
    char greetingsfr[] = "Bonjour le monde!";
-   int a;
-   #pragma parallel sections
+   int a,b,c;
+
+   #pragma omp parallel sections
    {
    #pragma omp section
-   for ( a = 0; a < 100; a = a + 1 )
-        {
-        printf("%s\n", greetingsen); 
-        }
+   	{
+   	for ( a = 0; a < 10; a = a + 1 )
+		{
+		printf ("id = %d, %s\n", omp_get_thread_num(), greetingsen); 
+   		}
+	}
 
    #pragma omp section
-   for ( a = 0; a < 100; a = a + 1 )
-        {
-        printf("%s\n", greetingsde); 
-        }
+   	{
+	for ( b = 0; b < 10; b = b + 1 )
+		{
+		printf ("id = %d, %s\n", omp_get_thread_num(), greetingsde); 
+		}
+   	}
 
    #pragma omp section
-     for ( a = 0; a < 100; a = a + 1 )
-        {
-        printf("%s\n", greetingsfr); 
-        }
+   	{
+	for ( c = 0; c < 10; c = c + 1 )
+		{
+		printf ("id = %d, %s\n", omp_get_thread_num(), greetingsfr);
+		} 
+   	}
     }
 return 0;
 }
 ```
 
 ```
-program sections
-        implicit none 
+program hello
+	implicit none 
         include "omp_lib.h"
 
-        character(len=16) :: greetingsen
-        character(len=16) :: greetingsde
-        character(len=16) :: greetingsfr 
-        integer :: a
-        greetingsen = "Hello World!" 
-        greetingsde = "Hallo Welt!"
-        greetingsfr = "Bonjour le monde!"       
+	character(len=16) :: greetingsen
+	character(len=16) :: greetingsde
+	character(len=16) :: greetingsfr 
+	integer :: a, b, c
+	greetingsen = "Hello World! " 
+	greetingsde = "Hallo Welt! "
+	greetingsfr = "Bonjour le monde! "	
 
-        !$omp parallel
-        !$omp sections
+	!$omp parallel 
+	!$omp sections
 
-	   !$omp section
-        do a = 1, 100
-        print *, greetingsen   
-        end do
+	!$omp section
+	do a = 1, 10
+	print *, greetingsen, "From thread: ", OMP_GET_THREAD_NUM()  
+	end do
 
-        !$omp section
-        do a = 1, 100
-        print *, greetingsde
-        end do
+	!$omp section
+	do b = 1, 10
+	print *, greetingsde, "Aus dem Faden: ", OMP_GET_THREAD_NUM()
+	end do
 
-        !$omp section
-        do a = 1, 100
-        print *, greetingsfr  
-        end do
-		
-        !$omp end sections
+	!$omp section
+	do c = 1, 10
+	print *, greetingsfr, "De fil: ", OMP_GET_THREAD_NUM()
+	end do
 
-        !$omp end parallel
-        
-end program sections
+	!$omp end sections 
+	!$omp end parallel
+	
+end program hello
 ```
 
-Two variations on the simd construct which are not elaborated here include the `declare simd` construct and the composite loop simd constructs. In the former, the `declare simd` construct enables the creation of one or more versions that can process multiple arguments using SIMD instructions from a single invocation in a SIMD loop. In the latter case, the the loop construct ensures that iterations of associated loops are distributed across existing threads and that the iterations executed by each thread can also be executed concurrently using SIMD instructions.
+Finally, with a _single_ directive an enclosed code is specified tat will be executed by only one thread in the team. This is particularly useful if a section of code is not thread-safe (such as I/O operations). Whilst only one thread (not necessarily the master thread) carries out the single task, the other threads do not carry out any execution, but wait until the end of the block, unless a nowait clause is present. One cannot branch into, or out of, a single block.
 
-The general syntax of the `declare simd` construct takes the following form in C/C++ and Fortran:
+In addition to this there are three combined parallel work constructs, namely the paralle do/for, parallel sections, and parallel workshare (Fortran only). These directives behave the same as the individual work share directives following the parallel region, but are handy for ensuring proper extent and typing convenience (e.g., `!$OMP PARALLEL DO` and `!$OMP END PARALLEL DO`, `#pragma omp parallel for`. Review the examples `matrix.c` and `matrix.f90`, compile in the standard manner (`gcc -fopenmp matrix.c -o matrixc`, `gfortran -fopenmp matrix.f90 -o matrixf`), and execute, sorting the output to see which threads execute which iterations, and determine whether the loop iterations match the directives for the matrix multiple loops (`./matrixc | sort | grep Thread | less`, `./matrixf | sort | grep Thread | less`).
 
-`#pragma omp declare simd [clauses]`
+## 3.4 Synchronisation and Tasks
 
-`!$omp declare simd [clauses]`
+Because OpenMP runs in parallel programs should be written in a manner to be thread-safe, which includes the consideration of race conditions. The possibility of multiple threads accessing the same variable and changing its value, for example, may lead to significant and disasterous problems. For example, two threads could be involved in the incrementing of a variable and then printing out the value. The possibility exists, in a non-thread safe program, that thread1 updates the variable,  thread2 then updates the variable, thread1 gets the variable and prints it (or uses it to update another value), but does not realise that the value has been updated by thread2. In this case, parallelisation have provided performance but at the cost of giving wrong and possibly unpredictably wrong answers. To avoid a situation like this, there must be some way of synchronising tasks to produce the correct result. This does require a degree of stepping back into a serial program perspective. 
 
-The general syntax of the SIMD loop constructs take the following forms in C/C++ and Fortran:
+There are a number of directives that can do this. The _master_ directive specifies a region of code that can only be executed by the master thread of the team. All other threads ignore this section, there are no implied barriers to entry or exit, and it is not possible to branch into, or out of, this directive region. In a similar manner the _critical_ directive specifies a region of code that can only be executed by one thread of the team (any thread, not just the master thread). As per the _master_ directive, it is not possible to branch into, or out of, a critical region. If a thread is currently executing inside a critical region and another thread reaches the region, it will block until the first thread exits the region, thus providing a locking mechanism. Critical regions may have a name associated with them as an optional clause, which means multiple different critical regions can exist, and those with the same name are treated as being part of the same region (all those which are unnamed are treated as being the same section). In Fortran only te names of critical constructs are global entities; ensure that the name does not conflicts with any other entity, as the behaviour cannot be predicted. The following are simple code examples illustrating the critical directive and region Note the `shared` clause in the parallel region, specifying that the variables are shared among all threads, but the critical regions ensures that only one thread at a time executes in the region.
+
 
 ```
-#pragma omp for simd [clauses]
-for-loops
-```
-```
-!$omp do simd [clauses]
-do-loops
-!$omp end do simd
+       PROGRAM CRITICAL
+
+       INTEGER X
+       X = 0
+
+ !$OMP PARALLEL SHARED(X) 
+
+ !$OMP CRITICAL 
+       X = X + 1
+ !$OMP END CRITICAL 
+
+ !$OMP END PARALLEL 
+
+       END
 ```
 
-## 3.4 Tasks and Synchronisation
+```
+#include <stdio.h>
+#include <omp.h>
+
+ main(int argc, char *argv[]) {
+
+ int x;
+ x = 0;
+
+ #pragma omp parallel shared(x) 
+   {
+
+   #pragma omp critical 
+   x = x + 1;
+
+   }  /* end of parallel region */
+
+ }
+```
+
+Another synchronisation construct is the _barrier_ directive, which forces a threat to wait at a point until all other threads have reached a barrier. When all threads at at the barrier, then they will resume executing parallel in code that follows the barrier. It is invoked in a simple directive manner (`!$OMP BARRIER`, for Fortran, `#pragma omp barrier`, in C). Likewise, the taskwait directive creates a construct which specifies a wait on the completion of child tasks as a stand-alone directive. As such, it may may not be be placed in a statement following an if, while, do, switch, or label etc. (`!$OMP TASKWAIT`, in Fortran, `#pragma omp taskwait`, in C). Further, there is an _ordered_ directive, which specifies that the iterations of a loop will be executed in the same order as if they were executed in serial, which is a little unusual as a common use of parallelisation is for loops. As a result, threads will wait before executing their parts of a loop, if previous parts haven't completed yet. The ordered directive can only appear in a DO/for extent, only one thread will be involved at a time, and it is not possible to branch in or out of an ordered region. A loop must not execute more than one ordered directive (`!$OMP DO ORDERED` in Fortran, `#pragma omp for ordered` in C).
+
+
+
+
+
+
 
 With common computational problems such as linked lists and recursive algorithms the `task` constructs are very useful to mosty efficiently implement parallelism. The general principle is that a thread generates tasks which are then executed according to the runtime system, either immediately or delayed. The task construct defines an explicit task with the following general syntax in C and Fortran: 
 
