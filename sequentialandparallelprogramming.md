@@ -1371,6 +1371,80 @@ implicit none
 end program SharedHello
 ```
 
+Comparison should be made between the scoping of private variables and a directive in OpenMP called threadprivate. The threadprivate directive allows variables to be replicated with each thread having its own copy and thus can be used to make global scope (C) variables or common blocks (Fortran) local and persistent to a thread through multiple parallel regions. The directive appears after the declaration of listed variables/common blocks. Because each thread then gets its own copy of the variabledata written by one thread is not visible to other threads.
+
+```
+PROGRAM THREADPRIV
+ 
+       INTEGER A, B, I, TID, OMP_GET_THREAD_NUM
+       REAL*4 X
+       COMMON /C1/ A
+ 
+ !$OMP THREADPRIVATE(/C1/, X) 
+ 
+ !     Explicitly turn off dynamic threads
+       CALL OMP_SET_DYNAMIC(.FALSE.)
+ 
+       PRINT *, '1st Parallel Region:'
+ !$OMP PARALLEL PRIVATE(B, TID) 
+       TID = OMP_GET_THREAD_NUM()
+       A = TID
+       B = TID
+       X = 1.1 * TID + 1.0
+       PRINT *, 'Thread',TID,':   A,B,X=',A,B,X
+ !$OMP END PARALLEL 
+ 
+       PRINT *, '************************************'
+       PRINT *, 'Master thread doing serial work here'
+       PRINT *, '************************************'
+ 
+       PRINT *, '2nd Parallel Region: '
+ !$OMP PARALLEL PRIVATE(TID) 
+       TID = OMP_GET_THREAD_NUM()
+       PRINT *, 'Thread',TID,':   A,B,X=',A,B,X
+ !$OMP END PARALLEL 
+ 
+       END
+```
+
+```
+#include <stdio.h>
+#include <omp.h> 
+ 
+ int  a, b, i, tid;
+ float x;
+ 
+ #pragma omp threadprivate(a, x)
+ 
+ main(int argc, char *argv[]) {
+ 
+   /* Explicitly turn off dynamic threads */
+   omp_set_dynamic(0);
+ 
+   printf("1st Parallel Region:\n");
+ #pragma omp parallel private(b,tid)
+   {
+   tid = omp_get_thread_num();
+   a = tid;
+   b = tid;
+   x = 1.1 * tid +1.0;
+   printf("Thread %d:   a,b,x= %d %d %f\n",tid,a,b,x);
+   }  /* end of parallel region */
+ 
+   printf("************************************\n");
+   printf("Master thread doing serial work here\n");
+   printf("************************************\n");
+ 
+   printf("2nd Parallel Region:\n");
+ #pragma omp parallel private(tid)
+   {
+   tid = omp_get_thread_num();
+   printf("Thread %d:   a,b,x= %d %d %f\n",tid,a,b,x);
+   }  /* end of parallel region */
+
+ }
+```
+
 All implementation of OpenMP must act with the assumption of internal control variables (ICVs) that control the behaviour of the program. These variables hold information such as the number of threads, the maximum size of the thread team, the number of processors, etc. There are default values given by specific implementations and they can also be manipulated during runtime.
 
 Whilst there are many ICVs (beyond the scope of this book) the following gives a description of a few major ones, their initial value, the functions for how to retrieve their value, how to modify their value, and the environment variable. Their syntax is consistent in both C and Fortran
@@ -1721,12 +1795,6 @@ There are a number of directives that can do this. The _master_ directive specif
 
 Another synchronisation construct is the _barrier_ directive, which forces a threat to wait at a point until all other threads have reached a barrier. When all threads at at the barrier, then they will resume executing parallel in code that follows the barrier. It is invoked in a simple directive manner (`!$OMP BARRIER`, for Fortran, `#pragma omp barrier`, in C). Likewise, the taskwait directive creates a construct which specifies a wait on the completion of child tasks as a stand-alone directive. As such, it may may not be be placed in a statement following an if, while, do, switch, or label etc. (`!$OMP TASKWAIT`, in Fortran, `#pragma omp taskwait`, in C). Further, there is an _ordered_ directive, which specifies that the iterations of a loop will be executed in the same order as if they were executed in serial, which is a little unusual as a common use of parallelisation is for loops. As a result, threads will wait before executing their parts of a loop, if previous parts haven't completed yet. The ordered directive can only appear in a DO/for extent, only one thread will be involved at a time, and it is not possible to branch in or out of an ordered region. A loop must not execute more than one ordered directive (`!$OMP DO ORDERED` in Fortran, `#pragma omp for ordered` in C).
 
-
-
-
-
-
-
 With common computational problems such as linked lists and recursive algorithms the `task` constructs are very useful to mosty efficiently implement parallelism. The general principle is that a thread generates tasks which are then executed according to the runtime system, either immediately or delayed. The task construct defines an explicit task with the following general syntax in C and Fortran: 
 
 ```
@@ -1945,7 +2013,86 @@ do-loops
 !$omp end distribute parallel do simd
 ```
 
-## 3.6 Combination and Summary
+## 3.6 Reductions, Combination, and Summary
+
+The reduction clause allows a reduction operation to occur on the variables in the list. A private copy for each list variable is created and initialised for each thread. At the end of the reduction, the reduction variable is applied to all private copies of the shared variable, and the final result is written to the global shared variable.
+
+Valid Operators and Initialization Values
+Operation	Fortran	C/C++	Initialization
+Addition	+	+	0
+Multiplication	*	*	1
+Subtraction	-	-	0
+Logical AND	.and.	&&	.true. / 1
+Logical OR	.or.	||	.false. / 0
+AND bitwise	iand	&	all bits on / ~0
+OR bitwise	ior	|	0
+Exclusive OR bitwise	ieor	^	0
+Equivalent	.eqv.		.true.
+Not Equivalent	.neqv.		.false.
+Maximum	max	max	Most negative #
+Minimum	min	min	Largest positive #
+
+```		
+        PROGRAM DOT_PRODUCT
+
+        INTEGER N, CHUNKSIZE, CHUNK, I
+        PARAMETER (N=100)
+        PARAMETER (CHUNKSIZE=10)
+        REAL A(N), B(N), RESULT
+
+ !      Some initializations
+        DO I = 1, N
+          A(I) = I * 1.0
+          B(I) = I * 2.0
+        ENDDO
+        RESULT= 0.0
+        CHUNK = CHUNKSIZE
+
+ !$OMP  PARALLEL DO
+ !$OMP& DEFAULT(SHARED) PRIVATE(I)
+ !$OMP& SCHEDULE(STATIC,CHUNK)
+ !$OMP& REDUCTION(+:RESULT)
+
+        DO I = 1, N
+          RESULT = RESULT + (A(I) * B(I))
+        ENDDO
+
+ !$OMP  END PARALLEL DO
+
+        PRINT *, 'Final Result= ', RESULT
+        END
+```
+
+```
+ #include <stdio.h>
+ #include <omp.h>
+
+ main(int argc, char *argv[])  {
+
+ int   i, n, chunk;
+ float a[100], b[100], result;
+
+ /* Some initializations */
+ n = 100;
+ chunk = 10;
+ result = 0.0;
+ for (i=0; i < n; i++) {
+   a[i] = i * 1.0;
+   b[i] = i * 2.0;
+   }
+
+ #pragma omp parallel for      \  
+   default(shared) private(i)  \  
+   schedule(static,chunk)      \  
+   reduction(+:result)  
+
+   for (i=0; i < n; i++)
+     result = result + (a[i] * b[i]);
+
+ printf("Final result= %f\n",result);
+
+ }
+```
 
 A combined example of many of the clauses to date can be found in the resource file, `Dijkstra.c`, which implements the Dijkstra's algorithm
 for finding the shortest paths between nodes in a graph (e.g., a network). The program itself is from Professor Norm Matloff University of California, Davis (original code did not have this attribution). Note the use of parallel, single, barrier, and critical clauses in the program. The "parallel" clause establishes a directive to have each thread act on the block. The "single" clause ensures that only one thread executes the block. The "barrier" clause performs a barrier operation. Whilst normally implicit, barriers can be overriden with the "nowaitr" clause. The "critical" clause ensures a section has lock/unlock operations.
