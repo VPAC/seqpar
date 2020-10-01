@@ -49,6 +49,8 @@ All trademarks are property of their respective owners.
 3.3 Work Sharing and Task Constructs
 3.4 Tasks and Synchronisation
 3.5 Targets and Teams
+3.6 Reductions, Combination, and Summary
+3.7 POSIX Threads Programming
 
 4.0 OpenMPI Distributed Memory Programming
 4.1 Distributed Memory Concepts
@@ -65,15 +67,16 @@ All trademarks are property of their respective owners.
 5.3 CUDA Programming
 
 6.0 Profiling and Debugging
-6.1 Profiling with Grof, TAU and PDT
-6.2 Memory Checking with Valgrind
-6.3 Debugging with GDB
+6.1 Testing Approaches
+6.2 Profiling with Grof, TAU and PDT
+6.3 Memory Checking with Valgrind
+6.4 Debugging with GDB
 
 6.0 References
 
 # 0.0 Introduction
 
-# 0.1 Foreward
+## 0.1 Foreward
 
 It is finally time for a book like this one.
 
@@ -101,7 +104,7 @@ Lev Lafayette approaches the subject with just the right touch of Australian lev
 
 John L. Gustafson
 
-# 0.2 Preface
+## 0.2 Preface
 
 In many ways contemporary computing is an elaboration of mechanical automation and calculation, whose origins can date back at least to the Antikythera mechanism, from approximately 150 to 100 BCE, and was used for astronomical positions and calendaring. From there multiple chains of inquiry can be traced to the development of programmable automata, the feedback mechanism for sails on windmills, centrifugal governor originally for mills and steam engines, the Jacquard loom's logic board, and Charles Babbage's Analytical Engine. The honour of the first real programmer goes to Ada Lovelace, who theorised that the Analytical Engine could engage in logical computation of symbols as well as numbers and wrote the first program which calculated a sequence of Bernoulli numbers.
 
@@ -424,7 +427,7 @@ Martin argues that a professional should tell the truth, even and especially if 
 
 Finally there is Wilson et al (2014) who have an excellent paper "Best Practices for Scientific Computing". Here is a summary of their core principles, as the subheadings:
 
-````
+```
 Summary of Best Practices
 
 1. Write programs for people, not computers.
@@ -492,7 +495,9 @@ As for quantum computing, this is not just meant as a throw-away line designed t
 
 Fortran and C are two of the most deployed programming languages in existence. Whilst languages do rise and fall in popularity, these two in particular have been in use since 1957 and 1972 respectively and are still in very active development. For those interested in scientific or high performance computing in particular, there can be little doubt that these will be of primary use for a significant period of time into the future, as they are they primary languages for implementations of shared memory parallelism (OpenMP) and message passing (MPI). Both languages are sufficiently important to have standards established by the ISO. Certainly they are not recommended for all programming activities; in many cases a simpler language such as a shell script, perl, python etc will be sufficient. But when it comes down to complex data structures, speed, and parallel processing, C and Fortran are the preferred choice.
 
-The purpose of this chapter is not so much to provide an in-depth overview of the two languages. There are already many books that do this and are excellent in this regard. Rather, it is to provide a sufficient grounding that a reader who is unfamiliar with programming in these language, but does have some programming experience, is able to follow the code examples. More importantly at this stage however is the conceptual grounding provided in placing C and Fortran within the wide range of programming languages available, and in particular providing various suggestions on coding practice that should be followed for programs of any level of complexity.  Whilst this important for sequential programs, it is absolutely critical for any parallel programs.
+The purpose of this chapter is not so much to provide an in-depth overview of the two languages. There are already many books that do this and are excellent in this regard. For C, the classic is _The C Programming Language_ by Brian W. Kernighan and Dennis M. Ritchie (1978), although to be compatiable with the ANSI stanard the second edition (1988) is recommended. The _C Programming Absolute Beginner's Guide_ by Greg Perry and Dean Miller (2013) is an excellent introduction to the language as well. More advanced content can be found in _Mastering Algorithms with C_ by Kyle Loudon (1999). For Fortran an excellent overview is available in _Fortran 90/95 Explained_ by Metcalf an Reid (1996, second edition, 1999). As one encounters older code _Upgrading to Fortran 90_ by Redwine (1995) will provide the examples necessary to navigate. For more advanced examples, _Numerical Recipes Example Book (Fortran) 2nd Edition_ by Press (1992) provides annotated examples of various subroutines; a C version is available as well.
+
+Instead, the purpose of this chapter it is to provide a sufficient grounding that a reader who is unfamiliar with programming in these languages, but does have a little bit of programming experience, is able to follow the code examples. More importantly at this stage however is the conceptual grounding provided in placing C and Fortran within the wide range of programming languages available, and in particular providing various suggestions on coding practice that should be followed for programs of any level of complexity.  Whilst this important for sequential programs, it is absolutely critical for any parallel programs.
 
 Both Fortran and C have a particular history and implementations. As mentioned, Fortran was first implemented in 1957 by IBM and was quickly adopted as it was relatively easy to program and had a performance comparable to programs written in assembly language. Early versions included support for procedural programming. A significant development occurred in 1966 with a ANSI standard release, which would be elaborated in 1978 (known as FORTRAN77) with a release that supported structured programming with block statements. Early version of FORTRAN required six spaces before any commands were declared for operations with punch-card systems. 
 
@@ -551,6 +556,22 @@ The two examples that follow illustrate the basic structure in Fortran and C lan
 
 In C, the comment block can be multi-line. In Fortran each line (or inline) comment needs to be initiated by the exclamation mark. Comments should introduce the program and be applied sufficiently to improve the readability of the code; and wary of over-commenting. The argument that comments should be used liberally to improve readability is simply not true. Liberal use of comments can reduce readability. The best criteria for commenting is that it is complete enough to make it clear to probable readers – especially and primarily the authors of the code - and that is is correct (i.e., the comments and the code agree). Commenting certainly proves its worth months later when code will be revised and often by different people to the original authors. Often various hacks are commented to explain what was done and why. Whilst this is better than leaving the change without comments, it is better still to rewrite the code. Of course this isn't always available. Sometimes other code or compilers that are controlled by other people require various workarounds. In which case, make this explicit.
 
+It is sometimes said that everything that follows a comment is ignored by the compiler; this isn't quite true as it depends very much on the compiler flags are that are raised during the process of compilation. When this book moves from sequential to parallel programming using OpenMP one will see how what appears to be a comment when compiled without the OpenMP library will be interpreted as a comment, and when it is compiled with the directives, the library, and with the right compiler flags it will be compiled in a parallel manner. The same can be said in the way that the scheduler interprets directives which are understood by the shell to be comments, or by how OpenACC directives are interpreted for GPGPU acceleration.
+
+A less common formatting characteristic (and not used in this text) is the use of continuation lines, that is, where the compiler should read source code as a single line, but for the programmer it is represented as multiple lines. In Fortran the continuation character is `&`. In C, a continued line is a line that ends with a backslash, `\`. To give examples from Fortran and C
+
+``
+Total = subtotal + &
+	multiplicand * multiplier
+! Total = subtotal + multiplicand * multiplier
+```
+
+```
+Total = subtotal + \
+	multiplicand * multiplier
+// Total = subtotal + multiplicand * multiplier
+```
+
 Functions, subroutines, procedures, modules, subprograms - all are a part of the decomposition of tasks in a program, which breaks down a complex program into more understandable and maintainable parts, and as result are the most important feature of the structured programming paradigm. It reduces repetition of code within a program, provides easier means for code re-use across multiple programs, and improves debugging by providing clarity in traces. Such methods provide the instructions of a specific task as a single unit and like the main program itself should also be introduced with a comment, especially to note the input and output parameters and their purpose. Function names should illustrate the activity of the function. Also, develop an awareness of existing libraries; it is much easier to use code that is already written.
 
 Arguments to subprograms are called by value or reference in C and Fortran. In Fortran a procedure is defined as a group of statements that perform a well-defined task and can be invoked from the program. A function is a type of procedure that returns a single value. In contrast a subroutine does not return a value, but can modify the arguments parsed to it. In C, what Fortran would call a procedure, function, or subroutine, are just called functions. In Fortran, a module is a separate collection of different functions and subroutines are kept and can be invoked by the `use modulename` command. In C the equivalent can be achieved by  preprocessor directives.
@@ -605,6 +626,10 @@ clean:
 A strength of a programming language is its capacity to employ symbolic identifiers which references storage locations that holds a value; the compiler will replace the symbolic identifier with the actual location of the data. These values can be variable or constant and have a data type. The typical datatypes used in programming languages, including C and Fortran, include integers, floating-point numbers, logicals, characters and strings, with certain elaborations which will be explained soon.
 
 The basic principle is that variables have a great deal of flexibility, whereas constants can provide form of self-documenting code, and provide checks that constancy assumptions are not violated. They also provide a means by which literals (e.g., a number or string) can be easily referred to and updated if necessary. In both cases of these value assignments, the symbolic identifier should be both meaningful and unique, avoiding confusion between other identifiers in the code. Earlier version of Fortran (up to Fortran77) were not very friendly in this regard and, unfortunately, bad habits continue even through this comptemporary time. Very old FORTRAN (FORTRAN IV, aka FORTRAN66) used what was called the I-N rule; undeclared variables were assumed by the compiler to be typed REAL, unless they started with I-N in which case they were assumed to be INtegers. In Fortran77 variable names were limited to six characters from alphanumerics, with the first character a letter. It did not distinguish between upper and lower case; and assumed the former.
+
+Constants in Fortran 90 may be of the types integer, real, logical, complex, and string. Integer constants are a series of digits prefixed with an optional sign. Real constants may be expressed in decimal form as a series of digits with a decimal point and an optional sign, or as an exponential form where a real or integer is followed by E/e as the exponent (e.g., "10E3" to represent 10^3). Logical constants are expressed as ".TRUE." or ".FALSE.", with the periods non-optional. Character constants are a string, the content, encapsulated by single or double-quotes. The length of the string includes white space in the encapsulated area. If quotes are used within a string, use alternate quotes for encapsulation (e.g., "Fortran's constants"). Two consective quotes are treated as one (e.g., "Fortran''s constants" = "Fortran's constants").
+
+In C, constants, also known as literals, can be a character type (char), an integer (int), a single-precision floating point value (float), a double-precision floating point number (double), or enumerated values. Integer literals may be expressed as a decimal, octal, or hexadecimal notation with a special prefix for the base, 0x or 0X for hexadecimal and 0 for octal. Integer literals can also have a 'U', 'u' or 'L', 'l' suffix to for unsigned or long. Floating-point literals, like in Fortran, can be represented either in decimal form or exponential form. In the decimal form a decimal point must be included, in an exponent form, the exponent is introduced by e or E. Character literals are enclosed in single quotes, e.g., 'x', and can consist of standard characters, escape sequences (e.g., '\t'), or a universal character (e.g., ' \u3b2c' - go on, look it up). Certain characters in C that represent special meaning when preceded by a backslash for example, newline (\n) or tab (\t). String literals are enclosed in double quotes and may consist of standard characters, escape sequences, and universal characters.
 
 In more contemporary times longer and more explicit names are preferable to shorter obscure identifiers which can be ambiguous even within the same area of inquiry e.g., does an identifier named APC 'activated protein C', 'adenomatous polyposis coli', or 'argon plasma coagulation'? (Examples from "Abbreviation and Acronym Disambiguation in Clinical Discourse", AMIA Annual Symposium Proceedings. 2005; 2005: 5899-593). One method to assist in this is to stringently avoid having too many temporary value identifiers, typically applied to variables. 
 
@@ -778,7 +803,6 @@ int main (void)
 
 Programming languages like C and Fortran can provide operations on variables and constants with results depending on the data type. The common operations to both languages which are discussed here are arithmetic, logical, and relational. C also has some assignment operations which will be described here in context, along with bitwise operations (logical expressions applied on the bit-by-bit level), and ternary operations, pointer assignments, and others, which will be mentioned only in passing. The following tables illustrate the different operations allowed in the two languages. Note that in Fortran there is two types of relational operations. If an expression appears to be overly complex, consider using propositional logic for transformation rules to make the statements clearer.
 
-
 ### Arithmetic Operators
 
 C Operator Fortran Operator Description
@@ -890,9 +914,6 @@ counterc = 99
 	print *, greetings   
    end do 
 ```
-
-
-
 
 As should be expected, more complex loops can be created by nesting any variety of loops within loops. C has a `break` statement and Fortran a `exit` statement, both of which will terminate a loop and exit, transferring execution to the statement following the loop. The `continue` statement in C or the `cycle` statement in Fortran will cause the loop to skip the rest of the code block and return to the conditional statement for the next iteration. 
 
@@ -1172,13 +1193,13 @@ read(1,*)
 write(1,*)
 ```
 
-## 3.0 Shared Memory Parallel Programming with OpenMP
+# 3.0 Shared Memory Parallel Programming with OpenMP
 
-### 3.1 Shared Memory Concepts and the OpenMP Implementation
+## 3.1 Shared Memory Concepts and the OpenMP Implementation
 
 As mentioned in the first chapter, a tread is the smallest instruction set managed by an operating system. Whilst a process is allocated resources, such as memory, multiple thread can exist in the same process sharing instructions, context (e.g., variables), and resources. In a unicore environment, the operating system may be able to manage multithreaded concurrency by switching between different threads. In a multicore system however, multiple threads can be executed in parallel. The distinction between concurrency and parallelism is emphasized, and illustrated as subsets. Within the set of all programs there is a subset that are concurrent programs. Within the set of concurrent programs, there is a smaller set of parallel programs.
 
-Whilst concurrent programs have advantages over single-threaded programs, multi-threading has greater advantages. A multi-threaded progam can have faster execution on multicore systems. It can also be more responsive with some careful design; on a single-threaded program if the main executation thread takes time, then the entire program must also be follow suit. In a multi-threaded program long-running tasks can be moved to a seperate thread allowing the program to be responsive in other threads. However, as mentioned in the first chapter, multi-threading does however have the issue of race conditions, deadlock, and livelocks. It also suffers the problem that if a thread crashes, can causes the entire process to crash.
+Whilst concurrent programs have advantages over single-threaded programs, multi-threading has greater advantages. A multi-threaded progam can have faster execution on multicore systems. It can also be more responsive with some careful design; on a single-threaded program if the main executetion thread takes time, then the entire program must also be follow suit. In a multi-threaded program long-running tasks can be moved to a seperate thread allowing the program to be responsive in other threads. However, as mentioned in the first chapter, multi-threading does however have the issue of race conditions, deadlock, and livelocks. It also suffers the problem that if a thread crashes, can causes the entire process to crash.
 
 The earliest appearance of multithreading was in the System/360 IBM mainframe computer in 1964 with Multiprogramming with a Variable number of Tasks (MVT), although it was not publically available until 1967 due to numerous bugs. MVT treated all non-operating system memory as a single pool, a shared memory space, which allowed for simultaneous application and system operations. At the time the System/360 lacked memory relocation hardware. Instead, a it used a Rollout/Rollin process that could swap a running job out to secondary storage to make its memory available to another job. The rolled-out job would, however, have to be "rolled-in" to the original memory locations when they again became available. In 1971 a Time Sharing Option for MVT was added which included an editor, the ability to submit batch jobs, and receive notification and results.
 
@@ -1189,19 +1210,19 @@ A fork-join approach can be used in multithreading. This is the method used by O
 <img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
 (image from Wikipedia, user: Qwetyus)
 
-In this book, the higher level, OpenMP interface is used, rather than the lower-level pthreads approach. OpenMP is an application programming interface, an elaboration of existing programming languages (specifically C and Fortran). The standards are governed by The OpenMP Architecture Review Board (ARB) which was formed in 1997 as a non-profit organisation from DEC, IBM, and Intel, and motivated by a common need to standardise coding for symmetric multiprocessing systems (SMPs). From the 1980s onwards SMP vendors had been developing special and different notation to distribute tasks between individual SMP processors and to provide a framework for access order. As if often the case in such situations, there are many good ideas from the diverse range of sources, but little portability and standardisation.
+In this book, the higher level, OpenMP interface is emphasized, rather than the lower-level pthreads approach, although there is a brief section on Pthreads. For an introductory text, OpenMP provides the programmer the ability to simply define parallel regions, control the parallelisation of loops, specify whether variables are private or shared, control the synchronisation of threads, and control tasks. OpenMP is an application programming interface, an elaboration of existing programming languages (specifically C and Fortran). The standards are governed by The OpenMP Architecture Review Board (ARB) which was formed in 1997 as a non-profit organisation from DEC, IBM, and Intel, and motivated by a common need to standardise coding for symmetric multiprocessing systems (SMPs). From the 1980s onwards SMP vendors had been developing special and different notation to distribute tasks between individual SMP processors and to provide a framework for access order. As if often the case in such situations, there are many good ideas from the diverse range of sources, but little portability and standardisation.
 
-The first API for OpenMP was developed for Fortran in 19917, and for C/C++ in 1998. In 2000 a new major version release occured for Fortran specification, with C/C++ specification in 2002. A single API was developed for the two language families in version 2.5 in 2005. Version 3.0 was released in 2008 which included in the new features tasks and the task constructs. In 2013 version 4.0 was released which included support for accelerators, sequentially consistent atomics, improved error handling, thread affinity, additional tasking extensions, SIMD, user defined reductions, and Fortran 2003 support. OpenMP is supported by compilers that support Fortran 77, Fortran 90, Fortran 95, Fortran 2003, ANSI 89 C or ANSI C++. However the OpenMP specification does not introduce any constructs that require specific Fortran 90 or C++ features 
+The first API for OpenMP was developed for Fortran in 1997, and for C/C++ in 1998. In 2000 a new major version release occured for Fortran specification, with C/C++ specification in 2002. A single API was developed for the two language families in version 2.5 in 2005. Version 3.0 was released in 2008 which included in the new features tasks and the task constructs. In 2013 version 4.0 was released which included support for accelerators, sequentially consistent atomics, improved error handling, thread affinity, additional tasking extensions, SIMD, user defined reductions, and Fortran 2003 support. OpenMP is supported by compilers that support Fortran 77, Fortran 90, Fortran 95, Fortran 2003, ANSI 89 C or ANSI C++. However the OpenMP specification does not introduce any constructs that require specific Fortran 90 or C++ features 
 
 As an organisation, the OpenMP Architecture Review Board, currently consists of thirteen permanent and thirteen auxillery members. The permanent members are vendors with a long-standing interest in creating OpenMP products and include corporations such as AMD, Cray, HP, Intel, IBM, and Red Hat. The auxiliary members are typically those with an interest in the standard but that do not create or sell OpenMP products. They are often research groups and higher edcuation bodies, and include Argonne National Laboratory, Lawrence Livermore National Laboratory, the Edinburgh Parallel Computing Centre, and NASA. The OpenMP Board of Directors conducts the corporate governance, whilst the Officers run the organisation. In addition there are Language, Tools, and Marketing committees, an annual conference (The International Workshop on OpenMP, IWOMP), and the Community of OpenMP Users (cOMPunity), consisting of OpenMP students, researchers, and developers. 
 
-Special mention here is also made for the Lawrence Livermore National Laboratory where a great deal of the example code is derived.
+In a nutshell, OpenMP provides a library for parallel programming for a SMP (symmetric multi-processors or shared-memory processors) model. When a program is compiled, in C, C++, or Fortran, with OpenMP flags all threads will share memory and data with the OpenMP functions and routines are included in the `omp.h` header file, which must be included with all OMP programs. A program compiled with OpenMP will have sequential and parallel regions, and almost always starts with the former. One thread will be used in sequential regions and more than one in the parallel sections, with the exact number (and associated cores) subject to the programmer's control. One thread will run from the beginning the end of the program, known as the master thread. Other threads, workers, will initiate in parallel regions. Parallel regions will be marked in the code by directives, known as pragmas (C) or sentinels (Fortran)
 
-The URLs for the respective bodies are as follows:
+Special mention here is also made for the Lawrence Livermore National Laboratory where a great deal of the example code is derived. The URLs for the respective bodies mentioned in this introduction are as follows:
 
-http://openmp.org
-http://www.iwomp.org
-http://compunity.org
+`http://openmp.org`
+`http://www.iwomp.org`
+`http://compunity.org`
 
 ## 3.2 Directives and Internal Control Variables
 
@@ -1245,7 +1266,13 @@ int main(void)
        end program helloomp
 ```
 
-When compiled, the respective programs will print `hello world` equal to the number of cores on the shared-memory system. As mentioned compilation explicitly requires options that inform the compiler to be attentive to compiler directives that would otherwise be interpreted as comments. For example, compile the software first without the OMP flags and then with:
+When compiled, the respective programs will print `hello world` equal to the number of cores on the shared-memory system. As mentioned compilation explicitly requires options that inform the compiler to be attentive to compiler directives that would otherwise be interpreted as comments. For example, compile the software first without the OMP flags and then with and evaluate the results:
+
+`gcc helloomp1.c -o helloompc`
+`./helloompc`
+
+`gfortran helloomp1.f90 -o helloompf`
+`./helloompf`
 
 `gcc -fopenmp helloomp1.c -o helloompc`
 `./helloompc`
@@ -1274,11 +1301,9 @@ export OMP_NUM_THREADS=16
 ./helloompf
 ```
 
-A more elaborate version will specify the appropriate include file and the runtime library to specify the number of threads and thread ID.  Note that the parallel section will override the export value given previously. If no num_threads is specified, it will use the full sixteen that were exported.  
+A more elaborate version will specify the appropriate include file and the runtime library to specify the number of threads and thread ID.  Note that the parallel section will override the export value given previously. If no num_threads is specified, it will use the full sixteen that were exported.  The programs also use a private variable to each thread.  By default a variable is shared among threads. The private (variable) option in the directive it ensures that the variable is private to the thread that is using it. 
 
-The programs also use a private variable to each thread.  By default a variable is shared among threads. The private (variable) option in the directive it ensures that the variable is private to the thread that is using it. 
-
-Note that this examples (`helloomp1.c`, `helloomp2.f90`) explicitly illustrates how OpenMP and multi-threaded applications could cause a race condition; the treadIDs will probably not be in order. These two programs are presented in full in order here in order for the reader to work through the logic, line-by-line.
+Note that this examples (`helloomp1.c`, `helloomp2.f90`) explicitly illustrates how OpenMP and multi-threaded applications could cause a race condition; the treadIDs will probably not be in order, and the results should vary each time the program is executed. These two programs are presented in full in order here in order for the reader to work through the logic, line-by-line.
 
 ```
 #include <stdio.h>
@@ -1335,7 +1360,7 @@ Note that this examples (`helloomp1.c`, `helloomp2.f90`) explicitly illustrates 
 
 It is necessary to be attentive to the scope of directives. There are a number of scoping rules on how directives bind and nest with each other and getting these wrong will result in program error. A _static_ extent is enclosed in the structured block following the directive and does not apply across multiple routines, for example a do/for directive that occurs within a parallel region. An _orphaned_ directive has directives (properly structured) but without a enclosing parallel. The extent of static and orphaned directived constitutes a _dynamic_ extent. 
 
-The next version of the program illustrates how the same variable name can have different values within the parallel section and outside it.
+The next version of the program illustrates how the same variable name can have different values within the parallel section and outside it. In addition, the parallel regions make use of private variables. In a parallel region variables can be private or shared; if they are private they are private to each thread and each thread will have its own local copy of the variable. The variable is neither initialised or kept outside of the parallel region. With shared variables, the variable is visible and accessible to all threads. Whilst memory efficient, this can lead to race conditions - although sometimes that is desired. By default, the loop iteration counters are private, and variables in a work-sharing region are shared.
 
 ```
 program SharedHello
@@ -1371,7 +1396,7 @@ implicit none
 end program SharedHello
 ```
 
-Comparison should be made between the scoping of private variables and a directive in OpenMP called threadprivate. The threadprivate directive allows variables to be replicated with each thread having its own copy and thus can be used to make global scope (C) variables or common blocks (Fortran) local and persistent to a thread through multiple parallel regions. The directive appears after the declaration of listed variables/common blocks. Because each thread then gets its own copy of the variabledata written by one thread is not visible to other threads.
+Comparison should be made between the scoping of private variables and a directive in OpenMP called threadprivate. The threadprivate directive allows variables to be replicated with each thread having its own copy and thus can be used to make global scope (C) variables or common blocks (Fortran) local and persistent to a thread through multiple parallel regions. The directive appears after the declaration of listed variables/common blocks. Because each thread then gets its own copy of the variable data written by one thread is not visible to other threads.
 
 ```
 PROGRAM THREADPRIV
@@ -1445,9 +1470,9 @@ PROGRAM THREADPRIV
  }
 ```
 
-All implementation of OpenMP must act with the assumption of internal control variables (ICVs) that control the behaviour of the program. These variables hold information such as the number of threads, the maximum size of the thread team, the number of processors, etc. There are default values given by specific implementations and they can also be manipulated during runtime.
+All implementations of OpenMP must act with the assumption of internal control variables (ICVs) that control the behaviour of the program. These variables hold information such as the number of threads, the maximum size of the thread team, the number of processors, etc. There are default values given by specific implementations and they can also be manipulated during runtime.
 
-Whilst there are many ICVs (beyond the scope of this book) the following gives a description of a few major ones, their initial value, the functions for how to retrieve their value, how to modify their value, and the environment variable. Their syntax is consistent in both C and Fortran
+Whilst there are many ICVs (beyond the scope of this book) the following gives a description of a few major ones, their initial values, the functions for how to retrieve their values, how to modify their values, and the environment variable. Their syntax is consistent in both C and Fortran
 
 **dyn-var**. Operates within parallel regions. The default value is set to `false` unless the implementation supports dynamic adjustment of the number of threads, in which case it is set by the implementation. It controls whether dynamic adjustment of the number of threads is enabled for encountered parallel regions. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_dynamic()`, and modified with `omp_set_dynamic()`. It uses OMP_DYNAMIC as an environment variable.
 
@@ -1458,8 +1483,7 @@ Whilst there are many ICVs (beyond the scope of this book) the following gives a
 **thread-limit-var**. It controls the maximum number of threads participating in a contention
 group. There is one copy of this ICV per data environment. The value may be retrieved with `omp_get_thread_limit()`, and modified with `thread_limit` clause. It uses OMP_THREAD_LIMIT as an environment variable.
 
-**max-active-levels-var**. It controls the maximum number of nested active parallel regions.
-There is one copy of this ICV per device. The value may be retrived with `omp_get_max_active_levels()` and modified with `omp_set_max_active_levels()`. It uses OMP_MAX_ACTIVE_LEVELS as an environment variable.
+**max-active-levels-var**. It controls the maximum number of nested active parallel regions. There is one copy of this ICV per device. The value may be retrived with `omp_get_max_active_levels()` and modified with `omp_set_max_active_levels()`. It uses OMP_MAX_ACTIVE_LEVELS as an environment variable.
  
 The OpenMP Application Programming Interface Examples Version 4.0.2 (March 2015) contains an absolutely superb example of internal control variables and their interactions with runtime library routines which is included in the programs with this book (icv1.f90 and icv.c). Four ICV's - nest-var, mex-active-levels-var, dyn-var, and nthreads-var - are modified by calls their respective library routines (omp_set_nested(), omp_set_max_active_levels(), omp_set_dynamic(), and omp_set_num_threads()). Apart the previously described parallel directives, the program also makes use of the single directive, that specifies that the enclosed code is only to be executed by one thread in the team, and the barrier directive, which synchronises all threads in the team. It is recommended that one experiment with the program by changing the number of threads in the inner and outer parallel regions to gain a fuller understanding of the interactions. The unchanged version can be compiled and executed as follows:
 
@@ -1630,7 +1654,7 @@ do-loops
 !$omp end do simd
 ```
 
-As seen the parallel construct is absolutely fundamental to OpenMP as it initiates a parallel execution region. The thread that encounters construct becomes the master thread of the new team, with a thread number of zero. All other threads have their own unique identity. All threads in the new team, including the master thread, execute the parallel region. At the end of a parallel region, only the master thread of the team continues execution. The number of threads will be determined by the value of the `if` or `num_threads`, if any, in the directive. Otherwise it will be determined by the current parallel context.
+As seen the parallel construct is absolutely fundamental to OpenMP as it initiates a parallel execution region. The thread that encounters construct becomes the master thread of the new team, with a thread number of zero. All other threads have their own unique identity. All threads in the new team, including the master thread, execute the parallel region. At the end of a parallel region, only the master thread of the team continues execution. The number of threads will be determined by the value of the `if` or `num_threads`, if any, in the directive. Otherwise it will be determined by the current parallel context. Note however that there are some limitations in parallel loops in OpenMP that are not necessarily the case in sequential loops. For example, when an OpenMP unrolls and assigns iterations among threads it cannot parallelise loops that have dependencies, such as when variables in a loop have a `break` statement or if loop controls are varied within iterations of the loop.
 
 The way that a construct manages the threads allocated to it can vary, these are the "work-sharing constructs". A work-sharing construct must be enclosed within a parallel region in order for the directive to execute in parallel. Work-sharing constructs do not launch new threads, and whilst there is no implied barrier to entry there is on at the end of the construct. There are three basic types that exist with the parallel region. The first, a "DO/for" construct shares iterations of a loop over members of the team, so rather than a single threaded application where each section of the loop occurs in serial, the number of iterations that must occur is divided among the threads that carry it out in parallel. In contrast with a "sections" construct the work is separated into separate sections, which may be quite different in each thread, distinct from the "DO/for" construct. Finally, there is there "single" construct which takes a part of code in a parallel region and allocates a single thread to it to run in serial; the other threads in the team take no action.
 
@@ -1754,6 +1778,8 @@ In addition to this there are three combined parallel work constructs, namely th
 Because OpenMP runs in parallel programs should be written in a manner to be thread-safe, which includes the consideration of race conditions. The possibility of multiple threads accessing the same variable and changing its value, for example, may lead to significant and disasterous problems. For example, two threads could be involved in the incrementing of a variable and then printing out the value. The possibility exists, in a non-thread safe program, that thread1 updates the variable,  thread2 then updates the variable, thread1 gets the variable and prints it (or uses it to update another value), but does not realise that the value has been updated by thread2. In this case, parallelisation have provided performance but at the cost of giving wrong and possibly unpredictably wrong answers. To avoid a situation like this, there must be some way of synchronising tasks to produce the correct result. This does require a degree of stepping back into a serial program perspective. 
 
 There are a number of directives that can do this. The _master_ directive specifies a region of code that can only be executed by the master thread of the team. All other threads ignore this section, there are no implied barriers to entry or exit, and it is not possible to branch into, or out of, this directive region. In a similar manner the _critical_ directive specifies a region of code that can only be executed by one thread of the team (any thread, not just the master thread). As per the _master_ directive, it is not possible to branch into, or out of, a critical region. If a thread is currently executing inside a critical region and another thread reaches the region, it will block until the first thread exits the region, thus providing a locking mechanism. Critical regions may have a name associated with them as an optional clause, which means multiple different critical regions can exist, and those with the same name are treated as being part of the same region (all those which are unnamed are treated as being the same section). In Fortran only te names of critical constructs are global entities; ensure that the name does not conflicts with any other entity, as the behaviour cannot be predicted. The following are simple code examples illustrating the critical directive and region Note the `shared` clause in the parallel region, specifying that the variables are shared among all threads, but the critical regions ensures that only one thread at a time executes in the region.
+
+To give a summary, OpenMP provides the tools to control how a program synchronises threads in a parallel region. The _critical_ directive will ensure that the code block will only be executed one thread at a time, rather than simultaneously, and can be used to protect shared variables from race conditions. The _atomic_ directive ensure that memory updates are performed atomically. The _ordered_ directive ensures that a structured block is exectured in the order in which iterations would occur in a sequential loop. The _barrier_ directive ensures that each thread waits until all of the other threads of a team have reached this point (again, work-sharing constructs have an implicit barrier), whereas the _nowait_ directive allows threads to continue without waiting to threads in the team to finish. Basically, the programmer has control - which means that they must _think_ about what their threads are doing. Which is why breaking a program down to smaller components is a good strategy for controlling expected outcomes.
 
 
 ```
@@ -2013,7 +2039,7 @@ do-loops
 !$omp end distribute parallel do simd
 ```
 
-## 3.6 Reductions, Combination, and Summary
+### 3.6 Reductions, Combination, and Summary
 
 The reduction clause allows a reduction operation to occur on the variables in the list. A private copy for each list variable is created and initialised for each thread. At the end of the reduction, the reduction variable is applied to all private copies of the shared variable, and the final result is written to the global shared variable.
 
@@ -2095,7 +2121,7 @@ Minimum	min	min	Largest positive #
 ```
 
 A combined example of many of the clauses to date can be found in the resource file, `Dijkstra.c`, which implements the Dijkstra's algorithm
-for finding the shortest paths between nodes in a graph (e.g., a network). The program itself is from Professor Norm Matloff University of California, Davis (original code did not have this attribution). Note the use of parallel, single, barrier, and critical clauses in the program. The "parallel" clause establishes a directive to have each thread act on the block. The "single" clause ensures that only one thread executes the block. The "barrier" clause performs a barrier operation. Whilst normally implicit, barriers can be overriden with the "nowaitr" clause. The "critical" clause ensures a section has lock/unlock operations.
+for finding the shortest paths between nodes in a graph (e.g., a network). The program itself is from Professor Norm Matloff University of California, Davis (original code did not have this attribution). Note the use of parallel, single, barrier, and critical clauses in the program. The "parallel" clause establishes a directive to have each thread act on the block. The "single" clause ensures that only one thread executes the block. The "barrier" clause performs a barrier operation. Whilst normally implicit, barriers can be overriden with the "nowait" clause. The "critical" clause ensures a section has lock/unlock operations.
 
 As a summary is of concepts and clauses, derived from a very similar document from the Lawrence Livermore Natinal Laboratories.
 
@@ -2136,8 +2162,59 @@ C/C++ Version
    structured_block
 ```
 
-This brings us to an end of the chapter on OpenMP; rather like the following chapter on OpenMPI only a cursorary exploration of the major capabilities have been provided. However they should be a sufficient overview to start converting sequential code into parallel code immediately and with minimum effort whilst also providing the grounding for future exploration and detail.
+This brings us to an end of an introduction to OpenMP; rather like the following chapter on OpenMPI only a cursorary exploration of the major capabilities have been provided. However they should be a sufficient overview to start converting sequential code into parallel code immediately and with minimum effort whilst also providing the grounding for future exploration and detail.
 
+## 3.7 POSIX Threads Programming
+
+It is handy to know what's behind the curtain, even if one is not going to delve too deeply into such things in an introductory text. With this in mind one can consider a basic introduction to POSIX threads programming (PThreads) API, which are implemented in the Linux system with the Native POSIX Thread Library (NTL). As described previously, when a process is forked it creates a new process with its own resources, such as instructions, data, and stack. When a thread is created however the only new element is a stack which is unique for that thread and, in the Linux environment, is identified by a thread identifier within the process, and with its own context (program counter, registers etc). The data space and text space (instructions) remains shared within the process. As emphasised previously, and it's worth emphasising again (and again), the shared space in a multi-threaded application is the source of potential problems and in almost all occasions one will need to develop ways of protecting the resource from multiple simultaneous access.
+
+All multithreaded programs make use of the pthread standard header which includes function prototypes and symbols, and is invoked in a program with `#include <pthread.h>` and are compiled with `-pthread`. All multithreaded applications must create and destroy threads, which is achieved by the `pthread_create` and `pthread_exit` functions. The `pthread_create` function is associated with a `pthread_t` object with a function, representing the code that will be executed within the thread, along with an optional set of attribributes with `pthread_attr_t` (via `pthread_attr_init`). The following code snippet illustrates this example:
+
+```
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                          void *(*start_routine) (void *), void *arg);
+..
+       void pthread_exit(void *retval);
+```
+
+The `pthread_self()` function is used to return the unique identifier of the thread, which is particularly handy for thread management. In the `pthread_create` a `pthread_t` object reference is passed which allows the thread create to know the identifier for that thread. Another thread function that is extremely useful is `pthread_join` waits for a specified thread to terminate. The function will resultin a EDEADLK error if a deadlock was detected, for example if two threads tried to join with each other. A successful call to `pthread_join()` means that any susequent clean-ups (e.g., freeing memory) can be carried out knowing that the target thread has terminated. The function is called as follows:
+
+```
+int pthread_join(pthread_t thread, void **retval);
+```
+
+Multi-threaded programming often requires critical sections which enforce exclusive acess to prevent data corruption. This is achieved my a mutual exclusion object variable, also known as 'mutex'. To create a mutux declare a variable that represents the mutex and initialisae with a symbolic contant. The mutex will be of type `pthread_mutex_t`. There are three types of initializer, the fast mutex, the recursive mutex, and the error-checking muex. The fast mutex is the basic, and most common, initializer. The recursive mutex allows the mutex to be locked several times, without blocking, as long as it's locked by the thread. The error-checking mutex can be used when finding errors when debugging. For example:
+
+`pthread_mutex_t myMutex = PTHREAT_MUTEX_INITIALIZER # Fast Mutex`
+`pthread_mutex_t myMutex = PTHREAT_MUTEX_INITIALIZER # Recursive Mutex`
+`pthread_mutex_t myMutex = PTHREAT_MUTEX_INITIALIZER # Error-Checking Mutex`
+
+When a mutex is created a critical section can be locked and unlocked with the 
+
+`pthread_mutex_lock` and `pthread_mutex_unlock` API functions and destroyed with the `pthread_mutex_destroy` function. There is also the`pthread_mutex_trylock` which will try to lock a mutex, but it won't block if the mutex is already locked.
+
+```
+int pthread_mutex_lock( pthread_mutex_t *mutex );
+int pthread_mutex_trylock( pthread_mutex_t *mutex );
+int pthread_mutex_unlock( pthread_mutex_t *mutex );
+int pthread_mutex_destroy( pthread_mutex_t *mutex )
+```
+
+Another thread construct is a condition variable. These are used to start up a thread based on a condition, which is far more efficient than polling a mutex and releasing it if a condition isn't met. The API provides for a number fo conditional variables; creation, waiting, signalling, and destruction:
+
+```
+int pthread_cond_wait( pthread_cond_t *cond, pthread_mutex_t *mutex );
+int pthread_cond_timedwait( pthread_cond_t *cond, pthread_mutex_t *mutex, const struct timespec *abstime );
+int pthread_cond_signal( pthread_cond_t *cond );
+int pthread_cond_broadcast( pthread_cond_t *cond );
+int pthread_cond_destroy( pthread_cond_t *cond );
+```
+
+In the chapter03 directory of the repository for this book there is a sub-directory entitled pthreads. In that sub-directory there are are number of complete pthreads code examples from the Lawrence Livermore National Laboratory which illustrate each of the example APIs described in this section. Each of these can be compiled with
+
+```
+gcc -pthreads $sourcecode.c -o executable
+```
 
 # 4.0 Distributed Memory Programming with OpenMPI
 
@@ -2909,19 +2986,11 @@ Compile the  mpi-pong.c and mpi-pong.f90 example MPI applications included with 
 
 Fill in the following for the MPI program msum after compiling it using the three MPI compilers.
 
-Cores/Compiler
+Cores/Compiler	8 Cores (nodes=1:ppn=2)	16 Cores (nodes=1:ppn=4)	32 Cores (nodes=1:ppn=8)
 GCC
 PGI
 Intel
-8 Cores (nodes=1:ppn=16)
 
-
-
-16 Cores (nodes=1:ppn=16)
-
-
-
-32 Cores (nodes=1:ppn=32)
 
 
 4.7 Collective Communications
@@ -2945,7 +3014,7 @@ Replaced with:
 
 MPI_Bcast( &param, 1, MPI_UNSIGNED, 0/*ROOT*/, MPI_COMM_WORLD );
 
-MPI_Bcast()
+**MPI_Bcast()**
 
 MPI_Bcast Broadcasts a message from the process with rank "root" to all other processes of the communicator, including itself. It is called by all members of group using the same arguments for comm, root and on return, the contents of root's communication buffer is been copied to all processes.
 
@@ -2954,56 +3023,69 @@ The input paramters include count, an integer of the number of entries in the bu
 The syntax for MPI_Broadcast() is as follows for C, Fortran, and C++. 
 
 C Syntax 
+
+```
 	#include <mpi.h>
 	int MPI_Bcast(void *buffer, int count, MPI_Datatype datatype,
     	int root, MPI_Comm comm)
+```
 
 Fortran Syntax 
+
+```
 	INCLUDE ’mpif.h’
 	MPI_BCAST(BUFFER, COUNT, DATATYPE, ROOT, COMM, IERROR)
 	    <type>    BUFFER(*)
 	    INTEGER    COUNT, DATATYPE, ROOT, COMM, IERROR
+```
 
 C++ Syntax 
+
+```
 	#include <mpi.h>
 	void MPI::Comm::Bcast(void* buffer, int count,
 	    const MPI::Datatype& datatype, int root) const = 0
+```
 
-MPI_Scatter(), MPI_Scatterv()
+**MPI_Scatter(), MPI_Scatterv()**
 
 MPI_Scatter sends data from one task to all tasks in a group; the inverse operation of MPI_Gather. The outcome is as if the root executed n send operations and each process executed a receive. MPI_Scatterv scatters a buffer in parts to all tasks in a group.
 
 The input parameters include sendbuff, the address of the send buffer., sendcount, an integer for root that is the number of elements to send to each process., sendtype, the datatype handle for root for send buffer elements., recvcount, an integer of the number of elements in the receive buffer., rectype, the datatype handle of receive buffer elements., root, the integer rank of the sending process., and comm, the communicator handle. MPI_Scatterv also has the input paramter of displs, an integrer array of group length size, which specifies a displacement relative to sendbuf. The output paramters include recvbuf, the address of the receive buff and the ever-dependable IERROR for Fortran,
 
-
-
 The syntax for MPI_Scatter() is as follows for C, Fortran, and C++. 
 
 C Syntax
 
+```
 #include <mpi.h>
 int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
     void *recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     MPI_Comm comm)
+```
 
 Fortran Syntax
 
+```
 INCLUDE ’mpif.h’
 MPI_SCATTER(SENDBUF, SENDCOUNT, SENDTYPE, RECVBUF, RECVCOUNT,
         RECVTYPE, ROOT, COMM, IERROR)
     <type>    SENDBUF(*), RECVBUF(*)
     INTEGER    SENDCOUNT, SENDTYPE, RECVCOUNT, RECVTYPE, ROOT
     INTEGER    COMM, IERROR
+```
 
 C++ Syntax
 
+```
 #include <mpi.h>
 void MPI::Comm::Scatter(const void* sendbuf, int sendcount,
     const MPI::Datatype& sendtype, void* recvbuf,
     int recvcount, const MPI::Datatype& recvtype,
     int root) const
+```
 
-MPI_Gather()
+**MPI_Gather()**
 
 Gathers data and combines a partial array from each processor into one array on the root processor. Each process, including the root process, sends the contents of its send buffer to the root process. The root process receives the messages and stores them in rank order. The outcome is as if each of the n processes in the group (including the root process) had executed a call to MPI_Send() and root had executed n calls to MPI_Recv().
 
@@ -3013,37 +3095,44 @@ The syntax for MPI_Gather() is as follows for C, Fortran, and C++.
 
 C Syntax
 
+```
 #include <mpi.h>
 int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
     void *recvbuf, int recvcount, MPI_Datatype recvtype, int root,
     MPI_Comm comm)
+```
 
 Fortran Syntax
 
-INCLUDE ’mpif.h’
+```
+INCLUDE 'mpif.h'
 MPI_GATHER(SENDBUF, SENDCOUNT, SENDTYPE, RECVBUF, RECVCOUNT,
         RECVTYPE, ROOT, COMM, IERROR)
     <type>    SENDBUF(*), RECVBUF(*)
     INTEGER    SENDCOUNT, SENDTYPE, RECVCOUNT, RECVTYPE, ROOT
     INTEGER    COMM, IERROR
+```
 
 C++ Syntax
 
+```
 #include <mpi.h>
 void MPI::Comm::Gather(const void* sendbuf, int sendcount,
     const MPI::Datatype& sendtype, void* recvbuf,
     int recvcount, const MPI::Datatype& recvtype, int root,
     const = 0
+```
 
-
-MPI_Reduce(), MPI_Allreduce()
+**MPI_Reduce(), MPI_Allreduce()**
 
 MPI_Reduce performs a reduce operation (such as sum, max, logical AND, etc.) across all the members of a communication group. The reduction operation can be either one of a predefined list of operations, or a user-defined operation. 
 
 MPI_Allreduce conducts the same operation but returns the reduced result to all processors. User defined reduction operations must be of type:
 
+```
 typedef void MPI_User_function( void* invec, void* inoutvec, 
                                 int* len, MPI_Datatype* datatype )
+```
 
 A handle must be created to the reduction operation of type MPI_Op; and supplied MPI_Reduce (don't forget to free up after use).
 
@@ -3055,27 +3144,32 @@ The syntax for MPI_Reduce() is as follows for C, Fortran, and C++.
 
 C Syntax
 
+```
 #include <mpi.h>
 int MPI_Reduce(void *sendbuf, void *recvbuf, int count,
     MPI_Datatype datatype, MPI_Op op, int root, MPI_Comm comm)
+```
 
 Fortran Syntax
 
+```
 INCLUDE ’mpif.h’
 MPI_REDUCE(SENDBUF, RECVBUF, COUNT, DATATYPE, OP, ROOT, COMM,
         IERROR)
     <type>    SENDBUF(*), RECVBUF(*)
     INTEGER    COUNT, DATATYPE, OP, ROOT, COMM, IERROR
+```
 
 C++ Syntax
 
+```
 #include <mpi.h>
 void MPI::Intracomm::Reduce(const void* sendbuf, void* recvbuf,
     int count, const MPI::Datatype& datatype, const MPI::Op& op,
     int root) const
+```
 
 MPI reduction operations include the following:
-
 
 MPI_Name	Function
 MPI_Max		Maximum
@@ -3091,7 +3185,7 @@ MPI_BXOR	Bitwise exclusive OR
 MPI_MAXLOC	Maximum and location
 MPI_MINLOC	Miniumun and location
 
-Other Collective Communications
+**Other Collective Communications***
 
 Other collective communications include:
 
@@ -3100,7 +3194,7 @@ MPI_Alltoall():  useful way of sharing array and interleaving at the same time
 MPI_Reduce_scatter(): Reduction operation on a set of arrays, followed by a scatter
 MPI_Scan(): Same as reduce, except each processor i only works on arrays 0-i
 
-Creating A New Communicator
+**Creating A New Communicator**
 
 Many MPI routines use the communicator as an argument. When one of these communicators is created, it needs to be associated with a group of ranked processes. This group needs to exist before the new communicator is created. The following code snippet creates a new group by eliminating processes from an existing group:
 
@@ -3114,10 +3208,11 @@ MPI_Comm_create( MPI_COMM_WORLD, subGroup, &subComm );
 
 The program mpigroup.c can be compiled as follows:
 
-$ mpicc mpigroup.c -o mpigroup
+`$ mpicc mpigroup.c -o mpigroup`
 
 Then launch an interactive job:
 
+```
 $ qsub -l walltime=1:0:0,nodes=1:ppn=8 -I
 qsub: waiting for job 319613.mgmt1 to start 
 qsub: job 319613.mgmt1 ready 
@@ -3131,9 +3226,9 @@ rank= 4 newrank= 0 recvbuf= 22
 rank= 5 newrank= 1 recvbuf= 22 
 rank= 6 newrank= 2 recvbuf= 22 
 rank= 7 newrank= 3 recvbuf= 22 
+```
 
-
-Particle Advector
+**Particle Advector**
 
 Contained with the source code with this chapter, the particle advector hands-on excersise consists of two parts. 
 
@@ -3141,6 +3236,7 @@ The first example is designed to gain familiarity with the MPI_Scatter() routine
 
 For an advanced tests, on the root processor only, calculate the particle with the smallest distance from the origin (hint: MPI_Reduce( ) ). If the particle with the smallest distance is < 1.0 from the origin, then flip the direction of movement of all the particles. Then modify your code to use the MPI_Scatterv() function to allow the given number of particles to be properly distributed among a variable number of processors.
 
+```
 		int MPI_Scatterv ( 
         		void         	*sendbuf, 
         		int          	*sendcnts, 
@@ -3151,18 +3247,20 @@ For an advanced tests, on the root processor only, calculate the particle with t
         		MPI_Datatype	recvtype, 
         		int          	root, 
         		MPI_Comm     	comm )
+```
 
 
 The second example is designed to gain a practical example of the use of MPI derived data types. Implement a data type storing the particle information from the previous exercise and use this data type for collective communications. Set up and commit a new MPI derived data type, based on the struct below:
 
+```
 		typedef struct Particle {
 			unsigned int   globalId;
 			unsigned int   tag;
 			Coord          coord;
 		} Particle;
 
-
 	Hint: MPI_Type_struct( ), MPI_Type_commit( )
+```
 
 Then seed the random number sequence on the root processor only, and determine how many particles are to be assigned among the respective processors (same as for last exercise) and collectively assign their data using the MPI derived data type you have implemented.
 
@@ -3213,8 +3311,6 @@ The main disadvantage with CUDA is that, whilst in significant use throughout th
 Images from HPCWire `https://www.hpcwire.com/2016/08/23/2016-important-year-hpc-two-decades/`
 
 In an HPC environment, your friendly system administrators would have pre-compiled a number of applications from source to work with CUDA (or similar). As this is subject to a variety of constraints it is worth reviewing common issues that come up in such an environment. Often access to GPUs are restricted to particularly queues because of the cost of installation and to particular research groups that have funded their purchased. In the future they may become more sufficiently common, but at the time of writing it is not unusual that a user will need to specifiy the queue that the GPUs are located on, the account (projectID) that you are using for the gpgpu partitions, and generic resource in the job submission script. 
-
-
 
 
 5.2 OpenACC Pragmas
@@ -3356,12 +3452,6 @@ To compile a CUDA program these architecture variations should be included as co
 When a kernel is launched, an execution configuration must be provided, by using the <<< ... >>> syntax just prior to passing the kernel any expected arguments. The execution configuration allows programmers to specify the thread hierarchy for a kernel launch, which defines the number of thread groupings (blocks), as well as how many threads to execute in each block. Unlike most C/C++, launching CUDA kernels is asynchronous; the CPU code will continue to execute without waiting for the kernel launch to complete. A call to `cudaDeviceSynchronize` will cause the host (CPU) code to wait until the device (GPU) code completes, and only then resume execution on the CPU.
 
 
-
-
-
-
-
-
 * Note the compilation process; launch an interactive job, load a CUDA module (e.g., `CUDA/8.0.44-GCC-4.9.2`),  compile with `nvcc vecAdd.cu -o helloWorld -gencode arch=compute_60,code=sm_60`
 
 * With NVCC the `-arch` flag specifies the name of the NVidia GPU architecture that the CUDA files.
@@ -3404,8 +3494,6 @@ The gridDim.x Variable
 
 
 -- *Slide End* --
-
-
 
 
 ### Part 1: Programming GPGPUs
@@ -3496,13 +3584,36 @@ A grid-stride loop in the doubleElements kernel, in order that the grid, which i
 ### Part 3: CUDA Error Handling
 Check README.md Compile and modify 01-add-error-handling-solution.cu 01-add-error-handling.cu
 
+# 6.0 Profiling and Debugging
 
-6.0 Profiling and Debugging
-===========================
+## 6.1 Testing Approaches
 
-6.1 Profiling with GProf, TAU/PDT and PAPI
--------------------------------------------
+When coding either in sequential or parallel, system and syntax errors (e.g., wrong environment, missing or wrong terminators, wrong qutotes) are typically caught by the compiler. Semantic errors (e.g., crossing array bounds, wrong scope, memory leaks) are not, resulting in unexpected behaviour by the program. Throughout this publication, it has ben emphasised that one should start with a working sequential program and then identify the regions that can be made parallel. This point is emphasised again for the purpose of profiling and debugging. In other words, test and retest one's software and develop a testing suite so code can be easily retested if changes are made to it ("regressing"). If one does find an error that didn't generate an error previously, then it is easier to locate where the new bug has been introduced. This is the core principle of regression testing; ensuring that previously developed and tested software still performs after change.
 
+Regression tests can consist of functional tests or unit tests. Functional tests test the complete program with various inputs (normal, boundary, out-of-bounds). Unit tests exercise individual functions, subroutines, etc with the same categories of input conditions. Unit testing should preceed functional tests, and a functional test should succeed if all unit tests are passed, as the functions of an application depend on the correct operation of the individual units. Whilst it is relatively simple to develop one's own framework for unit tests there are a good number already written for C and Fortran with open licenses. For example:
+
+* CBDD. Behaviour-driven development for C `https://github.com/nassersala/cbdd/`
+* Api-Sanity-Checker. An automatic generator of basic unit tests for a C/C++ library. `https://github.com/lvc/api-sanity-checker`
+* CMocka. A unit testing framework for C with support for mock objects. `https://cmocka.org/`
+* Criterion. A cross-platform C and C++ unit testing framework. `https://github.com/Snaipe/Criterion/`
+
+* FORTRAN Unit Test Framework (FRUIT). FRUIT has assertion, fixture, setup, teardown, report, spec, driver generation. `https://sourceforge.net/projects/fortranxunit/`
+* pFUnit. Unit testing framework for Fortran with MPI extensions `https://sourceforge.net/projects/pfunit/`
+
+**OpenMP Errors**
+
+Scoping issues of variables is always worth a second look. One common mistake is forgetting that that private variables are uninitialised on entry to parallel regions. See the example, `unitialised.c` in the resources. Although a variable has been assigned a value, that variable (despite having the same name) is not passed to the parallel region because it is private. A proper example is `sharedhello.c` and `sharedhello.f90`. Another common issue is the default behaviour for parallel regions and worksharing constructs is to have `default(shared)` for variables. In all but the most trivial loops (such as used throughout this book!),  `default(none)` should be set. As it is the OpenMP standard makes it too easy to accidentially share variables.
+
+OpenMP provides the programmers power over how they manage their parallel regions through directives, such as _critical_, _atomic_ and so forth. Selecting the wrong directive can result in errors. Consider the program `addition.c` in the resources in the repository. The program adds all the elements of an array in parallel, with the array distributed statically. Two options are presented at the end for the global sum. Compare and contrast the results of using different directives; using the _atomic_ directive the correct result is achieved, but using the _critical_ directive, a different (and incorrect) value results.
+
+```
+# pragma omp critical 
+#pragma omp atomic
+    sum += local_sum;
+  } 
+```
+
+## 6.2 Profiling with GProf, TAU/PDT and PAPI
 
 Profiling and performance analysis tools check the execution of a program to determine where it is spending time and resources, and thus allowing the opportunity to identify where in code improvements can be made, which might not be obvious by just reading the source code. There are a number of profiling tools available, and as a result only a selection are reviewed here, chosen because of their common usage and availability. 
 
@@ -3528,7 +3639,8 @@ gmon.out
 Note that the above example is with the system GCC. If one is in an HPC environment and profiling against a *particular* version of GCC, which one should do in a production setting, then that environmental module should be loaded first.
 
 With the `gmon.out` file created along with the executable `test_grof`, the `grof` application can be run against the executable with `gmout.out` as an argument; the output is redirected to a textfile, `analysis.txt`, which can be viewed, providing both a flat profile and a call-graph. The flat profile will simply express how much time was spent in each function. The call graph will give this information and how much time and how often was spent in functions that it called (child functions).
- 
+
+``` 
 $ gprof test_gprof gmon.out > analysis.txt
 $ analysis.txt
 Flat profile:
@@ -3592,29 +3704,36 @@ The scope of dynamic instrumentation depends on the libraries chosen (e.g., trac
 
 Which should generate the expected output:
 
+```
 I am a subsidiary process 1 of the group (total 2).
 I am the root 0 process of the group (total 2).
 processor 0  sent 1729
 processor 1  received 1729
+```
 
 The profile of the application can be viewed with pprof (text) or paraprof (graphical).
 
+```
 [lev@edward006 ch05]$ pprof
 [lev@edward006 ch05]$ module load java # necessary for paraprof
 [lev@edward006 ch05]$ paraprof
+```
 
 The same applies with the Fortran version of the program:
 
+```
 [lev@edward006 ch05]$ tau_f90.sh mpi-debug.f90 -o mpi-debugf
 [lev@edward006 ch05]$ mpiexec -np 2 tau_exec -io ./mpi-debugf
-
 I am a subsidiary process   0.0000000      of the group (total            2 ).
 processor            1  received         1729
 I am the root 0 process of the group (total           2 ).
 processor            0  sent         1729
+```
 
+```
 [lev@edward006 ch05]$ pprof
 [lev@edward006 ch05]$ paraprof
+```
 
 The instrumentation of a program can be customised by a file, which states which parts of an application are profiles and how. When using the TAU compiler wrapper scripts the -tau_options=-optTauSelectFile=<file> can be used to enable selective instrumentation. Selective instrumentation is only available when using source-level instrumentation (PDT).
 
@@ -3624,6 +3743,7 @@ After instrumentation and compilation are completed, the profiled application is
 
 In addition, many modern processors have performance counters, which measure events such as floating point operations, cache misses and so forth while an application executes. The Performance Data Standard and API (PAPI) provides a uniform interface to access these performance counters, which TAU can be compiled against. To use these counters, you must first find out which PAPI events your system supports. 
 
+```
 $ module load papi
 $ papi_avail
 [lev@edward seqandpar]$ papi_avail
@@ -3656,20 +3776,23 @@ $ export TAU_TRACK_MESSAGE=1
 $ tau_cc.sh mpi-pingpong.c -o mpi-pingpongc
 $ mpiexec -np 2 tau_exec -io ./mpi-pingpongc
 $ paraprof &
+```
 
 Obviously this is but a basic introduction to TAU/PDT and PAPI, which provided information on compiling with TAU and generating profiles. The documentation from the appropriate providers should be consulted if detail on the much greater range of options and interpretation is desired. 
 
-## 6.2 Memory Checking with Valgrind
+## 6.3 Memory Checking with Valgrind
 
 Originally developed by Julian Seward (who in 2006 won a Google-O'Reilly Open Source Award for his work on this application), Valgrind performs memory debugging, memory leak detection, and profiling - although it is its first two tasks which is what it is primarily used for. Through inserted instrumentation and wrappers, Valgrind can identify memory leaks, deallocation errors, etc in an application. The major tools provided are memcheck, for memory errors., helgrind and DRD for thread errors., Massif and DHAT, heap profilers., Cachegrind and Callgrind for cache, branch-prediction profiler and call-graph generating cach profiler.
 
 Valgrind works with executable files with a standard invocation of the application name and the tool that is being used; memcheck is the default and can be ommitted. Compling with debugging information symbols (-g) is very useful to Valgrind, especially for associating functions. With C++ the -fno-inline also assists the function call chain. Optimisations are sometimes a problem for Valgrind as sometimes memcheck is fooled into incorrectly reporting unitialised values.
 
+```
 $ module load valgrind
 $ mpicc -g mpi-debug.c -o mpi-debugc
 $ mpif90 -g mpi-debug.f90 -o mpi-debugf
 $ mpiexec -np 2 valgrind --tool=memcheck ./mpi-debugc 2> valgrindc.err
 $ mpiexec -np 2 valgrind --tool=memcheck ./mpi-debugc 2> valgrindf.err
+```
 
 A command like this will produce a great deal of errors some of which are not at all related to the code that a programmer wrote. Valgrind will simulate every single instruction a program executes, including dynamically-linked libraries, X11 libraries etc. This can result in not-insignificant memory loss e.g.,
 
@@ -3689,33 +3812,33 @@ There are several common errors that memcheck picks up, some of which can be fou
 ==8826== Syscall param writev(vector[...]) points to uninitialised byte(s)
 ==8826==    at 0x3E1B0E033B: writev (in /lib64/libc-2.12.so)
 
-Points to Unitialised Bytes
+**Points to Unitialised Bytes**
 
 If a system call needs to read from a buffer provided by your program, memcheck checks that the buffer is addressable and has valid readable data. If the system call needs to write to a user-supplied buffer, memcheck checks that the buffer is addressable. If the program tries to write unitialised values this will be caught by memcheck.
 
 Other common errors include the following:
 
-Invalid read/write errors
+**Invalid read/write errors**
 
 When an application attempts to read or write memory to address that it shouldn't, memcheck will catch it, note the address and what other application was currently using that address space, and try to establish where the address was called from.
 
-Invalid free() errors
+**Invalid free() errors**
 
 Memcheck tracks memory blocks allocated by your program with malloc/new, so it can know exactly whether or not the argument to free a block is valid or not.
 
-Mismatched free()/delete
+**Mismatched free()/delete**
 
 As with invalid free() errors, memcheck will catch blocks that have been inappropriately deallocated. For example, in C++, if a memory block is allocated with `malloc` it must be deallocated with `free`, and if with new, it must be deallocated with `delete`.
 
-Source and destination overlap
+**Source and destination overlap**
 
 Memory blocks pointed to by the src and dst pointers in functions like memcpy(), strcpy(), strncpy(), strcat(), strncat(), aren't allowed to overlap. If they do, one can overwrite the contents posted by the other. Memcheck checks for this and will report the address, and where in the program the function is called.
-
 
 To selectively suppress errors that a programmer has no control, recording these in a suppressions file which is read when Valgrind starts up. The build mechanism selects default suppressions which give reasonable behaviour for the OS and libraries detected on your machine. Use the --gen-suppressions=yes optionto print out a suppression for each reported error, which you can then be copied into a suppressions file. Valgrind loads suppression patterns from $PREFIX/lib/valgrind/default.supp unless --default-suppressions=no has been specified. Additional files by specifying --suppressions=/path/to/file.supp one or more times.
 
 The default file can be viewed for an idea of the format:
 
+```
 less /usr/local/valgrind/3.9.0-openmpi-gcc/lib/valgrind/default.supp 
 # This is a generated file, composed of the following suppression rules:
 #  exp-sgcheck.supp xfree-3.supp xfree-4.supp glibc-2.X-drd.supp glibc-2.34567-NPTL-helgrind.supp glibc-2.X.supp
@@ -3725,7 +3848,6 @@ less /usr/local/valgrind/3.9.0-openmpi-gcc/lib/valgrind/default.supp
    obj:*/*lib*/ld-2.*so*
    obj:*/*lib*/ld-2.*so*
 }
-
 # I'm pretty sure this is a false positive caused by the sg_ stuff
 {
    glibc realpath false positive
@@ -3733,9 +3855,11 @@ less /usr/local/valgrind/3.9.0-openmpi-gcc/lib/valgrind/default.supp
    fun:realpath
    fun:*
 }
+```
 
 And a new mpi-suppress.supp can be created by copying the desired suppressed errors.
 
+```
 {
    MPI Errors Outside Our Control
    Memcheck:Param
@@ -3751,13 +3875,15 @@ And a new mpi-suppress.supp can be created by copying the desired suppressed err
    fun:PMPI_Init
    fun:main
 }
+```
 
 Running the program again, valgrind will still report the memory that has been lost, but it will report that none of the errors arise from mpi-debug
 
+```
 $ mpiexec -np 2 valgrind --tool=memcheck --suppressions=mpi-suppress.supp ./mpi-debugc 
+```
 
-6.3 Debugging with GDB
-----------------------
+## 6.4 Debugging with GDB
 
 It has taken many years for this essential truth to be realised, that software equals bugs – a great example of this is Paul Fenwick's presentation to OSDC on “An Illustrated History of Failure” (2008), which reported some rather inglorious examples such as the Therac-25, the Ariane 5, Northeast America 2003 Power Outage, and many others. In sequential programming bugs are common enough - parallel systems, the bugs are particularly difficult to diagnose, and the core principle of parallelisation suggests race conditions and deadlocks. According to a 2002 study by the US Department of Commerce determined, "software bugs, or errors, are so prevalent and so detrimental that they cost the US economy an estimated $59 billion annually, or about 0.6 percent of the gross domestic product".
 
@@ -3765,9 +3891,22 @@ One very useful application for debugging is the GNU Debugger, or gdb, after its
 
 The core principle behind GDB is building a debugging symbol table, that maps the instructions in a compiled binary to their values in source code. Programs (including parallel programs with OpenMP and MPI) can be compiled in gcc with the -g flag to provide for such a symbol table. As with other compilations and testing activities, if one is operating on a shared compute cluster, it is much better to conduct these activities on a compute node - not only is it polite to other users, it also ensures that the job will be running on the architecture that the computation will occur on.
 
-GDB operates from an interactive shell, with a range of commands to run a program, conduct a backtrace, print the value of an expression, stepping through the program or instructions line-by-line, inserting and clearing breakpoints, and so forth. A more thorough explanation of commands can be invoked through the built-in help. The following example simply lists the program, runs it, inserts a breakpoint, runs through the program line-by-line, and displays information on current known threads.
+GDB operates from an interactive shell, with a range of commands to run a program, conduct a backtrace, print the value of an expression, stepping through the program or instructions line-by-line, inserting and clearing breakpoints, and so forth. It is necessary when compiling progams for GDB to include the `-g` flag. This directs the compiler to include debugging information in the executable image so that GDB can be used to elucidate variable types for data inspection and machine instructions back to the lines of source-code.
 
-[lev@edward015 seqandpar]$ gdb hello3versompc
+```
+$ module load gdb; module load openmpi
+$ mpicc -g mpi-debug.c -o mpi-debugc
+$ mpif90 -g mpi.debug.f90 -o mpi-debugf
+```
+
+A more thorough explanation of commands can be invoked through the built-in help. The following example simply lists the program, runs it, inserts a breakpoint, runs through the program line-by-line, and displays information on current known threads. For example;
+
+```
+$ qsub -l walltime=0:20:0,nodes=1:ppn=2 -I
+..
+$ module load gdb; module load openmpi
+$ mpicc -g hello3versompc -o hello3versompc
+$ gdb hello3versompc
 GNU gdb (GDB) 7.6
 ...
 (gdb) list
@@ -3810,20 +3949,12 @@ Breakpoint 1, main () at hello3versomp.c:5
   Id   Target Id         Frame 
 * 1    Thread 0x7ffff7dd7760 (LWP 20560) "hello3versompc" main ()
     at hello3versomp.c:14
+```
 
-Despite its supported for threaded applications, parallelism with distributed memory and message passing (e.g., OpenMPI) however can create some difficulties if conducted naively as following illustrates. 
-
-$ qsub -l nodes=1:ppn=2:walltime=0:60:0 -I
-$ cd $PBS_O_WORKDIR
-$ module load gdb
-$ module load openmpi-gcc
-$ gcc -fopenmp -g hello3versomp.c -o hello3versompc
-$ gfortran -fopenmp -g hello3versomp.f90 -o hello3versompf
-$ mpicc -g mpi-debug.c -o mpi-debugc  
-$ mpif90 -g mpi.debug.f90 -o mpi-debugf
+Despite being supported for threaded applications, parallelism with distributed memory and message passing (e.g., OpenMPI) however can create some difficulties if conducted naively as following illustrates. 
 
 
-
+```
 $ gdb mpi-debugc
 GNU gdb (GDB) 7.6
 Copyright (C) 2013 Free Software Foundation, Inc.
@@ -3856,13 +3987,17 @@ I am the root 0 process of the group (total 1).
 [edward027:20645] *** MPI_ERR_RANK: invalid rank
 [edward027:20645] *** MPI_ERRORS_ARE_FATAL (your MPI job will now abort)
 [Inferior 1 (process 20645) exited with code 06]
+```
 
 There are two common workarounds to this problem. The first is to launch multiple xterms with forwarding (which is not a good idea on a shared cluster login). The second, and recommended method, is to attach to the individual MPI processes after they are initiated. For the first method, in some cases an X-forwarding session can be initiated like follows:
 
+``
 $ mpiexec -np 2 xterm -e gdb mpi-debug
+```
 
 This will open two xterm windows on the host machine (one for each processor), although this sort of command does have the issues of ensuring the ssh connections active and ensuring the correct DISPLAY environment. In addition, as mentioned, if running on a cluster this should be conducted on the compute node as an interactive job (that is, X-windows forwarding to the cluster login node and from the login node to the compute node). Assuming all this is in place however, running the program over both xterm sessions will result in the following:
 
+```
 (gdb) run
 Starting program: /data/user1/lev/programming/seqandpar/mpi-debugc 
 [Thread debugging using libthread_db enabled]
@@ -3870,7 +4005,9 @@ Using host libthread_db library "/lib64/libthread_db.so.1".
 I am the root 0 process of the group (total 2).
 processor 0  sent 1729
 [Inferior 1 (process 2990) exited normally]
+```
 
+```
 (gdb) run
 Starting program: /data/user1/lev/programming/seqandpar/mpi-debugc 
 [Thread debugging using libthread_db enabled]
@@ -3878,10 +4015,11 @@ Using host libthread_db library "/lib64/libthread_db.so.1".
 I am a subsidiary process 1 of the group (total 2).
 processor 1  received 1729
 [Inferior 1 (process 2998) exited normally]
+```
 
 The second, and recommended method, is to insert a catch within the application's source code and recompile, then use gdb --pid to attach to the processors after the application is launched. It's the equivalent of the above, but without the associated problems. The following - although noted by the OpenMPI developers as 'inelegant' is recommended.
 
-
+```
 {
     int i = 0;
     char hostname[256];
@@ -3891,9 +4029,11 @@ The second, and recommended method, is to insert a catch within the application'
     while (0 == i)
         sleep(5);
 }
+```
 
 After incorporating this catch into the source code, then recompile, and run gdb, change i to a non-zero value, and then the program can be walked through as normal on each processor.
 
+```
 $ vim mpi-debug.c
 $ module load openmpi-gcc
 $ module load gdb
@@ -3901,7 +4041,9 @@ $ mpicc -g mpi-debug.c -o mpi-debugc
 $ mpiexec -np 2 ./mpi-debugc
 PID 5607 on edward ready for attach
 PID 5608 on edward ready for attach
+```
 
+```
 $ gdb --pid 5607
 ..
 (gdb) list
@@ -3913,7 +4055,9 @@ Single stepping until exit from function __libc_start_main,
 which has no line number information.
 
 Program exited normally.
+```
 
+```
 $ gdb --pid 5608
 (gdb) list
 (gdb) set var i = 1
@@ -3923,18 +4067,19 @@ $ gdb --pid 5608
 Single stepping until exit from function __libc_start_main,
 which has no line number information.
 [Inferior 1 (process 5608) exited normally]
+```
 
 When the program completes, the results will appear in the original execution environment.
 
+```
 I am the root 0 process of the group (total 2).
 processor 0  sent 1729
 I am a subsidiary process 1 of the group (total 2).
 processor 1  received 1729
-$ 
+```
 
 
-References
-==========
+# References
 
 Fork-join image by Qwertyus, https://commons.wikimedia.org/wiki/File:Fork_join.svg, This file is licensed under the Creative Commons Attribution 3.0 Unported license.
 
@@ -3949,6 +4094,8 @@ Dijkstra, E. W. (1970). Notes on structured programming. (2nd ed. ed.) (EUT repo
 and Computing Science; Vol. 70-WSK-03), (EWD; Vol. 249). Eindhoven: Technische Hogeschool Eindhoven.
 
 Flynn, Michael J. (September 1972). "Some Computer Organizations and Their Effectiveness". IEEE Transactions on Computers. C-21 (9): 948–960. 
+
+Jones, Tim (2005). "GNU/Linux Application Programming", Charles River Media
 
 Kernighan, B., Plauger, P.J., (1978), "The Elements of Programming Style" (2nd edition), McGraw-Hill FP 1976
 
