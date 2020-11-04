@@ -1197,7 +1197,7 @@ write(1,*)
 
 ## 3.1 Shared Memory Concepts and the OpenMP Implementation
 
-As mentioned in the first chapter, a tread is the smallest instruction set managed by an operating system. Whilst a process is allocated resources, such as memory, multiple thread can exist in the same process sharing instructions, context (e.g., variables), and resources. In a unicore environment, the operating system may be able to manage multithreaded concurrency by switching between different threads. In a multicore system however, multiple threads can be executed in parallel. The distinction between concurrency and parallelism is emphasized, and illustrated as subsets. Within the set of all programs there is a subset that are concurrent programs. Within the set of concurrent programs, there is a smaller set of parallel programs.
+As mentioned in the first chapter, a thread is the smallest instruction set managed by an operating system. Whilst a process is allocated resources, such as memory, multiple thread can exist in the same process sharing instructions, context (e.g., variables), and resources. In a unicore environment, the operating system may be able to manage multithreaded concurrency by switching between different threads. In a multicore system however, multiple threads can be executed in parallel. The distinction between concurrency and parallelism is emphasized, and illustrated as subsets. Within the set of all programs there is a subset that are concurrent programs. Within the set of concurrent programs, there is a smaller set of parallel programs.
 
 Whilst concurrent programs have advantages over single-threaded programs, multi-threading has greater advantages. A multi-threaded progam can have faster execution on multicore systems. It can also be more responsive with some careful design; on a single-threaded program if the main executetion thread takes time, then the entire program must also be follow suit. In a multi-threaded program long-running tasks can be moved to a seperate thread allowing the program to be responsive in other threads. However, as mentioned in the first chapter, multi-threading does however have the issue of race conditions, deadlock, and livelocks. It also suffers the problem that if a thread crashes, can causes the entire process to crash.
 
@@ -3669,7 +3669,6 @@ index % time    self  children    called     name
 
 There are, unsurprisingly, a number of options to `grof`, the most common being the `-a` and `b` options. The `-a` option prevents printing statically declared functions and the `-b` option prevents the printing of verbose explanations of the fields. 
 
-
 **TAU**
 
 Initially developed at the University of Oregon, The Tuning and Analysis Utilities (TAU) is developed for the US Department of Eenergy Office of Science, the ASC initiatives at Lawrence Livermore National Laboratory, the ZeptoOS project at Argonne National Laboratory, and the Los Alamos National Laboratory. As a profiling and tracing tookit, for C, C++, Fortran, Java, and Python and works with parallel code.  The profiling that TAU provides shows how much time was spent on each routine, and the tracing shows when events took place. It used PDT (Program Database Toolkit) as a high-level interface of source code for analysis.
@@ -3950,6 +3949,34 @@ Breakpoint 1, main () at hello3versomp.c:5
 * 1    Thread 0x7ffff7dd7760 (LWP 20560) "hello3versompc" main ()
     at hello3versomp.c:14
 ```
+
+In the above example the breakpoint is inserted at a line number. Another common method is to insert it at a function name (e.g., `(gdb) break main`). This is probably the better practise in all but the shortest programs. The reason being is, if one has well-constructed code, functions represent the encapsulated areas where variable scope is established and passed and therefor indicates where errors are most likely to occur or can be elucidated, either within a function or between functions. Breakpoints can also be named, (e.g., (gdb) break checkmain:main`) or set at a physical address. Breaks can also be set conditionally, e.g., `(gdb) break test if var = 1`). When a break is set, GDB provides a breakpoint number as multiple breakpoints can be set in a program. The break will include the address, filename, and line number. Available breakpoints can be viewed with the `info` command and can be removed with the `clear $linenumber`.
+
+As illustrated one can run through the code with the `run` command or step through it, line-by-line with the `step` command. The `step` command will `step` into a function, but the `next` command can be used to skip or "step over" a function. If there is no function the `next` command will simply continue to the next line. The `cont` (contintue) command starts the program. An integer count can be provided to te `step` and `next` command to represent how many times the command should be carried out (e.g., `step 5` would mean the next five lines of code).
+
+
+
+
+
+
+
+GDB makes it easy to inspect the data within a running program. Continuing with
+your debugging session, it’s now time to look at your stack structure. You do this
+with the display command:
+(gdb) display stack
+1: stack = {stack = {2, 0, 1107383313, 134513378,
+1108545272, 1108544020, -1073750392, 134513265,
+1108544020, 1073792624}, index = 1}
+(gdb)
+If you simply display the stack variable, you see the aggregate components of
+the structure (first the array itself, then the index variable). Note that many of the
+stack elements are unusually large numbers, but this is only because the structure
+is not initialized. You can inspect specific elements of the stack variable, also using
+the display command:
+
+
+
+
 
 Despite being supported for threaded applications, parallelism with distributed memory and message passing (e.g., OpenMPI) however can create some difficulties if conducted naively as following illustrates. 
 
