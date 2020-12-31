@@ -8,7 +8,7 @@ In this time the collection and processing of data continued at a pace that unic
 
 Between 2013 and 2015 researchers from the following institutions were taught by VPAC staff: the Royal Melbourne Institute of Technology, La Trobe University, the University of Melbourne, Deakin University, Swinburne University, Victoria University of Technology, Monash University, the Australian Synchrotron, the Department of Environment and Primary Industries, the University of Sydney, Macquarie University, the University of New South Wales, the University of Western Australia, the Australian Institute of Health Innovation, the Westmead Millennium Institute, the Australian Radiation Protection and Nuclear Safety Agency, and the Australian Institution of Marine Science. 
 
-As VPAC comes to a close, the following publication compiles some of the material from the training manuals provided to these institutions to be provided to the wider research commuity. This book is designed for anyone interested in receiving a strong introduction to sequential and parallel programming with C and Fortran, with parallel programming conducted with the OpenMP API and the OpenMPI implementation for MPI.
+As VPAC comes to a close, the following publication compiles some of the material from the training manuals provided to these institutions to be provided to the wider research commuity. This book is designed for anyone interested in receiving a strong introduction to sequential and parallel programming with C and Fortran, with parallel programming conducted with the OpenMP API and the OpenMPI implementation for MPI, with GPU programming with OpenACC and CUDA, and with debugging tools.
 
 ## The Repository
 

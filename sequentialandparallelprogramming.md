@@ -8,7 +8,7 @@ ISBN-10: 0-9943373-1-0
 
 ISBN-13: 978-0-9943373-1-3
 
-Sequential and Parallel Programming with C and Fortran by Lev Lafayette, 2015. Print edition 2019.
+Sequential and Parallel Programming with C and Fortran by Lev Lafayette, 2015, 2020
 
 Published by the Victorian Partnership for Advanced Computing (trading as V3 Alliance) .
 
@@ -43,7 +43,7 @@ All trademarks are property of their respective owners.
 2.6 Data Structures
 2.7 Input and Output
 
-3.0 OpenMP Parallel Programming
+3.0 Parallel Programming with OpenMP
 3.1 Shared Memory Concepts
 3.2 Directives and Internal Control Variables
 3.3 Work Sharing and Task Constructs
@@ -52,7 +52,7 @@ All trademarks are property of their respective owners.
 3.6 Reductions, Combination, and Summary
 3.7 POSIX Threads Programming
 
-4.0 OpenMPI Distributed Memory Programming
+4.0 Parallel Programming with OpenMPI 
 4.1 Distributed Memory Concepts
 4.2 Program Structure and OpenMPI Wrappers
 4.3 Basic Routines
@@ -63,8 +63,9 @@ All trademarks are property of their respective owners.
 
 5.0 GPGPU Programming
 5.1 GPGPU Technology
-5.2 OpenACC Pragmas
+5.2 OpenACC Directives
 5.3 CUDA Programming
+5.4 OpenCL Programming
 
 6.0 Profiling and Debugging
 6.1 Testing Approaches
@@ -72,7 +73,7 @@ All trademarks are property of their respective owners.
 6.3 Memory Checking with Valgrind
 6.4 Debugging with GDB
 
-6.0 References
+7.0 References
 
 # 0.0 Introduction
 
@@ -132,7 +133,7 @@ As a whole it must be reiterated that this book gives but a broad introduction t
 
 As with other books recently published in this series it is designed in part as a quick reference guide for research-programmers and as a workbook, which can be studied from beginning to end. Indeed, it is in the latter manner than a great deal of the material has been derived from a number of parallel programming courses conducted by the Victorian Partnership for Advanced Computing (VPAC). The content is deliberately designed in a structured manner, and as such can be used by an educator, including those engaging in self-education. Whether through instruction or self-learning it is highly recommended that a learner take the time to work through the code examples carefully and to be prepared to make plenty of errors. Errors are a very effective learning tool.
 
-A number of sources directly contributed to this book, most obviously the official documentation for the OpenMPI API (OpenMP Application Programming Interface v4.0.2, 2015 and OpenMP Application Programming Interface Examples v4.5, 2015), the Open MPI implementation (Open MPI User Manual, 2013), the various debugging and profiling tools (e.g., TAU User Guide, 2015, Valgrind User Manual, 2015, Debugging with GDB, 2015).  Credit must also be given to the influence of some timeless classics in the programming world, such as  George Pólya, How to Solve It (1945), Brian W. Kernighan and P. J. Plauger, The Elements of Programming Style (2nd edition, 1978), Brian W. Kernighan and Dennis Ritchie, The C Programming Language, (1978),Niklas Wirth Algorithms and Data Structures (1985), Michael Metcalf and John Reid, Fortran 90/95 Explained (1996), and Andy Oram, Greg Wilson (eds), Beautiful Code (2007).
+A number of sources directly contributed to this book, most obviously the official documentation for the OpenMPI API (OpenMP Application Programming Interface v4.0.2, 2015 and OpenMP Application Programming Interface Examples v4.5, 2015), the Open MPI implementation (Open MPI User Manual, 2013), the various debugging and profiling tools (e.g., TAU User Guide, 2015, Valgrind User Manual, 2015, Debugging with GDB, 2015).  Credit must also be given to the influence of some timeless classics in the programming world, such as  George Pólya, How to Solve It (1945), Brian W. Kernighan and P. J. Plauger, The Elements of Programming Style (2nd edition, 1978), Brian W. Kernighan and Dennis Ritchie, The C Programming Language, (1978), Niklas Wirth Algorithms and Data Structures (1985), Michael Metcalf and John Reid, Fortran 90/95 Explained (1996), and Andy Oram, Greg Wilson (eds), Beautiful Code (2007).
 
 Recognition is also given to the various training manuals produced at the Victorian Partnership for Advanced Computing over the years, and those from the Lawrence Livermore National Laboratory and the Edinburg Parallel Computing Centre. From the latter two the material (Parallel Programming, OpenMP, Message Passing Interface) all by Blaise Barney, are exceptional contributions to the field as is the course material from Elspeth Minty et. al., (Decomposing the Potentially Parallel, Writing Message Passing Programs with MPI). From the former, special thanks is given to Bill Applebe, Alan Lo, Steve Quenette, Patrick Sunter, and Craig West. 
 
@@ -142,7 +143,7 @@ Thanks are also given to the Victorian Partnership of Advanced Computing for the
 
 This book is part of a series designed to assist researchers, systems administrators, and managers in a variety of advanced computational tasks. Other books that will be published in this series include: Supercomputing with Linux., Mathematical Applications and Programming., Data Management Tools for eResearchers., Building HPC Clusters and Clouds., Teaching Research Computing to Advanced Learners., Quality Assurance in Technical Organisations., Technical Project Management, and A History of the Victorian Partnership of Advanced Computing.
 
-Lev Lafayette, Victorian Partnership for Advanced Computing, Melbourne, 2015
+Lev Lafayette, Victorian Partnership for Advanced Computing, Melbourne
 
 # 1.0 Current Trends in Computer Systems
 
@@ -189,8 +190,6 @@ d) Pipelines, on the instruction level or the graphics level, can also serve as 
 
 **Single Instruction Stream, Multiple Data Streams (SIMD)**
 
-(Image from Oracle Essentials, 4th edition, O'Reilly Media, 2007)
-
 SIMD architecture represents a situation where a single processor performs the same instruction on multiple data streams and are described as a type of "data level parallelism". This commonly occurs in contemporary multimedia processors, for example MMX instruction set from the 1990s, which lead to Motorolla's PowerPC Altivec, and more contemporary times AVE (Advanced Vector Extensions) instruction set used in Intel Sandy Bridge processors and AMD's Bulldozer processor. These developments have primarily been orientated towards real-time graphics, using short-vectors. Contemporary supercomputers are invariably MIMD clusters which can implement short-vector SIMD instructions. IBM is still continuing with a general SIMD architecture through their Power Architecture.
 
 SIMD was also used especially in the 1970s and notably on the various Cray systems. For example the Cray-1 (1976) had eight "vector registers," which held sixty-four 64-bit words each (long vectors) with instructions applied to the registers. Pipeline parallelism was used to implement vector instructions with separate pipelines for different instructions, which themselves could be run in batch and pipelined (vector chaining). As a result the Cray-1 could have a peak performance of 240 MFLOPS  - extraordinary for the day, and even acceptable in the early 2000s.
@@ -215,7 +214,7 @@ With distributed memory systems, each processor has its own memory. Finally, ano
 
 **Parallel Operations in SIMD**
 
-There is particular architecture that includes instructions explicitly intended to perform parallel operations across data that is stored in the independent subwords or fields of a register. This is known as "SIMD within a register" or SWAR. Whilst previously existing in assembly code, it was introduced as multimedia extension in 1996 for desktop systems with Intel's MMX Multimedia Instruction Set Extensions. Following MMX there were also SWAR implementations for the Digital Alpha MAX (MultimediA eXtensions), Hewlett-Packard's PA-RISC MAX (Multimedia Acceleration eXtensions), MIPS MDMX (Digital Media eXtension, which came with the charming pronounciation "Mad Max"), and the Sun SPARC V9 VIS (Visual Instruction Set). These instruction set extensions, whilst comparable, are incompatible. 
+There is particular architecture that includes instructions explicitly intended to perform parallel operations across data that is stored in the independent subwords or fields of a register. This is known as "SIMD within a register" or SWAR. Whilst previously existing in assembly code, it was introduced as multimedia extension in 1996 for desktop systems with Intel's MMX Multimedia Instruction Set Extensions. Following MMX there were also SWAR implementations for the Digital Alpha MAX (MultimediA eXtensions), Hewlett-Packard's PA-RISC MAX (Multimedia Acceleration eXtensions), MIPS MDMX (Digital Media eXtension, which came with the charming pronunciation "Mad Max"), and the Sun SPARC V9 VIS (Visual Instruction Set). These instruction set extensions, whilst comparable, are incompatible. 
 
 **Divisions within MIMD**
 
@@ -239,7 +238,7 @@ Multiple tests will generate an average degree of parallelism. Feng classified s
 
 *Word parallel bit parallel (WPBP)*: All bits from all words are processed at unit time. This is maximum parallelism. 
 
-A further development occured in 1977 by Wolfgang Handler which proposed a schema known as the Erlangen Classification System, based on system units and pipelining. A computer is described by the number of processor control units (K), the number of arithmetic logic units or processing elements under the control of one PCU (D), the word length of an ALU or PE (W), the number of PCUs that can be pipelined (K'), the number of ALUs that can be pipelined (D') and the number of pipelined stages on all ALUs or in a single PE. (W').
+A further development occurred in 1977 by Wolfgang Handler which proposed a schema known as the Erlangen Classification System, based on system units and pipelining. A computer is described by the number of processor control units (K), the number of arithmetic logic units or processing elements under the control of one PCU (D), the word length of an ALU or PE (W), the number of PCUs that can be pipelined (K'), the number of ALUs that can be pipelined (D') and the number of pipelined stages on all ALUs or in a single PE. (W').
 
 Hence the parallelism is expressed using a triplet containing the six values. 
 
@@ -293,7 +292,7 @@ The partial solution to the issue was to pipeline power through additional cores
 
 Very early in computing it was realised that translating instruction and control streams in hardware was significantly more difficult than the datastream memory. Even in the early days of processor designs there was a software and hardware division between the datapath, where numbers were stored and arithmetic was carried out, and control, which sequenced the operations on the datapath. Following von Neumann's (1947) separation of arithmetic logic and control in architecture, Wilkes developed the concept of microprogramming from the realisation that the central processing unit of a computer could be controlled by a miniature, highly specialised computer programs in high-speed ROM. This led to Complex Instruction Set Computer (CISC), as adding instructions was relatively easy in microcode compared to hardwiring, and rapid advances in metal–oxide–silicon (MOS) transistors fuelled competition. 
 
-Microcode progress was particularly rapid in the 1970s, following the advances in MOS transistors and occured in parallel to the developments in minicomputers and mainframe instruction set architecture, which led to a highly competitive environment in processors and assembly language programming. A very significant contribution was the the Intel 4004, the first single-chip microprocessor, released in 1971. Early microprocessor integrated circuits contained only the processor development led to chips containing more of internal electronic parts of a computer, including the CPU, ROM, on-chip RAM, and I/O. The VAX line of computers developed by Digital Equipment Corporation (DEC) especially with processors like the MicroVAX II's 78032 which was the first microprocessor with an on-board memory management unit. It was the microprocessor that allowed for the development of microcomputers, which were affordable to small business and individuals, ushering 
+Microcode progress was particularly rapid in the 1970s, following the advances in MOS transistors and occurred in parallel to the developments in minicomputers and mainframe instruction set architecture, which led to a highly competitive environment in processors and assembly language programming. A very significant contribution was the the Intel 4004, the first single-chip microprocessor, released in 1971. Early microprocessor integrated circuits contained only the processor development led to chips containing more of internal electronic parts of a computer, including the CPU, ROM, on-chip RAM, and I/O. The VAX line of computers developed by Digital Equipment Corporation (DEC) especially with processors like the MicroVAX II's 78032 which was the first microprocessor with an on-board memory management unit. It was the microprocessor that allowed for the development of microcomputers, which were affordable to small business and individuals, ushering 
 in a personal computer revolution in the 1980s and 1990s.
 
 In the first decade of the 21st century multi-core CPUs became commercially available, spurred by research into multi-core processors and parallel computing. In 2009 Intel released the Single-Chip Cloud Computing processor as an example, with 48 distinct P54C Pentium physical cores connected with a 4×6 2D-mesh on a single chip that communicated through architecture similar to that of a cloud computer data center, hence the name. Another significant contribution was the development of affordable Content-Addressable Memory; this was a form of memory that acts as an associative array, comparing the input search data against a table, and returning the address of the matching data. This helped significantly in the performance of networking devices.
@@ -308,7 +307,7 @@ Another hardware technology that has recently appeared is the Knight's Landing a
 
 **The Problem**
 
-The use of multiple processos can improve performance if, and only if, the application or the dataset are capable of being run in parallel, and in reality this means that only *part* of the application or dataset. This means that one has to identify the portions that can execute simultaneously, which may mean adding parallel extensions to existing code or starting from scratch (the former is usually a more convinient path, which is one of the many reasons why free-and-open-source software is preferred). Because there are numerous limiting factors in this process it is quite possible that for certain tasks that parallelisation can result in lower-than-hoped-for performance and, in some cases, even worse performance than a serial application. How could this be the case? The following examples provide some reasons.
+The use of multiple processors can improve performance if, and only if, the application or the dataset are capable of being run in parallel, and in reality this means that only *part* of the application or dataset. This means that one has to identify the portions that can execute simultaneously, which may mean adding parallel extensions to existing code or starting from scratch (the former is usually a more convenient path, which is one of the many reasons why free-and-open-source software is preferred). Because there are numerous limiting factors in this process it is quite possible that for certain tasks that parallelisation can result in lower-than-hoped-for performance and, in some cases, even worse performance than a serial application. How could this be the case? The following examples provide some reasons.
 
 **Physical Limits**
 
@@ -326,15 +325,15 @@ This is varied by the number of processors S = T(1)/T(p), where T(p) represents 
 
 Linear, or ideal, speedup is when S(p) = p. For example, double the processors resulting in double the speedup.
 
-However parallel programming is hard . More complexity = more bugs. Correctness in parallelisation usually requires synchronisation, of locking is one common implementation. Synchronisation and atomic operations causes loss of performance, communication latency as they effectively make a portion of the program serial.  A probable issue in parallel computing is deadlocks, where two or more competing actions are each waiting for the other to finish, and thus neither ever does. An apocraphyl story of a Kansas railroad statue radically illustrates the problem of a deadlock:
+However parallel programming is hard . More complexity = more bugs. Correctness in parallelisation usually requires synchronisation, of locking is one common implementation. Synchronisation and atomic operations causes loss of performance, communication latency as they effectively make a portion of the program serial.  A probable issue in parallel computing is deadlocks, where two or more competing actions are each waiting for the other to finish, and thus neither ever does. An apocryphal story of a Kansas railroad statue radically illustrates the problem of a deadlock:
 
 <blockquote>
 "When two trains approach each other at a crossing, both shall come to a full stop and neither shall start up again until the other has gone."
 </blockquote>
 
-A similar example is a livelock; the states of the processes involved in the livelock constantly change with regard to one another, none progressing. A real-world analogy would be two polite people trying to pass each other in a narrow corridor; on noticing that an impending resource conflict will occur (collision sense carrier detect, if you like), they both simultaneously move out of the way – and then back again with new collision potential. Both use up resources, are active, but progress no futher.
+A similar example is a livelock; the states of the processes involved in the livelock constantly change with regard to one another, none progressing. A real-world analogy would be two polite people trying to pass each other in a narrow corridor; on noticing that an impending resource conflict will occur (collision sense carrier detect, if you like), they both simultaneously move out of the way – and then back again with new collision potential. Both use up resources, are active, but progress no further.
 
-Locks are currrently manually inserted in typically programming languages; without locks programs can be put in an inconsistent state. They are usually included as a way of guarding critical sections. Multiple locks in different places and orders can lead to deadlocks. Manual lock inserts is error-prone, tedious and difficult to maintain. Does the programmer know what parts of a program will benefit from parallelisation? To ensure that parallel execution is safe, a task’s effects must not interfere with the execution of another task. 
+Locks are currently manually inserted in typically programming languages; without locks programs can be put in an inconsistent state. They are usually included as a way of guarding critical sections. Multiple locks in different places and orders can lead to deadlocks. Manual lock inserts is error-prone, tedious and difficult to maintain. Does the programmer know what parts of a program will benefit from parallelisation? To ensure that parallel execution is safe, a task’s effects must not interfere with the execution of another task. 
 
 **Optimisation: Do We Really Want It?**
 
@@ -471,19 +470,21 @@ b. Use pair programming when bringing someone new up to speed and when tackling 
 c. Use an issue tracking tool.
 ```
 
-Sometimes these principles could be in conflict. For example, item 4b explicitly says not to copy-and-paste. Yet a quotation like this is a copy-and-paste. Perhaps a reference or a URL could be provided to the authoritive source instead (indeed, it will be found in the reference section). However, there is also the principles embodied in 1a. If this section simply said "go read this paper", most people (and probably including yourself, gentle reader) would have thought to themselves, "I'll do that later" and it wouldn't happen. We humans like to read in serial even when hyperlinks are available. With appetite whet the emphasis is made, please read the paper *now*, carefully, and take notes. Then return to this text.
+Sometimes these principles could be in conflict. For example, item 4b explicitly says not to copy-and-paste. Yet a quotation like this is a copy-and-paste. Perhaps a reference or a URL could be provided to the authoritative source instead (indeed, it will be found in the reference section). However, there is also the principles embodied in 1a. If this section simply said "go read this paper", most people (and probably including yourself, gentle reader) would have thought to themselves, "I'll do that later" and it wouldn't happen. We humans like to read in serial even when hyperlinks are available. With appetite whet, the emphasis is made, this is the only time I will say this: Please read the paper *now*, carefully, and take notes. Then return to this text.
 
-Once one has a good grasp of the conventions for coding practises then one has to develop good programming. Again, it is only possible to touch upon this in brief and refer the reader to some other excellent sources. Because logical and mathematics remains pretty consistent it is possible to recomemnd a text as old as 1970, well recognised as a classic in the subject specifically E.W.Dijkstra's "Notes on Structured Programming" (1970), the URL of the PDF in this book's references. "Notes" emphasises the need to testing, structured design, enumeration and induction, abstraction, decomposition of problems and composition of programs, conditionals and branching, comparison of programs, the use of number theory in programming, families of related programs, system and programmer performance, and arrangement of layers corresponding to abstraction. If all of this seems familiar, that's because the principles have become commonly accepted in computer science. That's why it's a classic!
+Once one has a good grasp of the conventions for coding practises then one has to develop good programming. Again, it is only possible to touch upon this in brief and refer the reader to some other excellent sources. Because logical and mathematics remains pretty consistent it is possible to recommend a text as old as 1970, well recognised as a classic in the subject specifically E.W.Dijkstra's "Notes on Structured Programming" (1970), the URL of the PDF in this book's references. "Notes" emphasises the need to testing, structured design, enumeration and induction, abstraction, decomposition of problems and composition of programs, conditionals and branching, comparison of programs, the use of number theory in programming, families of related programs, system and programmer performance, and arrangement of layers corresponding to abstraction. If all of this seems familiar, that's because the principles have become commonly accepted in computer science. That's why it's a classic!
 
-Another example of a classic is "The Elements of Programming Style" (Kernighan, Plauger, 1978). The name is deliberatly designed to invoke a reference to the more famous "The Elements of Style" by Strunk and White for writers, and makes the observation that sometimes the rules are broken by the best programmers, but when they do there is a greater benefit in breaking the rule rather than keeping it. In most cases however, keeping the style rule is preferred. What are their style rules? Clarity in coding is better than cleverness. Code re-use through libraries and common functions is essential. Avoid too many temporary variables. Select unique and meaningful variable names and ensure variables are initialised before use. Break down big problems into smaller pieces, structure code with procedures and functions that do one thing well, and avoid goto statements. Re-writing bad code is preferential to patching. Use recursive procedures for recursively-defined data structures; it doesn't save time or storage, it is for clarity. Test for plausibility and validity and check the validity of inputs in the code, using EOF markers. Make use of debugging compilers, check boundary conditions, look out for off-by-one errors, and don't confuse integers and reals. Perfomance is secondary to functional. Comments should be judicious, should agree with the code, and the code should be formatted for readability.  
+Another example of a classic is "The Elements of Programming Style" (Kernighan, Plauger, 1978). The name is deliberately designed to invoke a reference to the more famous "The Elements of Style" by Strunk and White for writers, and makes the observation that sometimes the rules are broken by the best programmers, but when they do there is a greater benefit in breaking the rule rather than keeping it. In most cases however, keeping the style rule is preferred. What are their style rules? Clarity in coding is better than cleverness. Code re-use through libraries and common functions is essential. Avoid too many temporary variables. Select unique and meaningful variable names and ensure variables are initialised before use. Break down big problems into smaller pieces, structure code with procedures and functions that do one thing well, and avoid goto statements. Re-writing bad code is preferential to patching. Use recursive procedures for recursively-defined data structures; it doesn't save time or storage, it is for clarity. Test for plausibility and validity and check the validity of inputs in the code, using EOF markers. Make use of debugging compilers, check boundary conditions, look out for off-by-one errors, and don't confuse integers and reals. Performance is secondary to functional. Comments should be judicious, should agree with the code, and the code should be formatted for readability.  
 
-There is also Niklas Wurth's "Algorithms and Data Structures" (Wurth, 1985), which does as it says on tin, outling the particular advantages and disadvantages of each in each context, and understandably makes extensive use of the Pascal and Modula-2 programming languages, depending on edition. Despite the order of the title, Wurth is insisten that data preceeds algorithms. Thus one initially finds a comparison between standard primitive types (real, boolean, char, set), the structure and representation of arrays and records, files, searching through linear approaches, binary approaches, and tables, sorting arrays and sequences, recursion, dynamic information such as recursive data types, and pointers, and hashing functions. Wurth argued that "many programmming errors can be prevented by making programmers aware of the methods and techniques which they hitherto applied intuitively and often unconsciously", and by implication, many errors are made when they are not consciously aware of the methods and techniques. 
+There is also Niklas Wurth's "Algorithms and Data Structures" (Wurth, 1985), which does as it says on tin, outlining the particular advantages and disadvantages of each in each context, and understandably makes extensive use of the Pascal and Modula-2 programming languages, depending on edition. Despite the order of the title, Wurth is insistent that data precedes algorithms. Thus one initially finds a comparison between standard primitive types (real, boolean, char, set), the structure and representation of arrays and records, files, searching through linear approaches, binary approaches, and tables, sorting arrays and sequences, recursion, dynamic information such as recursive data types, and pointers, and hashing functions. Wurth argued that "many programming errors can be prevented by making programmers aware of the methods and techniques which they hitherto applied intuitively and often unconsciously", and by implication, many errors are made when they are not consciously aware of the methods and techniques. 
 
-Taking a second bite at the cherry, Martin's "Clean Code: A Handbook of Agile Software Craftsmanship" (2009) can be read alongside "Clean Coders" (2011). The opening chapter points to the re-writing or maintenance costs of "owning a mess"; prevention is cheaper. After this it argues for meaningful names - in filenames, variables, functions etc. In addition to be meaningful, they should also be distinct, searchable, and use one word per concept. Martin argues "don't pun", however puns can be meaningful, insightful, and most importantly, memorable. Functions should be small, do one thing, have one level of abstraction, and have no side effects. Comments should include legal provisions, explanation of intent, clarifications, warnings, and to-do comments. The comments on formatting emphasise readability on the vertica; amd horitzontal axes, and the use of "team rules". Management of objects and data structures should be based on the realisation that objects expose data and hide data, whiile data structures expose data but have no behaviour; objects are preferred if one wants to add new data types, and new data types are prefrred if you want new behaviours. In error handling, making use of exceptions rather than return codes, and don't pass or return null. 
+Taking a second bite at the cherry, Martin's "Clean Code: A Handbook of Agile Software Craftsmanship" (2009) can be read alongside "Clean Coders" (2011). The opening chapter points to the re-writing or maintenance costs of "owning a mess"; prevention is cheaper. After this it argues for meaningful names - in filenames, variables, functions etc. In addition to be meaningful, they should also be distinct, searchable, and use one word per concept. Martin argues "don't pun", however puns can be meaningful, insightful, and most importantly, memorable. Functions should be small, do one thing, have one level of abstraction, and have no side effects. Comments should include legal provisions, explanation of intent, clarifications, warnings, and to-do comments. The comments on formatting emphasise readability on the vertical and horizontal axes, and the use of "team rules". Management of objects and data structures should be based on the realisation that objects expose data and hide data, whiile data structures expose data but have no behaviour; objects are preferred if one wants to add new data types, and new data types are preferred if you want new behaviours. In error handling, making use of exceptions rather than return codes, and don't pass or return null. 
 
 Use of boundaries should be part of a program's structure, especially when using third-party code. Unit tests should kept clean, with one concept per test. Classes should be small, organised with encapsulation, and isolated which allows for change. Concurrency allows for a separation between what gets done and when it gets done, and properly designed can improve performance, but must be based around defensive programming to avoid the problems resulting from race conditions. Concurrency is also a the subject of lengthy appendix in the book. In addition there is discussion on refinement of existing code, and plenty of heuristic examples of the principles described. If all of this seems to be a bit fleeting, that's because it is. In two paragraphs, this is only a thousand metre view of a book that is over four hundred pages of glorious detail. Read the book.
 
-Often I have said in various training courses: *"Programming is hard. Parallel programming is very hard. Quantum programming is impossible"*. This is quite serious. Programming is a difficult task that involves an incredible attention to the logical workflow of various activities and then the processes of optimisation to improve clarity, performance etc. This is why Ken Thompson, of the creators of UNIX and C once remarked: "“One of my most productive days was throwing away 1000 lines of code." (in Raymond, E. *The Art of UNIX Programming*). 
+Take an opportunity to read the website `suckless.org`, "software that sucks less" and take in the principles, "simplicity, clarity and frugality". Beautiful software is not based on lines of code, just as more words does not make you a better author. Those three principles will create software that is efficient, robust, stable, maintainable, and very importantly, "plays nice with others". 
+
+Often I have said in various training courses: *"Programming is hard. Parallel programming is very hard. Quantum programming is impossible"*. This is quite serious. Programming is a difficult task that involves an incredible attention to the logical workflow of various activities and then the processes of optimisation to improve clarity, performance etc. This is why Ken Thompson, of the creators of UNIX and C once remarked: "“One of my most productive days was throwing away 1000 lines of code." (in Raymond, E. "The Art of UNIX Programming"). 
 
 Programming is not easy. Deciding to make a serial program run in parallel will make a lot more difficult, not just in identification of the the parts that can be possibly run in parallel, or the addition of new pragmas or routines, but especially in the process of debugging. Think hard about race conditions; and then think about them again.
 
@@ -627,7 +628,7 @@ A strength of a programming language is its capacity to employ symbolic identifi
 
 The basic principle is that variables have a great deal of flexibility, whereas constants can provide form of self-documenting code, and provide checks that constancy assumptions are not violated. They also provide a means by which literals (e.g., a number or string) can be easily referred to and updated if necessary. In both cases of these value assignments, the symbolic identifier should be both meaningful and unique, avoiding confusion between other identifiers in the code. Earlier version of Fortran (up to Fortran77) were not very friendly in this regard and, unfortunately, bad habits continue even through this comptemporary time. Very old FORTRAN (FORTRAN IV, aka FORTRAN66) used what was called the I-N rule; undeclared variables were assumed by the compiler to be typed REAL, unless they started with I-N in which case they were assumed to be INtegers. In Fortran77 variable names were limited to six characters from alphanumerics, with the first character a letter. It did not distinguish between upper and lower case; and assumed the former.
 
-Constants in Fortran 90 may be of the types integer, real, logical, complex, and string. Integer constants are a series of digits prefixed with an optional sign. Real constants may be expressed in decimal form as a series of digits with a decimal point and an optional sign, or as an exponential form where a real or integer is followed by E/e as the exponent (e.g., "10E3" to represent 10^3). Logical constants are expressed as ".TRUE." or ".FALSE.", with the periods non-optional. Character constants are a string, the content, encapsulated by single or double-quotes. The length of the string includes white space in the encapsulated area. If quotes are used within a string, use alternate quotes for encapsulation (e.g., "Fortran's constants"). Two consective quotes are treated as one (e.g., "Fortran''s constants" = "Fortran's constants").
+Constants in Fortran 90 may be of the types integer, real, logical, complex, and string. Integer constants are a series of digits prefixed with an optional sign. Real constants may be expressed in decimal form as a series of digits with a decimal point and an optional sign, or as an exponential form where a real or integer is followed by E/e as the exponent (e.g., "10E3" to represent 10^3). Logical constants are expressed as ".TRUE." or ".FALSE.", with the periods non-optional. Character constants are a string, the content, encapsulated by single or double-quotes. The length of the string includes white space in the encapsulated area. If quotes are used within a string, use alternate quotes for encapsulation (e.g., "Fortran's constants"). Two consecutive quotes are treated as one (e.g., "Fortran''s constants" = "Fortran's constants").
 
 In C, constants, also known as literals, can be a character type (char), an integer (int), a single-precision floating point value (float), a double-precision floating point number (double), or enumerated values. Integer literals may be expressed as a decimal, octal, or hexadecimal notation with a special prefix for the base, 0x or 0X for hexadecimal and 0 for octal. Integer literals can also have a 'U', 'u' or 'L', 'l' suffix to for unsigned or long. Floating-point literals, like in Fortran, can be represented either in decimal form or exponential form. In the decimal form a decimal point must be included, in an exponent form, the exponent is introduced by e or E. Character literals are enclosed in single quotes, e.g., 'x', and can consist of standard characters, escape sequences (e.g., '\t'), or a universal character (e.g., ' \u3b2c' - go on, look it up). Certain characters in C that represent special meaning when preceded by a backslash for example, newline (\n) or tab (\t). String literals are enclosed in double quotes and may consist of standard characters, escape sequences, and universal characters.
 
@@ -857,8 +858,6 @@ double *dp;    /* pointer to a double */
 float  *fp;    /* pointer to a float */
 
 If a pointer has a value of NULL (`int  *ptr = NULL;`), it means that the pointer is not intended to point to an accessible memory location. 
-
-[EDIT: Code examples in C and Fortran]
 
 After all this it must be mentioned that, in general, pointers probably should be avoided for many programs. They do provide better performance and can be used for enhanced functionality, this is true, however in most cases normal variables can provide better clarity. As an example of functionality in C there is no for complex datatypes such as a string, thus one has use pointers to variables of type char. Pointers allow one to refer to the same space in memory from multiple locations, which means that the memory can be updated in one location and the change will be seen by all other locations. 
 
@@ -1193,7 +1192,7 @@ read(1,*)
 write(1,*)
 ```
 
-# 3.0 Shared Memory Parallel Programming with OpenMP
+# 3.0 Parallel Programming with OpenMP
 
 ## 3.1 Shared Memory Concepts and the OpenMP Implementation
 
@@ -1660,9 +1659,9 @@ The way that a construct manages the threads allocated to it can vary, these are
 
 The following images, from the Lawrence Livermore National Laboratory, help explain these constructs.
 
-<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
-<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
-<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/fork_join.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/work_share1.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/work_share2.png" />
+<img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/work_share2.png" />
 
 With the _do/for_ directives, a initiated parallel region specifies the iterations of the loops that follows the directive. Without the parallel region it will execute in serial! Note that the DO loop cannot be a DO WHILE loop, and the loop interation must be an integer. The loop can not branch out of the loop (e.g., with goto). An example DO/for example is provided in the chapter's resources in this book's respository, `dofor.c` and `dofor.f90`.
 
@@ -2039,7 +2038,7 @@ do-loops
 !$omp end distribute parallel do simd
 ```
 
-### 3.6 Reductions, Combination, and Summary
+## 3.6 Reductions, Combination, and Summary
 
 The reduction clause allows a reduction operation to occur on the variables in the list. A private copy for each list variable is created and initialised for each thread. At the end of the reduction, the reduction variable is applied to all private copies of the shared variable, and the final result is written to the global shared variable.
 
@@ -2216,7 +2215,7 @@ In the chapter03 directory of the repository for this book there is a sub-direct
 gcc -pthreads $sourcecode.c -o executable
 ```
 
-# 4.0 Distributed Memory Programming with OpenMPI
+# 4.0 Parallel Programming with OpenMPI 
 
 ## 4.1 Distributed Memory Concepts and the OpenMPI Implementation
 
@@ -2628,34 +2627,21 @@ It is left to the reader's own investigations on why the buffer is so interestin
 
 The following provides a summary use of the six core routines in C and Fortran.
 
-Purpose C Fortran
-Include header files #include <mpi.h> INCLUDE ’mpif.h’
-Initialize MPI int MPI_Init(int *argc, char ***argv) INTEGER IERROR
-CALL MPI_INIT(IERROR)
-Determine number of processes within a communicator int MPI_Comm_size(MPI_Comm comm, int *size)
-INTEGER COMM,SIZE,IERROR CALL MPI_COMM_SIZE(COMM,SIZE,IERROR)
-Determine processor rank within a communicator int MPI_Comm_rank(MPI_Comm comm, int *rank) INTEGER COMM,RANK,IERROR
-CALL MPI_COMM_RANK(COMM,RANK,IERROR)
-Send a message int MPI_Send (void *buf,int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
-<TYPE> BUF(*) 
-INTEGER COUNT, DATATYPE,DEST,TAG
-INTEGER COMM, IERROR
-CALL MPI_SEND(BUF,COUNT, DATATYPE, DEST, TAG, COMM, IERROR)
-Receive a message
-int MPI_Recv (void *buf,int count, MPI_Datatype
-datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
-<TYPE> BUF(*) 
-INTEGER COUNT, DATATYPE, SOURCE,TAG
-INTEGER COMM, STATUS, IERROR
-CALL MPI_RECV(BUF,COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR)
-Exit MPI 
-int MPI_Finalize()
-CALL MPI_FINALIZE(IERROR)
+|Purpose 		| C 	| Fortran	|
+|-----------------------|-------|---------------|
+| Include header files  | #include <mpi.h> | INCLUDE 'mpif.h' |
+| Initialize MPI 	| int MPI_Init(int *argc, char ***argv) 	| INTEGER IERROR CALL MPI_INIT(IERROR) |
+| Determine number of processes within a communicator 	| int MPI_Comm_size(MPI_Comm comm, int *size) |  INTEGER COMM,SIZE,IERROR CALL MPI_COMM_SIZE(COMM,SIZE,IERROR) |
+| Determine processor rank within a communicator 	| int MPI_Comm_rank(MPI_Comm comm, int *rank) 	| INTEGER COMM,RANK,IERROR
+CALL MPI_COMM_RANK(COMM,RANK,IERROR) |
+| Send a message 	| int MPI_Send (void *buf,int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm) | <TYPE> BUF(*) INTEGER COUNT, DATATYPE,DEST,TAG INTEGER COMM, IERROR CALL MPI_SEND(BUF,COUNT, DATATYPE, DEST, TAG, COMM, IERROR) |
+| Receive a message int MPI_Recv (void *buf,int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status) |
+<TYPE> BUF(*)  INTEGER COUNT, DATATYPE, SOURCE,TAG INTEGER COMM, STATUS, IERROR CALL MPI_RECV(BUF,COUNT, DATATYPE, SOURCE, TAG, COMM, STATUS, IERROR) |
+| Exit MPI 	| int MPI_Finalize() |	CALL MPI_FINALIZE(IERROR) |
 
 ## 4.4 MPI Datatypes
 
 Like C and Fortran (and indeed, almost every programming language that comes to mind), MPI has datatypes, a classification for identifying different types of data (such as real, int, float, char etc). In the introductory MPI program there wasn’t really much complexity in these types; as one delves deeper however more will be encountered. Forewarned is forearmed, so the following provides a handy comparison chart between MPI, C, and Fortran.
-
 
 MPI DATATYPE FORTRAN DATATYPE 
 MPI_INTEGER INTEGER
@@ -2685,16 +2671,18 @@ MPI_PACKED
 
 Derived types are essentially a user define type for MPI_Send()‏. They are described as 'derived' as they are derived from existing primitive datatype like int and float. The main reason to use them in in MPI context is that they make message passing more efficient and easier to code.
 
-For example if a program has data in double results[5][5], what does the user do if they want to send results[0][0], results[1][0], …results[5][0]?
+For example if a program has data in double results[5][5], what does the user do if they want to send results[0][0], results[1][0], ... results[5][0]?
 
 The program could send the data one at a time e.g.,
 
+```
 double results[5][5];
 int i;
 for ( i = 0; i < 5; i++ ) {
 	MPI_Send( &(results[i][0]), 1, MPI_DOUBLE,
 				dest, tag, comm );
 }
+```
 
 But this has overhead; message passing is always (relatively) expensive. So instead, a datatype can be created that informs MPI how the data is stored so it can be sent in one routine.
 
@@ -2702,6 +2690,7 @@ To create a derived type there are two steps: Firstly construct the datatype, wi
 
 When all the data to send is the same data type use the vector method e.g.,
 
+```
 int MPI_Type_vector( int count, int blocklen, int stride, MPI_Datatype old_type, MPI_Datatype* newtype )
 
 /* Send the first double of each of the 5 rows */
@@ -2711,9 +2700,11 @@ double results[5][5];
 MPI_Type_vector( 5, 1, 5, MPI_Double, &newType);
 MPI_Type_commit( &newType );
 MPI_Ssend( &(results[0][0]), 1, newType, dest, tag, comm );
-‏
+```
+
 Note that when sending a vector, data on receiving processor may be of a different type eg:
 
+```
 double 		recvData[COUNT*BLOCKLEN];
 double 		sendData[COUNT][STRIDE];
 MPI_Datatype 	vecType;
@@ -2725,13 +2716,15 @@ if( rank == 0 )
   MPI_Send( &(sendData[0][0]), 1, vecType, 1, tag, comm );
 else
   MPI_Recv( recvData, COUNT*BLOCKLEN, MPI_DOUBLE, 0, tag, comm, &st );
+```
 
 If you have specific parts of a struct you wish to send and the members are of different types, use the struct datatype.
 
-int MPI_Type_struct( int count, int blocklen[], MPI_Aint indices, MPI_Datatype old_types[],MPI_Datatype* newtype )‏
+`int MPI_Type_struct( int count, int blocklen[], MPI_Aint indices, MPI_Datatype old_types[],MPI_Datatype* newtype )‏`
 
 For example....
 
+```
 /* Send the Packet structure in a message */
 struct {
    int a;
@@ -2740,9 +2733,11 @@ struct {
 } Packet;
 
 struct Packet dataToSend;
+```
 
 Another example ….
 
+```
 int blockLens[3] = { 1, 3, 10 };
 MPI_Aint intSize, doubleSize;
 MPI_Aint displacements[3];
@@ -2757,20 +2752,25 @@ displacements[2] = intSize + ((MPI_Aint) 3 * doubleSize);
 MPI_Type_struct( 3, blockLens, displacements, types, &myType );
 MPI_Type_commit( &myType );
 MPI_Ssend( &dataToSend, 1, myType, dest, tag, comm );
+```
 
 There are actually other functions for creating derived types:
 
+```
 MPI_Type_contiguous
 MPI_Type_hvector
 MPI_Type_indexed
 MPI_Type_hindexed
+```
 
 In many applications, the size of a message to receive is unknown before it is received. (e.g.: number of particles moving between domains)‏. MPI has a way of dealing with this elegantly. Firstly, receive side calls MPI_Probe before actually receiving:
 
+```
 int MPI_Probe( int source, int tag, MPI_Comm comm, MPI_Status *status )‏
 Can then examine the status, and find length using:
 int MPI_Get_count( MPI_Status *status,
 MPI_Datatype datatype, int *count )‏
+```
 
 Then the application dynamically allocate the recv buffer, and call MPI_Recv.
 	
@@ -2778,10 +2778,10 @@ Then the application dynamically allocate the recv buffer, and call MPI_Recv.
 
 Included in the source code files that accompany this book there are two programs (mpi-pingpong.c, mpi-pingpong.f90) from the  University of Edinburgh Parallel Computing Centre. This program tests time for communication according to packet sizes, asynchronous, and bi-directional. The usual methods can be used for compiling and submitting these programs, e.g.,
 
-mpicc -mpi-pingpong.c  -o mpi-pingpongc
-mpif90 mpi-pingpong.f90 -o mpi-pingpongf
+`mpicc -mpi-pingpong.c  -o mpi-pingpongc`
+`mpif90 mpi-pingpong.f90 -o mpi-pingpongf`
 
-qsub pbs-pingpong
+`qsub pbs-pingpong`
 
 <img src="https://raw.githubusercontent.com/VPAC/seqpar/master/images/compiling.png" />
 
@@ -2845,11 +2845,11 @@ C++ Syntax
        #include <mpi.h> 
        void Comm::Abort(int errorcode) 
 
-MPI_Status()
+**MPI_Status()**
 
 MPI_Status is not a routine, but  rather a data structure and is typically attached to an MPI_Recv() routine. It is used by the a receiving function to obtain information about a received message and contains at least fields for the MPI_Source (an integer value of the processor sending the message), MPI_Tag the integer tag of the message, and MPI_Error, the integer error code.
 
-MPI_Ssend()
+**MPI_Ssend()**
 
 MPI_Ssend performs a synchronous-mode, blocking send. Whereas MPI_Send will not return until the program can use the send buffer,  MPI_Ssend will no return until a matching receive is posted. It’s a fairly subtle difference, but in general, the best performance occurs if the program is written so that buffering can be avoided, and MPI_Ssend is used. Otherwise, MPI_Send is the more flexible option. 
 The available input parameters include buf, the initial addess of the send buffer., count., an non-negative integer of the number of elements in the send buffer., datatype, a datatype of each send buffer element as a handle., dest, an integer rank of destination., tag, a message tag represented as an integer, and comm, the communicator handle. The only output paramter is Fortran’s IERRROR.
@@ -2878,10 +2878,9 @@ Although not used in the specific program just illustrated there are actually a 
 
 MPI_Bsend(). Basic send with user-specified buffering and returns immediately.  It allows the user to send messages without worrying about where they are buffered (because the user has provided buffer space with MPI_Buffer_attach – if they haven’t they’ll encounter problems).
 
-MPI_Rsend. Ready send; may be called if a matching receive has already 
-posted. 
+MPI_Rsend. Ready send; may be called if a matching receive has already posted. 
 
-MPI_Irsend. A ready-mode, non-blocking send. Otherwise the same as  MPI_Rsend. 
+MPI_Irsend. A ready-mode, non-blocking send. Otherwise the same as MPI_Rsend. 
 
 MPI_Isend. A standard-mode, nonblocking send. It will allocate a communication request object and associate it with the request handle. A nonblocking send call indicates to the system to start copying data out of the send buffer.  A send request can be determined being completed by calling the MPI_Wait, MPI_Waitany, MPI_Test, or MPI_Testany with request returned by this function. The send buffer cannot be used until one of these conditions is successful, or an MPI_Request_free indicates that the buffer is available.
 
@@ -2889,7 +2888,7 @@ MPI_Ibsend. This initiates a buffered, nonblocking send. As it is non-blocking i
 
 Although MPI_Send and MPI_Ssend are typical, there may be occassions when some of these routines are preferred. If non-blocking routines are necessary, for example, then look at MPI_Isend or MPI_Irecv.
 
-MPI_Isend() 
+**MPI_Isend()**
 
 MPI_Isend() provides a standard-mode, nonblocking send by allocating a communication request object and associate it with the request handle (the argument request). The request can be used later to query the status of the communication or wait for its completion. The nonblocking send call allows the system to copy data out of the send buffer. A send request can be determined being completed by calling the MPI_Wait.
 
@@ -2913,7 +2912,7 @@ C++ Syntax
        Request Comm::Isend(const void* buf, int count, const
             Datatype& datatype, int dest, int tag) const
 
-MPI_Irecv()
+**MPI_Irecv()**
 
 MPI_Irecv() provides a standard-mode, nonblocking receive. With a recv, the request handle (the argument request). The request can be used to query the status of the communication or wait for its completion. A  receive request can be  determined being completed by calling MPI_Wait.
 
@@ -2938,7 +2937,7 @@ C++ Syntax
        Request Comm::Irecv(void* buf, int count, const Datatype& 
             datatype, int source, int tag) const 
 
-MPI_Wait() 
+**MPI_Wait()**
 
 Waits for an MPI send or receive to complete. It returns when the operation identified by request is complete. If the communication object was created by a nonblocking send or receive call, then the object is deallocated by the call to MPI_Wait and the request handle is set to MPI_REQUEST_NULL. The input parameter is request, the request handle. The output paramter is status, the status object and Fortran's integer IERROR.
 
@@ -2959,47 +2958,35 @@ C++ Syntax
        void Request::Wait()
 
 
-A Summary of Some Other MPI Send/Receive Modes
+**A Summary of Some Other MPI Send/Receive Modes***
 
-
-Send Mode	Explanation	Benefits	Problems
-MPI_Send()	Standard send. May be synchronous or buffering	Flexible tradeoff; automatically uses buffer if available, but goes for synchronous if not.	Can hide deadlocks, uncertainty of type makes debugging harder.
-MPI_Ssend()	Synchronous send. Doesn't return until receive has also completed.	Safest mode, confident that message has been received. 	Lower performance, especially without non-blocking.
-MPI_Bsend()	Buffered send. Copies data to buffer, program free to continue whilst message delivered later.	Good performance. Need to be aware of buffer space.	Buffer management issues.
-MPI_Rsend()	Receive send. Message must be already posted or is lost.	Slight performance increase since there's no handshake.	Risky and difficult to design.
+| Send Mode	| Explanation	| Benefits	| Problems	|
+|---------------|---------------|---------------|---------------|
+| MPI_Send()	| Standard send. May be synchronous or buffering	| Flexible tradeoff; automatically uses buffer if available, but goes for synchronous if not.	| Can hide deadlocks, uncertainty of type makes debugging harder. |
+| MPI_Ssend()	| Synchronous send. Doesn't return until receive has also completed.	| Safest mode, confident that message has been received. 	| Lower performance, especially without non-blocking. |
+| MPI_Bsend()	| Buffered send. Copies data to buffer, program free to continue whilst message delivered later.	| Good performance. Need to be aware of buffer space.	| Buffer management issues. |
+| MPI_Rsend()	| Receive send. Message must be already posted or is lost.	| Slight performance increase since there's no handshake.	| Risky and difficult to design. |
 
 As described previously the arguments dest and source in the various modes of send are the ranks of the receiving and the sending processes. MPI also allows source to be a "wildcard" through the predefined constant MPI_ANY_SOURCE (to receive from any source) and MPI_ANY_TAG (to receive with any source). There is no wildcard for dest. Again using the postal analogy, a recipient may be ready to receive a message from anyone, but they can't send a message to anywhere (as we'll see in the next section, you can however send to everywhere)!
 
-The Prisoner’s Dilemma Example
+**The Prisoner’s Dilemma Example**
 
 The example of the Prisoner’s Dilemma (cooperation vs competition) is provided as an example to illustrate how non-blocking communications work. It in this example, there are ten rounds between two players. There are different pay-offs for each. In this particular version the distinction is between cooperation and competition for financial rewards. If both players cooperate they receive $2 for the round. If they both compete, they receive $1 each for the round. But if one adopts a competitive stance and the other a cooperative stance, the competitor receives $3 and the co-operative player nothing. 
 
 A serial version of the code is provided (serial-gametheory.c, serial-gametheory.f90). Review and then attempt a parallel version from the skeleton versions of MPI (mpi-skel-gametheory.c, mpi-skel-gametheory.f90). Each process must run one of the players decision-making, then they both have to transmit their decision to the other, and then update their own tally of the result. Consider using MPI_Send(), or MPI_Irecv(), and MPI_Wait(). On completion review with a solution provided with mpi-gametheory.c and mpi-gametheory.f90 and submit the tasks with qsub.
 
-4.6 Compiler Differences
-------------------------
+## 4.6 Compiler Differences
 
 Compile the  mpi-pong.c and mpi-pong.f90 example MPI applications included with this chapter.  The submit the jobs with the included PBS script.  The command tracejob will provide some answers on how long a job took to complete, along with exit status and resources used. The syntax is tracejob <jobid>. If available, compare compilation with different compilers (e.g., GCC, Intel, PGI).
 
 
-[EDIT]
-
-Fill in the following for the MPI program msum after compiling it using the three MPI compilers.
-
-Cores/Compiler	8 Cores (nodes=1:ppn=2)	16 Cores (nodes=1:ppn=4)	32 Cores (nodes=1:ppn=8)
-GCC
-PGI
-Intel
-
-
-
-4.7 Collective Communications
------------------------------
+## 4.7 Collective Communications
 
 MPI can also conduct collective communications.  These include MPI_Broadcast, MPI_Scatter, MPI_Gather, MPI_Reduce, and MPI_Allreduce. A brief summary of their syntax and description of effects is provided before a practical example.
 
 The basic principle and motivation is that whilst collective communications this may provide a performance improvement, it will certainly provide clearer code. Consider the following C snippet of a root processor sending to all..
 
+```
 if ( 0 == rank ) {
   unsigned int proc_I;
   for ( proc_I=1; proc_I < numProcs; proc_I++ ) {
@@ -3009,10 +2996,11 @@ if ( 0 == rank ) {
 else {
   MPI_Recv( &param, 1, MPI_UNSIGNED, 0 /*ROOT*/, PARAM_TAG, MPI_COMM_WORLD, &status );
 }
+```
 
 Replaced with:
 
-MPI_Bcast( &param, 1, MPI_UNSIGNED, 0/*ROOT*/, MPI_COMM_WORLD );
+`MPI_Bcast( &param, 1, MPI_UNSIGNED, 0/*ROOT*/, MPI_COMM_WORLD );`
 
 **MPI_Bcast()**
 
@@ -3265,11 +3253,9 @@ The second example is designed to gain a practical example of the use of MPI der
 Then seed the random number sequence on the root processor only, and determine how many particles are to be assigned among the respective processors (same as for last exercise) and collectively assign their data using the MPI derived data type you have implemented.
 
 
-5.0 GPGPU Programming
-=====================
+# 5.0 GPGPU Programming
 
-5.1 GPGPU Technology
---------------------
+## 5.1 GPGPU Technology
 
 A Graphic Processing Unit (GPU) is a processor that was specialised for processing graphics. The use of the past tense is deliberate here, as in more recent years it has become clear that the particular architecture of the processor means that the GPU has become increasingly suitable to particular types of parallel compution. For what it's worth, the name Graphics Processing Unit GPU was first coined by Sony in 1994 for the Playstation, but really become notable with NVidia who marketed the GeForce 256 as "the world's first GPU", which is not exactly true. As an aside, ATI tried to have an alternative name, a "visual processing unity", or VPU, with the Radeon 9700 in 2002. That failed to catch on, for some pretty obvious marketing reasons (it wasn't first, it wasn't in a dominant marketing position, etc).
 
@@ -3279,90 +3265,168 @@ As mentioned, GPUs have become increasingly popular as a tool for some forms of 
 
 The architecture of a GPU uses an electronic circuit to rapidly manipulate memory and create images for a frame buffer to be used on a display device (e.g., mobile phone, personal computer etc). As most of these operations involve extensive matrix and vector operations, GPUs are particularly well-suited for "pleasingly parallel" problems. Whereas a CPU has low latency and good throughput, it is particularly well suited to compute a job as quickly as possible, whereas a GPU has high throughput and good latency, and is best when one wants to compute as many jobs as possible. With this massive speed in parallel computation, GPUs have quickly become dominant in supercomputer metrics, such as the Top500, where GPU processors are increasingly surpassing CPUs in their capacity to perform floating point operations. In addition, whilst memory on a GPU is usually quite low compared to a CPU, it has much higher bandwidth. The combination of computational throughput and memory bandwidth also lead to impressive power efficiency as well, for particular computational tasks.
 
-<img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/gpuimage.png" /><br />
+<img src="https://raw.githubusercontent.com/levlafayette/SpartanGPUCourse/master/Images/gpuimage.png" /><br />
 Image from Felipe A. Cruz, GeForce GTX 280
+
+Reviewing this image some of the content (e.g., processor cores) should be obvious in their meaning. Others perhaps less so. The ROP, Texture, and Frame Buffer are particular to GPUs, for example. ROP stands for "Render Output Unit", and where a pipleline takes a pixel (defined as a point) it is processed in a process called raterisation via matrix and vector operations into a final pixel or depth-value. ROPs control antialiasing, that is, when more than one sample is merged into one pixel, as well as performing the transactions (e.g., reading, writing) between the relevant buffers in the local memory. Whereas the Texture Mapping Unit, rotates, resizes, and otherwise distorts bitmap images that are placed on a given model. Finally, the Frame Buffer is a portion of RAM that contains a bitmap that contains all the pixels in a complete video frame
 
 The following table makes explicit the performance improvements of GPUs in recent years.
 
-Year Architecture Model GHz SMP Cores GFLOPs TDP W GFLOP/W RAM GB RAM GB/s IO GB/s
-2007 Tesla C870 1.35 8x16 128 - 171 - 1.5 76.8 8
-2009 Tesla C1060 1.30 15x16 240 78 188 0.42 4 102 8
-2011 Fermi C2050 1.15 14x32 448 515 247 2.09 3 144 15.8
-2012 Kepler K20 0.70 13x192 2496 1175 225 5.22 5 208 15.8
-2013 Kepler K40 0.73 15x192 2880 1680 235 7.15 12 288 15.8
-2015 Maxwell M40 0.95 24x128 3072 214 250 0.86 12 288 15.8
-2016 Pascal P100 1.33 56x64 3584 4670 250 18.7 16 732 15.8/80
+| Year	| Architecture	| Model	| GHz	| SMP	| Cores	| GFLOPs | TDP W | GFLOP/W RAM GB | RAM GB/s | IO GB/s |
+|-------|---------------|-------|-------|-------|-------|--------|-------|----------------|----------|---------| 
+| 2007	| Tesla	| C870 | 1.35 | 8x16 | 128 | 171 | 1.5 | 76.8 | 8 |
+| 2009	| Tesla	| C1060 | 1.30 | 15x16 | 240 | 78 | 188 | 0.42 4 | 102 | 8 |
+| 2011	| Fermi | C2050 | 1.15 | 14x32 |  448 | 515 | 247 | 2.09 | 3 | 144 | 15.8 |
+| 2012	| Kepler | K20 | 0.70 | 13x192 | 2496 | 1175 | 225 | 5.22 | 5 | 208 | 15.8 |
+| 2013	| Kepler | K40 | 0.73 | 15x192 | 2880 | 1680 | 235 | 7.15 | 12 | 288 |15.8 |
+| 2015	| Maxwell | M40 | 0.95 | 24x128 | 3072 | 214 | 250 | 0.86 | 12 | 288 | 15.8 |
+| 2016	| Pascal | P100 | 1.33 | 56x64 | 3584 | 4670 | 250 | 18.7 | 16 | 732 | 15.8 |
 
 The die of a GPU includes processor cores, render output units, frame buffers, thread scheduler, and texture mapping units. Compared to a CPU, GPU technology is massively parallel; it has many more cores, and many more threads, they are extremely inexpensive in comparison, and, of course, they are programmable (e.g., with OpenACC, CUDA, OpenCL). At the time of writing, GPU technology is accelerating much faster than CPU technology. However, it is worth noting that CPUs are becoming more like GPUs; architecture developments notes an increasing number of cores, increasing capacity for vector parallelism, whereas GPUs are becoming more like CPUs, with increasing levels and sizes of cache, and capability for thread management. It will be a while however before the two technologies approach anything close to a merger.
 
-To express simply, GPGPU programming is a type of SIMD parallelisation, using a single instruction stream over multiple data. It works especially well when one requires fine-grained parallelism over many threads; it is less well suited for other algorithms. Whilst pleasingly parallel applications are very well-suited for GPGPUs, the same principles expressed much earlier in this text, the limits of Amdahl's Law, still apply. The maximum acceleration is still limited by the serial component of the application. This said, the same sort of solutions apply as well. 
+To express simply, GPGPU programming is like a type of SIMD parallelisation, using a single instruction stream over multiple data. Of course, with many processors it fits in the SPMP subset of MIMD as well. It works especially well when one requires fine-grained parallelism over many threads; it is less well suited for other algorithms. Whilst pleasingly parallel applications are very well-suited for GPGPUs, the same principles expressed much earlier in this text, the limits of Amdahl's Law, still apply. The maximum acceleration is still limited by the serial component of the application. This said, the same sort of solutions apply as well. 
+
+As mentioned GPUs are not suitable for all programming tasks, but some parts of a program or collection of programs will benefit a great deal. Rather than simply giving up and trying to run everything on the CPU, it is worth investigate other algorithms if possible. Break the problem into discrete sections of work that can be distributed to multiple tasks (decomposition) to investigate further. The main challenge to the programmer will be keep the GPGPU busy!
 
 Programming an application for GPGPU acceleration does require modification to the source code however, as we shall see, there is becoming easier with directive support. As with other forms of parallel programming it is best to start with a working serial version of an application and then identify what regions can make use of GPU acceleration, and which of several APIs (e.g., OpenACC, OpenMP, CUDA, OpenCL) to use. Of particular note it is important not to move data across the PCI-Express link unncessarily. Obviously, it is necessary to move some data so that the GPU can process it, but one needs to be aware of where data is located when making modification to the code and minimise the transfers between the CPU region and the GPU region.
 
 When making a choice on how to modify an application to make use of GPUs, essentially there are three options; (a) Make use of third party libraries and application extensions., (b) Make use of compiler directives., or (c) Use a programming language or API. Each of these have advantages and disadvantages which basically come down to ease of use to performance and flexibility. The use of libraries and extensions, has minimum effort, usually has excellent performance, but is not very flexible (e.g., Linear Solver Library for OpenFOAM). In comparison, a directive-based solution (e.g., OpenACC) requires some minor modification to the source code, which remains portable between GPU-enabled and CPU-only systems, but offers the lowest performance improvement. Finally, programming language extensions (e.g., OpenCL, CUDA) do require significant effort, but offer the best potential performance improvement and are, of course, extremely flexible as the programmer has the greatest level of control.
 
-This text will explores the use of OpenACC ("open accelerators) and CUDA programming. OpenACC uses compiler directives to invoke offloading to a GPU (See: http://www.openacc-standard.org). These directives work with applications written in C, C++ and Fortran source code. Since v4.0, OpenMP also supports accelerator directives (See: http://openmp.org). A particularly nice touch is that one can combine OpenACC directives and OpenMP directives in the same code without conflict.
+This text will explores the use of OpenACC ("open accelerators") and CUDA programming. OpenACC uses compiler directives to invoke offloading to a GPU (See: `http://www.openacc-standard.org`). These directives work with applications written in C, C++ and Fortran source code. Since v4.0, OpenMP also supports accelerator directives (See: `http://openmp.org`). A particularly nice touch is that one can combine OpenACC directives and OpenMP directives in the same code without conflict.
 
 In contrast there is also CUDA which was introduced by NVidia in 2006, as a compiler and application toolkit for NVidia GPGPUs. As such thigs are, it was originally an acronym; "Compute Unified Device Architecture", but these days it is usually referred to just as CUDA. CUDA does provide a high level of hardware abstraction and automation of thread management. There is also  numerical libraries, such as cuBLAS, and cuFFT. (See: https://developer.nvidia.com/about-cuda).
 
-The main disadvantage with CUDA is that, whilst in significant use throughout the industry, it that the language is locked into NVidia, and vendor lock-in is something which no engineer, programmer, or even manager for that matter, should desire. There is a multiple-vendor, open standard for C/C++ known as OpenCL which uses the same principles as CUDA. However, it is a lower-level specification and, as a result, is harder to program in that with CUDA. It is also worth noting that OpenCL supports a variety of compute resources (e.g., CPU, GPU, DSP, FPGA) and can use same code base on each. See: https://www.khronos.org/opencl/
+The main disadvantage with CUDA is that, whilst in significant use throughout the industry, it that the language is locked into NVidia, and vendor lock-in is something which no engineer, programmer, or even manager for that matter, should desire. There is a multiple-vendor, open standard for C/C++ known as OpenCL which uses the same principles as CUDA. However, it is a lower-level specification and, as a result, is harder to program in that with CUDA. The good news is that porting CUDA to OpenCL is becoming easier over time. It is also worth noting that OpenCL also supports a variety of compute resources (e.g., CPU, GPU, DSP, FPGA) and can use same code base on each, which is frankly quite spectacular. See: `https://www.khronos.org/opencl/`
 
-<img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-DP-600x-300x232.png" /> <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-mem-bw-600x-300x241.png" /><br />
+<img src="https://raw.githubusercontent.com/levlafayette/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-DP-600x-300x232.png" /> <img src="https://raw.githubusercontent.com/levlafayette/SpartanGPUCourse/master/Images/Natoli-CPUvGPU-peak-mem-bw-600x-300x241.png" /><br />
 Images from HPCWire `https://www.hpcwire.com/2016/08/23/2016-important-year-hpc-two-decades/`
 
-In an HPC environment, your friendly system administrators would have pre-compiled a number of applications from source to work with CUDA (or similar). As this is subject to a variety of constraints it is worth reviewing common issues that come up in such an environment. Often access to GPUs are restricted to particularly queues because of the cost of installation and to particular research groups that have funded their purchased. In the future they may become more sufficiently common, but at the time of writing it is not unusual that a user will need to specifiy the queue that the GPUs are located on, the account (projectID) that you are using for the gpgpu partitions, and generic resource in the job submission script. 
+In an HPC environment, your friendly system administrators would have pre-compiled a number of applications from source to work with CUDA (or similar), such as FFTW, GROAMCS, NAMD, and OpenMPI, and TensorFlow. As this is subject to a variety of constraints it is worth reviewing common issues that come up in such an environment. Often access to GPUs are restricted to particularly queues because of the cost of installation and to particular research groups that have funded their purchased. In the future they may become more sufficiently common, but at the time of writing it is not unusual that a user will need to specifiy the queue that the GPUs are located on, the account (projectID) that you are using for the gpgpu partitions, and generic resource in the job submission script. 
 
+## 5.2 OpenACC Directives
 
-5.2 OpenACC Pragmas
--------------------
+The general structure of OpenACC is quite similar to the approach used in OpenMP.  However OpenACC only works with a limited range of compilers (e.g., PGI compilers, and GCC 6+). The API is designed for C, C++, and Fortran. OpenACC directives are portable; across operating systems, host CPUs, and accelerators and an be used with GPU accelerated libraries,  explicit parallel programming languages (e.g., CUDA), MPI, and OpenMP, all in the same program. As with OpenMP and OpenMPI directives, the pragmas in OpenACC are treated as comments by compilers that do not use them. 
 
-* The general structure of OpenACC is astoundingly simple; see `/usr/local/common/OpenACC`. It combines the process of decomposition on a hetrogenous system with pragmas. However OpenACC only works with a limited range of compilers (on Spartan, PGI compilers only, and GCC 6+). API is for C, C++, and Fortran.
+Preparing a program for use of OpenACC directives combines the process of decomposition on a hetrogenous system with pragmas or directives.  At the simplist level this involves starting with working serial code, identifying regions that could benefit from being run on the GPU, and recompiling appropriately. For example;
 
-* OpenACC directives are portable; across operating systems, host CPUs, and accelerators. Can be used  with GPU accelerated libraries, explicit parallel programming languages (e.g., CUDA), MPI, and OpenMP, all in the same program.
-* As with OpenMP and OpenMPI directives, the pragmas in OpenACC are treated as comments by compilers that do not use them. 
+```
+#pragma acc kernels
+for (int i= 0; i < n; i++) {
+//... parallel code ...
+}
+// ... serial code ...
+```
 
-* Example problem (from the Pawsey Supercomputing Centre); Heating a metal plate, simulated by solving Laplace equation ∇^2 f x,y = 0.
-* The steady state response is solved as a 2D grid where the temperature of every ith grid point is an average of its 4 neighbours.
-* Compile the example program in `/usr/local/common/OpenACC`, then run the profiler. Notice that loops are identified as intensive regions.
+From the above, the `kernels` pragma suggests to the compiler to concentrate on loops in the code block and the compiler will run in parallel if it can. The general syntax is `#pragma acc directive [clauses]` in C or `!$acc directive [clauses]` and `$!acc directive end` in Fortran. 
 
-* The `kernels` pragma suggests to the compiler to concentrate on loops in the code block.
-* The compiler will run in parallel if it can.
-* The syntax is `#pragma acc kernels directive [clause]` in C or `!$acc kernels` and `$!acc kernels end` in Fortran.
+Test the following difference between the serial and accelerated versions. Before running the test, ensure that they are being conducted on a GPU compute node or, if being submitted in a job submission script, to a PGI partition. These test scripts compute a(x + y) where x and y are vectors to the value of N=100000000, and where a is a scalar.
 
-* The introduction of pragmas to the example in `/usr/local/common/OpenACC` actually makes the code slower!
-* Simply making a loop available for parallel execution is insufficient. This may remove some compute bottlenecks, but it may also introduce new bottlenecks, such as memory transfer. The CPU (host) and the GPU (device) are separate processors.
+```
+module load PGI
+pgcc test.c -o testc
+time ./testc
+pgcc -acc -Minfo=accel test.c -o testc
+time ./testf
+```
+
+```
+pgf90 test.f90 -o testf
+time ./testf
+pgf90 -acc -Minfo=accel test.f90 -o testf
+time ./testf
+```
+
+Even with the overhead of converting the serial script to parallel and offloading the relevant parts to the GPU, these should both run somewhat faster with GPU acceleration compared to a serial problem. The output of the PGI compiler is quite informative in identifying regions of code which could be improved by offloading compution to the GPU along with data transfers. Further, it explicitly prevents parallelisation where there is a data dependency in a loop.
+
+A common example of OpenACC programming is to use a Jacobi iteration to solve a Laplace equation in 2D, ∇^2 f x,y = 0.. One iteratively converges to correct value (e.g. in this case temperature of a metal plate), the steady state response is solved as a 2D grid where the temperature of every ith grid point is an average of its four neighbours. The code (located in the Resources directory, modified from content from the Pawsey Supercomputer Centre in Western Australia) has a serial and acceleated version. Compile the serial version, calculate the time it takes to run, then apply a profiler. 
+
+```
+pgcc heat_serial.c -o heatc
+time pgprof --cpu-profiling-scope instruction --cpu-profiling-mode top-down ./heatc
+
+```
+
+The profiler will identify what parts of the code took up computational time. In this example, lines are identified where certain loops are compute intensive regions. Apply OpenACC pragmas to these regions and recompile, and run the timer again. The `kernels` construct will suggest to the compiler on certain scoped code regions. The compiler will apply parallelisation on the code region if it can and attempt to resolves data dependencies and manage data movement. If it can, it produces a kernel to run on the accelerator or lets the programmer know why the code region was not parallelised.
+
+```
+pgcc -acc -Minfo=accel heat_accv1.c -o heatc
+time ./heatc
+```
+
+Disturbingly, the introduction of pragmas actually makes the code run slower. What has happened? Is all this lead-up on the effectiveness of GPGPUs and OpenACC actually wrong? That the hardware fails to live up to expectations. Running the code with the profiler however is quite revealing. Simply making a loop available for parallel execution is insufficient. This may remove some compute bottlenecks, but it may also introduce new bottlenecks, such as memory transfer. The CPU (host) and the GPU (device) are separate processors.
 
 <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/pci-e_single_dual.png" />><br />
 Image from NVidia developer blog
 
-* The `data` construct suggests to the compiler the scoping of data and granularity data movement. It facilitates sharing data between multiple parallel regions.
-* As a structure construct it must start and end in the scope of the same function or routine.
-* The syntac is `#pragma acc data [clause]` in C or `!$acc data` and `!$acc end data` in Fortran.
+To transfer data, one uses the `data` construct. This suggests to the compiler the scoping of data and granularity data movementand facilitates sharing data between multiple parallel regions. When making use of this contruct one should apply to the principles of ensuring that the data that is needed is close to the compute device as possible, and to minimise the time spent in data transfers. Only copy what is needed, and avoid duplication. If data is contigious, all the better. As a structure construct it must start and end in the scope of the same function or routine. The syntax is `#pragma acc data [clause]` in C or `!$acc data` and `!$acc end data` in Fortran. Several clauses can be used with the kernels, and data constructs (among others), including copy(list), copyin(list), copyout(list), create(list), present(list), presentor\_or\_*(list)
 
-* Several clauses can be used with the kernels, and data constructs (among others), including copy(list), copyin(list), copyout(list), create(list), present(list), presentor\_or\_*(list)
+The `clause copy(list)` will allocate memory on the GPU and copy data from the host memory when entering the region, and copy data top the host when exiting the region. It is the simplist and most adaptable data clause.
 
-* The clause copy(list) will read and write data in list from host memory to device memory, copyin(list) will read, copyout(list) will write, create (list) will create and destroy variables on device (temporary buffers), present(list) will declare on device, present_or_*(list) will suggest that the compiler to check if the variable in the list exists or needs an action. Also used as short form e.g. pcopy(list), pcopyin(list), pcopyout(list)
+The `copyin(list)` clause will allocate memory on the GPU and copy data from the host to GPU when entering the rehion, whilst `copyout(list)` will allocates memory on GPU and copies data to the host when exiting region. The `create (list)` will allocate memory on the GPU and will create and destroy variables on device (temporary buffers), but will not copy. The present(list) will declare on device and used when data is already on the GPU. The `present_or_*(list)` clause will suggest that the compiler to check if the variable in the list exists or needs an action. Also used as short form e.g. pcopy(list), pcopyin(list), pcopyout(list). 
 
-* Array shaping for data constructs is often required in C so the compiler can understand the size and shape of the array; Fortran is better at this.
-* In C the array shape is described as x[start:count], with another [] for additional dimensions e.g. x[start:count][start:ccount]; 'start' is the start index in the dimension and 'count' is the contiguous memory
-address after start. In Fortran, array shape is described as y[start:end].
+Compare the files `heat_accv1.c` and `heat_accv2.c`, and compile and run the code. This will generate a preferred result.
 
-* The `kernels` directive, used in this course, is a general case statement and is descriptive.
-* The `parallel` directive, is prescriptive and allows further finer-grained control of how the compiler will attempt to structure work on the accelerator. 
+```
+pgcc -acc -Minfo=accel heat_accv2.c -o heatc
+time ./heatc
+```
 
-* The `parallel` directive can be combined with a `loop` directive, creating a `parallel loop`, forcing the compiler to process the loop in parallel.
+Whe compiling with arrays, the shape will need to described, especially in C. Fortran's self-describing arrays will provide sufficient information, and can be expressed as x[start:end]. However with C, the array shap is described as x[start:count] and for multi-dimensional add another [] for each dimension e.g. x[s:c][s:c], wehere start is the start index in the dimension and count is the contiguous memory address after start. For example;
+
+```
+#pragma acc data pcopyin(x[0:ROWS][0:COLS], y[0:ROWS][0:COLS])) pcopyout[y[0:ROWS][0:COLS])
+{
+	#pragma acc kernels present(x,y)
+	{
+		for (i=0; i<ROWS; i++)
+		for (j=0; j<COLS; j++)
+		y[i][j] += x[i][j];
+	}
+}
+```
+
+Used in most of the examples here, the `kernels` directive is general, implicit, and decriptive. It directs the compiler to identify parts of the code within the construct that can be made parallel. In that sense, the `parallel` construct does the same thing, however it is more specific, explicit, and perscriptove. Thus, it requires more analysis by the programmer to determine the finer-grained control necessary for better performance. In a nutshell, the `kernels` directive provides the compiler more control, whereas the `parallel` directive provides the programmer more control.
+
+For example. the `parallel` directive can be combined with a `loop` directive, creating a `parallel loop`, forcing the compiler to process the loop in parallel.
+
 e.g., 
 ``` #pragma acc parallel loop 
 for (int i=0; i<N; i++)
 	{ C[i] = A[i] + B[i];
 	}
 ``` 
-* With the `kernel` directive it is the compiler's responsibility to determine what it safe to parallize. A single directive can cover a large area of code.
-* With the `parallel loop` directive, the programmer has the responsibility. May be easier is the programmer is familiar with OpenMP.
 
+Consider the following simple comparison from Boston University:
 
-5.3 CUDA Programming
---------------------
+```
+#pragma acc parallel
+{
+    #pragma acc loop
+    for (i=0; i<n; i++) 
+         a[i] = 3.0f*(float)(i+1);
+    #pragma acc loop
+    for (i=0; i<n; i++) 
+         b[i] = 2.0f*a[i];
+}
+```
+
+In this case there is no implicit barrier between the two loops; both my operate simultaneously. Note that this will cause issues if there is a dependency relationship between the two code regions.
+
+```
+#pragma acc kernels
+{
+   for (i=0; i<n; i++)
+       a[i] = 3.0f*(float)(i+1);
+   for (i=0; i<n; i++)
+        b[i] = 2.0f*a[i];
+}
+```
+
+In this case there is an implicit barrier between the two loops. The first loop will run and then the second.
+
+With the `kernel` directive it is the compiler's responsibility to determine what it safe to parallise. A single directive can cover a large area of code. With the `parallel loop` directive, the programmer has the responsibility. 
+
+## 5.3 CUDA Programming
 
 As with all parallel programming, start with serial code, engage in decomposition, then generate parallel code. The general structure of CUDA code separates CPU functions from CUDA functions. i.e.,
 
@@ -3383,7 +3447,7 @@ int main()
 }
 ``
 
-The __global__ keyword indicates that the following function will run on the GPU, and can be invoked globally, which in this context means either by the CPU, or, by the GPU. Functions defined with the __global__ keyword must return type void. The function called to run on a GPU is referred to as a kernel. Often, code executed on the CPU is referred to as host code, and code running on the GPU is referred to as device code.
+The `__global__` keyword indicates that the following function will run on the GPU, and can be invoked globally, which in this context means either by the CPU, or, by the GPU. Functions defined with the `__global__` keyword must return type void. The function called to run on a GPU is referred to as a kernel. Often, code executed on the CPU is referred to as host code, and code running on the GPU is referred to as device code.
 
 The basic Function modifiers are `__global__` (to be called by the host but executed by the GPU) and `__host__ ` (to be called and executed by the host). The basic variable modifiers are `__shared__` (variable in shared memory), and `__syncthreads()` (sync of threads within a block), and the basic kernel launch paramters are Block size and Grid Size - depends on hardware.
 
@@ -3433,7 +3497,6 @@ The first issue of note is that determining what versions of CUDA and what GPGPU
 Below are the supported sm variations and sample cards from the particulare generation:
 
 Fermi (CUDA 3.2: SM20 or SM_20, compute_30, for GeForce 400, 500, 600, GT-630
-
 Kepler (CUDA 5 and later):
 SM30 or SM_30, compute_30; Kepler architecture, for Tesla K40/K80, GeForce 700, GT-730). 
 SM35 or SM_35, compute_35; Tesla K40. 
@@ -3451,138 +3514,149 @@ To compile a CUDA program these architecture variations should be included as co
 
 When a kernel is launched, an execution configuration must be provided, by using the <<< ... >>> syntax just prior to passing the kernel any expected arguments. The execution configuration allows programmers to specify the thread hierarchy for a kernel launch, which defines the number of thread groupings (blocks), as well as how many threads to execute in each block. Unlike most C/C++, launching CUDA kernels is asynchronous; the CPU code will continue to execute without waiting for the kernel launch to complete. A call to `cudaDeviceSynchronize` will cause the host (CPU) code to wait until the device (GPU) code completes, and only then resume execution on the CPU.
 
+Note the compilation process; launch an interactive job, load a CUDA module,  compile with `nvcc HelloWorld.cu -o HelloWorld -gencode arch=compute_50,code=sm_50`. With NVCC the `-arch` flag specifies the name of the NVidia GPU architecture that the CUDA files. The architectures can be specified with `sm_XX` and `compute_XX`, for real and virtual architectures respectively. Compile for the architecture (both virtual and real), that represents the GPUs you wish to target. i.e., `-gencode arch=compute_XX,code=sm_XX`.
 
-* Note the compilation process; launch an interactive job, load a CUDA module (e.g., `CUDA/8.0.44-GCC-4.9.2`),  compile with `nvcc vecAdd.cu -o helloWorld -gencode arch=compute_60,code=sm_60`
+A CUDA _kernel_ (a C program) is executed by _thread_. Each thread has it own ID, execute same kernel and will access registers and local memory.  Threads are grouped into _blocks_, which will access shared memory, and threads in a block can synchronize execution. Blocks are grouped into a _grid_, that can access global memory, and each block must be independent. The execution configuration specificies how many thread blocks, (or blocks) and how many threads they would like each thread block to contain. The general syntax for this is: `<<< NUMBER_OF_BLOCKS, NUMBER_OF_THREADS_PER_BLOCK>>>`
 
-* With NVCC the `-arch` flag specifies the name of the NVidia GPU architecture that the CUDA files.
-* Architectures can be specified with `sm_XX` and `compute_XX`, for real and virtual architectures respectively.
-* Compile for the architecture (both virtual and real), that represents the GPUs you wish to target. i.e., `-gencode arch=compute_XX,code=sm_XX`.
+`someKernel<<<1, 1>>()` Single block, single thread, will run once.
+`someKernel<<<1, 10>>()` Single block, ten thread, will run ten times.
+`someKernel<<<10, 1>>()` Ten blocks, single thread per block, will run ten times.
 
-* A CUDA _kernel_ (a C program) is executed by _thread_. Each thread has it own ID, execute same kernel and will access registers and local memory. 
-* Threads are grouped into _blocks_, which will access shared memory, and threads in a block can synchronize execution. 
-* Blocks are grouped into a _grid_, that can access global memory, and each block must be independent.
+Each thread has an index within its thread block, starting at 0. Each block is given an index, starting at 0. CUDA kernels have access to variables identifying both the index of the thread within the block (threadIdx x) that is executing the kernel and the index of the block within the grid (and blockIdx x). As with other forms of parallelisation, loops in CPU-only applications are promising target for CUDA as each iteration of the loop can be run in parallel in its own thread. To parallelise a loop, two things need to be done; (1) a kernel must be written to do the work of a single iteration of the loop and (2) the execution configuration must ensure the kernel executes the correct number of times.
 
-* The execution configuration specificies how many thread blocks, (or blocks) and how many threads they would like each thread block to contain. The general syntax for this is: `<<< NUMBER_OF_BLOCKS, NUMBER_OF_THREADS_PER_BLOCK>>>`
-* `someKernel<<<1, 1>>()` Single block, single thread, will run once.
-* `someKernel<<<1, 10>>()` Single block, ten thread, will run ten times.
-* `someKernel<<<10, 1>>()` Ten blocks, single thread per block, will run ten times.
+The number of threads in a block is limited to 1024. Beyond this, coordination is required across multiple thread blocks using the variable `blockDim.x`. When used with `blockIdx.x` and `threadIdx.x`, coordination is achieved across multiple blocks of multiple threads. Parallel execution accross multiple blocks of multiple uses the expression threadIdx.x + blockIdx.x * blockDim.x. Modify blockDim.x to increment.
 
-* Each thread has an index within its thread block, starting at 0. Each block is given an index, starting at 0. CUDA kernels have access to variables identifying both the index of the thread within the block (threadIdx x) that is executing the kernel and the index of the block within the grid (and blockIdx x).
-
-* As with other forms of parallelisation, loops in CPU-only applications are promising target for CUDA as each iteration of the loop can be run in parallel in its own thread. 
-* To parallelise a loop, two things need to be done; (1) a kernel must be written to do the work of a single iteration of the loop and (2) the execution configuration must ensure the kernel executes the correct number of times.
-
-* The number of threads in a block is limited to 1024. Beyond this, coordination is required across multiple thread blocks using the variable `blockDim.x`. When used with `blockIdx.x` and `threadIdx.x`, coordination is achieved across multiple blocks of multiple threads.
-* Parallel execution accross multiple blocks of multiple uses the expression threadIdx.x + blockIdx.x * blockDim.x. Modify blockDim.x to increment.
-
-* The most basic CUDA memory management technique involves a pointer that can be referenced in both host and device code, replace calls to `malloc` and `free` with `cudaMallocManaged` and `cudaFree`.
+The most basic CUDA memory management technique involves a pointer that can be referenced in both host and device code, replace calls to `malloc` and `free` with `cudaMallocManaged` and `cudaFree`.
 
 <img src="https://raw.githubusercontent.com/UoM-ResPlat-DevOps/SpartanGPUCourse/master/Images/gpumemarch.png" />
 
-* A common issue is having block/thread sizes mismatched with the iterations of a loop. This can be resolved by (1) writing an execution that creates more threads than necessary and (2) pass an argument, N, into the kernel that represents how many times the kernel should run, and (3) calculating the thread's index within the grid (using tid+bid*bdim), check that this index does not exceed N befor executing.
+A common issue is having block/thread sizes mismatched with the iterations of a loop. This can be resolved by (1) writing an execution that creates more threads than necessary and (2) pass an argument, N, into the kernel that represents how many times the kernel should run, and (3) calculating the thread's index within the grid (using tid+bid*bdim), check that this index does not exceed N befor executing.
 
-* The number of threads in a grid may be smaller than the size of a data set (e.g., a grid of 250 threads, an array of 1000 datasets). To resolve this, a grid-stride loop can be used within the kernel.
-* Each thread calculates its unique index within the grid using `tid+bid*bdim`, perform its operation on the element at that index within the array, then add to its index the number of threads in the grid until it is out of range of the array.
+The number of threads in a grid may be smaller than the size of a data set (e.g., a grid of 250 threads, an array of 1000 datasets). To resolve this, a grid-stride loop can be used within the kernel. Each thread calculates its unique index within the grid using `tid+bid*bdim`, perform its operation on the element at that index within the array, then add to its index the number of threads in the grid until it is out of range of the array. CUDA provides a variable, giving the number of blocks in a grid, `gridDim.x`. Calculating the total number of threads in a grid then is simply the number of blocks in a grid multiplied by the number of threads in each block, gridDim.x * blockDim.x
 
-The gridDim.x Variable
-* CUDA provides a variable giving the number of blocks in a grid, `gridDim.x`. Calculating the total number of threads in a grid then is simply the number of blocks in a grid multiplied by the number of threads in each block, gridDim.x * blockDim.x
+Most CUDA functions return a value of type cudaError_t, which can be used to check for errors when calling a function. Launching kernels will not return a value of type `cudaError_t` To check for errors occuring at the time of a kernel launch, CUDA provides the `cudaGetLastError` function, which does return a value of type `cudaError_t`. In order to catch errors that occur asynchronously it is necessary to check the error returned by `cudaDeviceSynchronize`, which will return an error if one of the kernel executions it is synchronizing on should fail.
 
-* Most CUDA functions return a value of type cudaError_t, which can be used to check for errors when calling a function. Launching kernels will not return a value of type `cudaError_t`
-* To check for errors occuring at the time of a kernel launch, CUDA provides the `cudaGetLastError` function, which does return a value of type `cudaError_t`.
+## 5.4 OpenCL Programming
 
-* In order to catch errors that occur asynchronously it is necessary to check the error returned by `cudaDeviceSynchronize`, which will return an error if one of the kernel executions it is synchronizing on should fail.
+The most brief example derived from Erik Smistad is used here. It is a simple vector addition and the source code is available in the OpenCl sub-directory in the Resources directory. The example is a simple vector addition; two equal-sized lists of numbers (say, A and B) and added together to generate a list of, equal-sized, C. In serial code this can be achieved by a loop:
 
+```
+for(int i = 0; i < LIST_SIZE; i++) {
+    C[i] = A[i] + B[i];
+}
+```
 
--- *Slide End* --
+Whilst the loop itself is simple, there is an time dependency which cannot be resolved in a serial manner. In parallel the vector additions can occur simultaneously. In OpenCL a kernel is required that will run on the compute device. This is very much like the CUDA kernel, but is somewhat more complex in OpenCL. The following is just the kernel with a vector addition function.
 
+```
+__kernel void vector_add(__global const int *A, __global const int *B, __global int *C) {
+    // Get the index of the current element to be processed
+    int i = get_global_id(0);
+    // Do the operation
+    C[i] = A[i] + B[i];
+}
+```
 
-### Part 1: Programming GPGPUs
-* GPUs are not suitable for all programming tasks. Investigate other algorithms if possible. Break the problem into discrete sections of work that can be distributed to multiple tasks (decomposition).
-* The main challenge to the programmer - keep the GPGPU busy!
-* GeForce GTX 280 is 10 years old, still runs well.
+The OpenCL API is defined in the `cl.h` header file. In the program system information is embodied and the devices to use in execution in the host program as follows:
 
-### Part 1: OpenACC, OpenMP, CUDA
-* The CUDA API extends the C, C++ programming languages. Specific to NVIDIA hardware. 
-* Porting CUDA to OpenCL is becoming easier.
-* OpenACC Vendor-neutral API is developed by Cray, CAPS, NVidia and PGI for GPU/CPU systems.
+```
+// Get platform and device information
+    cl_platform_id platform_id = NULL;
+    cl_device_id device_id = NULL;   
+    cl_uint ret_num_devices;
+    cl_uint ret_num_platforms;
+    cl_int ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms);
+    ret = clGetDeviceIDs( platform_id, CL_DEVICE_TYPE_DEFAULT, 1, 
+            &device_id, &ret_num_devices);
+```
 
-### Part 1: OpenCL
-* Not taught in this *introductory* course.
+One will also find the OpenCL context and a command queue.
 
-### Part 1: GPUs on Spartan
-* K80s specs (2.9TF double precision, 4992 CUDA cores, 562 MHz); P100 specs (4.7TF, 3584 CUDA cores, 1126MHz) - greater with NVLink
-* There are three nodes (only) available for general use (gpu partition), five nodes for physics (two exclusive, three shared), and a much larger set of GPGPU partitions (shortgpgpu, 6 nodes; gpgpu partition 59 nodes, gpgpu-test 6 nodes, deeplearn (engineering purchased) 4 nodes). 
-* MDHS inc. StV – 5.22 Nodes, Melbourne Bio – 10.43, Resplat (General Access) – 10.43, MSE – 24.4, MSE Mech Eng – 4.86, Latrobe – 5.22, RMIT – 5.22, Deakin – 5.22. Total Nodes = 71 (excludes 2 nodes for testing)
-* These GPGPU nodes will be presented in 3 subclusters and will be released in stages. 
+```
+// Create an OpenCL context
+    cl_context context = clCreateContext( NULL, 1, &device_id, NULL, NULL, &ret);
+// Create a command queue
+    cl_command_queue command_queue = clCreateCommandQueue(context, device_id, 0, &ret);
+```
 
-### Part 1: CUDA and Slurm
-* Including CUDA from 7.0.28 to 9.2.88, FFTW, GROMACS, NAMD, OpenMPI, PyTorch, Python, RapidCFD, Tensorflow, Torch, etc.
-* CUDA toolchain is required to make GPUs work as expected. Approximately 250 applications and libraries in total
-* For example #SBATCH --partition gpu and #SBATCH --partition gpgpu. For example  For example #SBATCH --gres=gpu:2 will request two GPUs for your job.
-* You can specify project at submission time: e.g., sbatch -A projectID script.slurm
+Like in CUDA, memory needs to be transferred in a device. In OpenCL this is done by creating memory buffer objects.
 
-### Part 1: Example Slurm Scripts
-CPU Example WallClock: 66.138824  CPUTime: 64.785332  Memory: 236.933594 MB
-GPU Example WallClock: 18.759842  CPUTime: 17.847618  Memory: 1319.082031 MB
+```
+// Create memory buffers on the device for each vector 
+cl_mem a_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY, 
+	LIST_SIZE * sizeof(int), NULL, &ret);
+cl_mem b_mem_obj = clCreateBuffer(context, CL_MEM_READ_ONLY,
+	LIST_SIZE * sizeof(int), NULL, &ret);
+cl_mem c_mem_obj = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 
+	LIST_SIZE * sizeof(int), NULL, &ret);
+// Copy the lists A and B to their respective memory buffers
+ret = clEnqueueWriteBuffer(command_queue, a_mem_obj, CL_TRUE, 0,
+	LIST_SIZE * sizeof(int), A, 0, NULL, NULL);
+ret = clEnqueueWriteBuffer(command_queue, b_mem_obj, CL_TRUE, 0, 
+	LIST_SIZE * sizeof(int), B, 0, NULL, NULL);
+```
 
-### Part 2: Introduction to OpenACC
-GCC > 6.0 supports OpenACC 2.0a - I haven't tested this!
+OpenCL then needs a program object to be created and compiled.
+ 
+```
+// Create a program from the kernel source
+cl_program program = clCreateProgramWithSource(context, 1, 
+	(const char **)&source_str, (const size_t *)&source_size, &ret);
+// Build the program
+	ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL);
+``` 
 
-### Part 2: OpenACC Kernels Construct
-Will attempt to resolve any data dependencies, and data movement. If successful, it produces a kernel to run on the accelerator or it let's the programmer know that the region was not available for parallel execution
+Kernel arguments can then be created, set, and executed.
 
-### Part 2: Array Shaping
-* e.g., #pragma acc data pcopyin(x[0:ROWS][0:COLS], y[0:ROWS][0:COLS])) pcopyout[y[0:ROWS][0:COLS])
+```
+// Create the OpenCL kernel
+cl_kernel kernel = clCreateKernel(program, "vector_add", &ret);
+// Set the arguments of the kernel
+ret = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void *)&a_mem_obj);
+ret = clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&b_mem_obj);
+ret = clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&c_mem_obj);
+// Execute the OpenCL kernel on the list
+size_t global_item_size = LIST_SIZE; // Process the entire lists
+size_t local_item_size = 64; // Divide work items into groups of 64
+ret = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, 
+	&global_item_size, &local_item_size, 0, NULL, NULL);
+```
 
-### Part 2: Kernels vs Parallel Directives
-Kernel They direct the compiler to produce and arbitrary numebr of kernels of arbitrary dimensions, to execute in sequence, and to offload code sections to the accelerator.
-Parallel by specifying specific dimensions of parallelisation (e.g., `vector` and `gang` parallelism)
-See README.md
+The memory buffer is read from the device to the local variable, and the results displayed.
 
+```
+// Read the memory buffer C on the device to the local variable C
+int *C = (int*)malloc(sizeof(int)*LIST_SIZE);
+ret = clEnqueueReadBuffer(command_queue, c_mem_obj, CL_TRUE, 0, 
+	LIST_SIZE * sizeof(int), C, 0, NULL, NULL);
+// Display the result to the screen
+for(i = 0; i < LIST_SIZE; i++)
+	printf("%d + %d = %d\n", A[i], B[i], C[i]);
+```
 
-### Part 3: CUDA Synchronisation
+Cleaning up is required in OpenCL
 
-### Part 3: "Hello World", CUDA-style
-The kernel is launching with 1 block of threads (the first execution configuration argument) which contains 1 thread (the second configuration argument).
+``` 
+// Clean up
+ret = clFlush(command_queue);
+ret = clFinish(command_queue);
+ret = clReleaseKernel(kernel);
+ret = clReleaseProgram(program);
+ret = clReleaseMemObject(a_mem_obj);
+ret = clReleaseMemObject(b_mem_obj);
+ret = clReleaseMemObject(c_mem_obj);
+ret = clReleaseCommandQueue(command_queue);
+ret = clReleaseContext(context);
+free(A);
+free(B);
+free(C);
+```
 
-### Part 3: CUDA Compilation Flags
-`-gencode` allows for more PTX (Parallel Thread Execution) generations, and can be repeated many times for different architectures, and repeat the sequence for each target
+To make OpenCL run the kernel on the GPU the constant CL_DEVICE_TYPE_DEFAULT should be changed to CL_DEVICE_TYPE_GPU in line 43. To force it to run on CPU set it to CL_DEVICE_TYPE_CPU.
 
-### Part 3: Launching Parallel Kernels
-compile and modify `01-basic-parallel.cu` to represent choices.
-Vector addition as well? Ai+Bi=Ci
+To compile the program use the following. An implementation of OpenCL will be required for the appropriate device. For example, NVIDIA, AMD have implementations of OpenCL for their GPUs. 
 
-### Part 3: CUDA Thread Hierarchy Variables
-Comile and modify `01-single-block-loop-solution.cu`
-
-### Coordinating Parallel Threads
-Compile and modify `02-multi-block-loop.cu`
-
-### Part 3: CPU and GPU Memory Allocation
-The program allocates an array, initializes it with integer values on the host, attempts to double each of these values in parallel on the GPU, and then confirms whether or not the doubling operations were successful, on the host.
-
-Currently the program will not work: it is attempting to interact on both the host and the device with an array at pointer a, but has only allocated the array (using malloc) to be accessible on the host. 
-
-Refactor the application to meet the following conditions:
-a should be available to both host and device code.
-The memory at a should be correctly freed.
-
-Compile and modify `01-double-elements-solution.cu`
-
-### Part 3: Blocks, Threads and Loop Mismatch
-The program in 02-mismatched-config-loop.cu allocates memory, using cudaMallocManaged for a 1000 element array of integers, and then seeks to initialize all the values of the array in parallel using a CUDA kernel. 
-
-Assign a value to number_of_blocks that will make sure there are at least as many threads as there are elements in a to work on.
-
-Update the initializeElementsTo kernel to make sure that it does not attempt to work on data elements that are out of range.
-
-Compile and modify `02-mismatched-config-loop-solution.cu`
-
-### Part 3: Data Sets Larger then the Grid
-A grid-stride loop in the doubleElements kernel, in order that the grid, which is smaller than N, can reuse threads to cover every element in the array. The program will print whether or not every element in the array has been doubled, currently the program accurately prints FALSE.
-
-### Part 3: CUDA Error Handling
-Check README.md Compile and modify 01-add-error-handling-solution.cu 01-add-error-handling.cu
+`gcc -l OpenCL vector.c -o vector`
 
 # 6.0 Profiling and Debugging
 
@@ -3602,7 +3676,7 @@ Regression tests can consist of functional tests or unit tests. Functional tests
 
 **OpenMP Errors**
 
-Scoping issues of variables is always worth a second look. One common mistake is forgetting that that private variables are uninitialised on entry to parallel regions. See the example, `unitialised.c` in the resources. Although a variable has been assigned a value, that variable (despite having the same name) is not passed to the parallel region because it is private. A proper example is `sharedhello.c` and `sharedhello.f90`. Another common issue is the default behaviour for parallel regions and worksharing constructs is to have `default(shared)` for variables. In all but the most trivial loops (such as used throughout this book!),  `default(none)` should be set. As it is the OpenMP standard makes it too easy to accidentially share variables.
+Scoping issues of variables is always worth a second look. One common mistake is forgetting that that private variables are uninitialised on entry to parallel regions. See the example, `unitialised.c` in the resources. Although a variable has been assigned a value, that variable (despite having the same name) is not passed to the parallel region because it is private. A proper example is `sharedhello.c` and `sharedhello.f90`. Another common issue is the default behaviour for parallel regions and worksharing constructs is to have `default(shared)` for variables. In all but the most trivial loops (such as used throughout this book!), `default(none)` should be set. As it is the OpenMP standard makes it too easy to accidentially share variables.
 
 OpenMP provides the programmers power over how they manage their parallel regions through directives, such as _critical_, _atomic_ and so forth. Selecting the wrong directive can result in errors. Consider the program `addition.c` in the resources in the repository. The program adds all the elements of an array in parallel, with the array distributed statically. Two options are presented at the end for the global sum. Compare and contrast the results of using different directives; using the _atomic_ directive the correct result is achieved, but using the _critical_ directive, a different (and incorrect) value results.
 
@@ -3954,30 +4028,6 @@ In the above example the breakpoint is inserted at a line number. Another common
 
 As illustrated one can run through the code with the `run` command or step through it, line-by-line with the `step` command. The `step` command will `step` into a function, but the `next` command can be used to skip or "step over" a function. If there is no function the `next` command will simply continue to the next line. The `cont` (contintue) command starts the program. An integer count can be provided to te `step` and `next` command to represent how many times the command should be carried out (e.g., `step 5` would mean the next five lines of code).
 
-
-
-
-
-
-
-GDB makes it easy to inspect the data within a running program. Continuing with
-your debugging session, it’s now time to look at your stack structure. You do this
-with the display command:
-(gdb) display stack
-1: stack = {stack = {2, 0, 1107383313, 134513378,
-1108545272, 1108544020, -1073750392, 134513265,
-1108544020, 1073792624}, index = 1}
-(gdb)
-If you simply display the stack variable, you see the aggregate components of
-the structure (first the array itself, then the index variable). Note that many of the
-stack elements are unusually large numbers, but this is only because the structure
-is not initialized. You can inspect specific elements of the stack variable, also using
-the display command:
-
-
-
-
-
 Despite being supported for threaded applications, parallelism with distributed memory and message passing (e.g., OpenMPI) however can create some difficulties if conducted naively as following illustrates. 
 
 
@@ -4105,17 +4155,9 @@ I am a subsidiary process 1 of the group (total 2).
 processor 1  received 1729
 ```
 
-
-# References
+# 7.0 References
 
 Fork-join image by Qwertyus, https://commons.wikimedia.org/wiki/File:Fork_join.svg, This file is licensed under the Creative Commons Attribution 3.0 Unported license.
-
-Accelerate code on GPUs with OpenACC, Pawsey Supercomputing Centre
-Accelerating Applications with CUDA C/C++, NVidia
-GPU Programming Essentials, Pawsey Supercomputing Centre
-Introduction to OpenACC, NVidia
-The Graphics Processing Unit (GPU) revolution, Ramu Anandakrishnan, Virginia Polytechnic Institute and State University
-Tutorial on GPU computing: With an introduction to CUDA, Felipe A. Cruz, University of Bristol
 
 Dijkstra, E. W. (1970). Notes on structured programming. (2nd ed. ed.) (EUT report. WSK, Dept. of Mathematics
 and Computing Science; Vol. 70-WSK-03), (EWD; Vol. 249). Eindhoven: Technische Hogeschool Eindhoven.
@@ -4136,7 +4178,6 @@ Mytton, David (2004), "Why You Need Coding Standards", https://www.sitepoint.com
 
 Wilkes, W., Stringer, J. (1953), "Micro-programming and the design of the control circuits in an electronic digital computer" Mathematical Proc. of the Cambridge Philosophical Society, Vol. 49, 1953.
 
-Wilson G, Aruliah DA, Brown CT, Chue Hong NP, Davis M, Guy RT, et al. (2014). "Best Practices for Scientific Computing". PLoS Biol. 12 (1): e1001745. doi:10.1371/journal.pbio.1001745
-https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745
+Wilson G, Aruliah DA, Brown CT, Chue Hong NP, Davis M, Guy RT, et al. (2014). "Best Practices for Scientific Computing". PLoS Biol. 12 (1): e1001745. doi:10.1371/journal.pbio.1001745 https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745
 
 
